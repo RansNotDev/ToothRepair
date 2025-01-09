@@ -1,94 +1,97 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tooth Repair</title>
-  <!-- Google Font: Source Sans Pro -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="../assets/Assetscalendar/fontawesome-free/css/all.min.css">
-  <!-- fullCalendar -->
-  <link rel="stylesheet" href="../assets/Assetscalendar/fullcalendar/main.css">
-  <!-- Theme style -->
-  <link rel="stylesheet" href="../assets/Assetscalendar/dist/css/adminlte.min.css">
+<?php 
+include_once('includes/header.php');
+include_once('includes/sidebar.php');
+include_once('includes/topbar.php');
+?>
 
-  <style>
-    /* Center the calendar on the screen */
-    .center-screen {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: #f4f6f9; /* Optional: Add a background color */
-      z-index: 9999;
-    }
+<!-- Begin Page Content -->
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Appointment Calendar</h1>
+    </div>
 
-    /* Calendar container styles */
-    #calendar {
-      width: 90%; /* Adjust the width */
-      max-width: 900px; /* Optional: Set a maximum width */
-      height: 80%; /* Adjust the height */
-      background-color: white; /* Optional: Add background color */
-      border-radius: 8px; /* Optional: Rounded corners */
-      overflow: hidden; /* Ensure content doesn't overflow */
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Add shadow */
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      #calendar {
-        width: 100%; /* Full width for smaller screens */
-        height: 100%; /* Full height for smaller screens */
-      }
-    }
-  </style>
-</head>
-<body>
-<div class="wrapper">
-  <!-- Center the calendar -->
-  <div class="center-screen">
-    <div id="calendar"></div>
-  </div>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div id="calendar"></div>
+        </div>
+    </div>
 </div>
-<!-- ./wrapper -->
 
-<!-- jQuery -->
-<script src="../assets/Assetscalendar/jquery/jquery.min.js"></script>
-<!-- Bootstrap -->
-<script src="../assets/Assetscalendar/bootstrap/js/bootstrap.bundle.min.js"></script>
-<!-- jQuery UI -->
-<script src="../assets/Assetscalendar/jquery-ui/jquery-ui.min.js"></script>
-<!-- AdminLTE App -->
-<script src="../assets/Assetscalendar/dist/js/adminlte.min.js"></script>
-<!-- fullCalendar -->
+<!-- Add only the necessary calendar-specific CSS -->
+<link rel="stylesheet" href="../assets/Assetscalendar/fullcalendar/main.css">
+
+<!-- Remove adminlte.min.css as it's causing the color conflict -->
+<!-- <link rel="stylesheet" href="../assets/Assetscalendar/dist/css/adminlte.min.css"> -->
+
+<style>
+    /* Override any conflicting styles */
+    .navbar-nav.bg-gradient-primary {
+        background-color: #4e73df;
+        background-image: linear-gradient(180deg,#4e73df 10%,#224abe 100%);
+    }
+
+    #calendar {
+        width: 100%;
+        height: auto;
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .fc-header-toolbar {
+        padding: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .fc-header-toolbar {
+            flex-direction: column;
+        }
+        .fc-header-toolbar > * {
+            margin-bottom: 0.5rem;
+        }
+    }
+</style>
+
+<?php include_once('includes/footer.php'); ?>
+
+<!-- Calendar specific scripts -->
 <script src="../assets/Assetscalendar/moment/moment.min.js"></script>
 <script src="../assets/Assetscalendar/fullcalendar/main.js"></script>
 
 <script>
-  $(function () {
-    // Initialize FullCalendar
-    var calendarEl = document.getElementById('calendar');
-    var calendar = new FullCalendar.Calendar(calendarEl, {
+    $(function () {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
       headerToolbar: {
         left: 'prev,next today',
         center: 'title',
         right: 'dayGridMonth,timeGridWeek,timeGridDay'
       },
       themeSystem: 'bootstrap',
-      editable: true, // Allow editing of events
-      droppable: false, // Disable drag-and-drop
-      clickable: true, // Allow clicking on events
-      aspectRatio: 2.5, // Control cell size by aspect ratio
-      contentHeight: 'auto', // Automatically adjust height
-      dayMaxEventRows: true, // Allow multiple events in a single day
+      editable: true,
+      droppable: false,
+      clickable: true,
+      aspectRatio: 1.8,
+      contentHeight: 'auto',
+      dayMaxEventRows: true,
+      initialView: 'dayGridMonth',
+      events: [], // You can add your events data here
+      eventClick: function(info) {
+        // Handle event click
+        alert('Event: ' + info.event.title);
+      },
+      dateClick: function(info) {
+        // Handle date click
+        alert('Clicked on: ' + info.dateStr);
+      }
     });
     calendar.render();
+
+    // Adjust calendar size when sidebar is toggled
+    $("#sidebarToggle, #sidebarToggleTop").on('click', function() {
+      setTimeout(function() {
+        calendar.updateSize();
+      }, 300);
+    });
   });
 </script>
-</body>
-</html>
