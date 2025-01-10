@@ -21,35 +21,50 @@ include_once('includes/topbar.php');
 
 <style>
     /* Calendar cell styling */
+    .fc .fc-day-today {
+        background-color: rgba(206, 212, 218, 0.3) !important;
+    }
+
+    .fc .fc-day-today .fc-daygrid-day-number {
+        background-color: #4e73df;
+        color: white;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
     .fc .fc-daygrid-day-frame {
         min-height: 120px !important;
         height: 120px !important;
-        border: 1px solid #ddd !important;
+        border: 0.2px solid #ddd !important;
         background: white;
         position: relative;
         padding: 5% !important;
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Remove default FullCalendar padding */
-    .fc .fc-daygrid-day-top {
-        flex-direction: row !important;
-        justify-content: flex-end;
-        height: 30% !important;
     }
 
     /* Large date number styling */
+    .fc .fc-daygrid-day-top {
+        height: 30% !important;
+        display: flex;
+        justify-content: flex-end;
+    }
+
     .fc .fc-daygrid-day-number {
         font-size: 1.5em;
         font-weight: bold;
         color: #333;
         padding: 0 !important;
-        position: relative;
-        z-index: 1;
     }
 
-    /* Status box styling */
+    /* Status indicators container */
+    .status-container {
+        display: flex;
+        justify-content: center;
+        padding: 5px;
+        margin-top: 5px;
+    }
     .status-box {
         position: absolute;
         left: 5%;
@@ -64,10 +79,15 @@ include_once('includes/topbar.php');
         font-size: 0.85em;
     }
 
-    /* Status text styling */
-    .status-text {
-        position: relative;
-        z-index: 1;
+    /* Status pill styling */
+    .status-pill {
+        padding: 4px 12px;
+        border-radius: 15px;
+        color: white;
+        font-size: 0.85em;
+        text-align: center;
+        width: fit-content;
+        margin: 0 auto;
     }
 
     /* Status colors */
@@ -83,16 +103,16 @@ include_once('includes/topbar.php');
         background-color: #6f42c1;
     }
 
-    /* Notification badge - now inside the color box */
+    /* Notification badge */
     .notification-badge {
         position: absolute;
-        top: 5px;
+        top: 10px;
         right: 5px;
         background: rgba(255, 255, 255, 0.3);
         color: white;
         border-radius: 50%;
         width: 22px;
-        height: 22px;
+        height: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -100,14 +120,13 @@ include_once('includes/topbar.php');
         font-weight: bold;
     }
 
-    /* Prevent cell content shifting */
-    .fc-daygrid-day-events {
-        display: none !important;
-    }
 
-    .fc .fc-daygrid-body-balanced .fc-daygrid-day-events {
-        position: absolute;
-    }
+    .status-available { background-color: #28a745; }
+    .status-no-slots { background-color: #007bff; }
+    .status-holiday { background-color: #6f42c1; }
+
+    .fc-daygrid-day-events { display: none !important; }
+
 </style>
 
 <?php include_once('includes/footer.php'); ?>
@@ -126,84 +145,48 @@ include_once('includes/topbar.php');
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
             themeSystem: 'bootstrap',
-            editable: false,
+            editable: true,
             droppable: false,
             aspectRatio: 1.8,
             contentHeight: 'auto',
             dayMaxEventRows: true,
             initialView: 'dayGridMonth',
             dayCellDidMount: function(arg) {
-                const date = arg.date;
-                const day = date.getDate();
-                const cellContent = arg.el.querySelector('.fc-daygrid-day-frame');
+    const date = arg.date;
+    const day = date.getDate();
+    const cellContent = arg.el.querySelector('.fc-daygrid-day-frame');
 
-                // Create status box
-                const statusBox = document.createElement('div');
-                statusBox.className = 'status-box';
+    // Create status box
+    const statusBox = document.createElement('div');
+    statusBox.className = 'status-box';
+    
+    if (day === 12) {
+        statusBox.style.backgroundColor = '#6f42c1'; // Holiday
+        statusBox.innerHTML = `
+            <div class="notification-badge">2</div>
+            <span>Holiday</span>
+        `;
+    } else if (day === 13 || day === 14) {
+        statusBox.style.backgroundColor = '#28a745'; // Available
+        if (day === 13) {
+            statusBox.innerHTML = `
+                <div class="notification-badge">2</div>
+                <span>Available</span>
+            `;
+        } else {
+            statusBox.innerHTML = '<span>Available</span>';
+        }
+    } else if (day === 15 || day === 16) {
+        statusBox.style.backgroundColor = '#007bff'; // No Slots
+        statusBox.innerHTML = '<span>No Slots</span>';
+    }
 
-                // Add different status based on conditions
-                if (day === 12) {
-                    statusBox.classList.add('status-holiday');
-                    
-                    // Create container for notification and status text
-                    const contentWrapper = document.createElement('div');
-                    contentWrapper.style.position = 'relative';
-                    contentWrapper.style.width = '100%';
-                    contentWrapper.style.height = '100%';
-                    
-                    // Add notification inside the color box
-                    const badge = document.createElement('div');
-                    badge.className = 'notification-badge';
-                    badge.innerHTML = '2';
-                    contentWrapper.appendChild(badge);
-                    
-                    // Add status text
-                    const statusText = document.createElement('div');
-                    statusText.className = 'status-text';
-                    statusText.innerHTML = 'Holiday';
-                    statusText.style.position = 'absolute';
-                    statusText.style.left = '50%';
-                    statusText.style.top = '50%';
-                    statusText.style.transform = 'translate(-50%, -50%)';
-                    contentWrapper.appendChild(statusText);
-                    
-                    statusBox.appendChild(contentWrapper);
-                } else if (day === 13 || day === 14) {
-                    statusBox.classList.add('status-available');
-                    
-                    // Create container for notification and status text
-                    const contentWrapper = document.createElement('div');
-                    contentWrapper.style.position = 'relative';
-                    contentWrapper.style.width = '100%';
-                    contentWrapper.style.height = '100%';
-                    
-                    if (day === 13) {
-                        const badge = document.createElement('div');
-                        badge.className = 'notification-badge';
-                        badge.innerHTML = '2';
-                        contentWrapper.appendChild(badge);
-                    }
-                    
-                    const statusText = document.createElement('div');
-                    statusText.className = 'status-text';
-                    statusText.innerHTML = 'Available';
-                    statusText.style.position = 'absolute';
-                    statusText.style.left = '50%';
-                    statusText.style.top = '50%';
-                    statusText.style.transform = 'translate(-50%, -50%)';
-                    contentWrapper.appendChild(statusText);
-                    
-                    statusBox.appendChild(contentWrapper);
-                } else if (day === 15 || day === 16) {
-                    statusBox.classList.add('status-no-slots');
-                    
-                    const statusText = document.createElement('div');
-                    statusText.className = 'status-text';
-                    statusText.innerHTML = 'No Slots';
-                    statusBox.appendChild(statusText);
-                }
-
-                cellContent.appendChild(statusBox);
+    if (statusBox.innerHTML) {
+        cellContent.appendChild(statusBox);
+    }
+},
+            eventClick: function(info) {
+                alert('Event: ' + info.event.title);
             },
             dateClick: function(info) {
                 alert('Clicked on: ' + info.dateStr);
