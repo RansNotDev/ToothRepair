@@ -19,6 +19,12 @@
     <!-- Custom styles for this template-->
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
 
+    <!-- Custom styles for this page  for data tables-->
+    <link href="vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+
+
+    
+
     <!-- jQuery -->
     <script src="vendor/jquery/jquery.min.js"></script>
 </head>
