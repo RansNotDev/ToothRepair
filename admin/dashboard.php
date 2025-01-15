@@ -18,31 +18,5 @@ include_once('includes/topbar.php');
     
     <!-- Charts Row -->
     <?php include_once('includes/dashboard-charts.php'); ?>
-    
-    <!-- Area Chart -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Area Chart</h6>
-        </div>
-        <div class="card-body">
-            <div class="chart-area">
-                <canvas id="myAreaChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Pie Chart -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Pie Chart</h6>
-        </div>
-        <div class="card-body">
-            <div class="chart-pie pt-4 pb-2">
-                <canvas id="myPieChart"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- /.container-fluid -->
 
 <?php include_once('includes/footer.php'); ?>
