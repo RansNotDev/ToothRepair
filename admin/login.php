@@ -2,44 +2,47 @@
 require_once 'db_connection.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = $_POST["email"];
-    $password = $_POST["password"]; 
+    $email = trim($_POST["email"]);
+    $password = trim($_POST["password"]);
 
     try {
+        // Prepare the SQL statement
         $stmt = $conn->prepare("SELECT * FROM admin WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
 
-        if ($result->num_rows == 1) {
+        if ($result->num_rows === 1) {
             $row = $result->fetch_assoc();
             $hashedPassword = $row['password'];
 
-            if (password_verify($password, $hashedPassword)) { 
-                // Authentication successful
+            // Debugging: Log the hashed password and input password
+            error_log("Hashed password from DB: " . $hashedPassword);
+            error_log("Input password: " . $password);
+
+            // Verify the password
+            if (password_verify($password, $hashedPassword)) {
+                // Start session and set session variables
                 session_start();
-                $_SESSION["email"] = $email;
-                echo "<script>
-                        console.log('Login successful, redirecting...');
-                        window.location.href = 'dashboard.php'; 
-                      </script>";
+                $_SESSION['email'] = $email;
+                $_SESSION['admin_id'] = $row['id']; // Assuming there's an ID column for admins
+
+                // Redirect to the dashboard
+                header("Location: dashboard.php");
+                exit();
             } else {
-                // Incorrect password
-                echo "<script>
-                        console.log('Incorrect password');
-                        alert('Incorrect email or password!'); 
-                      </script>"; 
+                // Debugging: Log password verification failure
+                error_log("Password verification failed for email: " . $email);
+                echo "<script>alert('Incorrect email or password!');</script>";
             }
         } else {
-            // Email not found
-            echo "<script>
-                    console.log('Email not found');
-                    alert('Incorrect email or password!'); 
-                  </script>";
+            // Debugging: Log email not found
+            error_log("Email not found: " . $email);
+            echo "<script>alert('Incorrect email or password!');</script>";
         }
-
-    } catch(Exception $e) {
-        echo "Error: " . $e->getMessage(); 
+    } catch (Exception $e) {
+        error_log("Error: " . $e->getMessage());
+        echo "<script>alert('An error occurred. Please try again later.');</script>";
     }
 }
 ?>
