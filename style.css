@@ -1,0 +1,268 @@
+/* General Styles */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    scroll-behavior: smooth;
+    color: #333;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #3463c9; /* Coral color */
+    color: #fff;
+    padding: 5px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.navbar .logo h4 {
+    margin: 0;
+}
+
+.navbar .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 15px;
+    align-items: center; /* Ensures vertical alignment */
+}
+
+.navbar .nav-links li a, .navbar .nav-links li button {
+    text-decoration: none;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    display: inline-block; /* Ensures consistent alignment */
+}
+
+.navbar .nav-links li a:hover, .navbar .nav-links li button:hover {
+    background-color: #318cf5; /* Tomato color */
+}
+
+/* Section Styles */
+section {
+    padding: 100px 20px;
+    text-align: center;
+}
+
+.home {
+    background: linear-gradient(to right, #2776ec, #1862d1);
+    color: #fff;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.home .content h2 {
+    font-size: 3rem;
+    margin: 0 0 15px;
+}
+
+.home .content p {
+    font-size: 1.2rem;
+    margin: 0 0 20px;
+}
+
+.home .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #fff;
+    color: #2770f8;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.home .btn:hover {
+    background-color: #ffdfba;
+}
+
+.services, .about, .testimonials, .contact {
+    background-color: #f9f9f9;
+    height: 100vh;
+}
+
+.services h2, .about h2, .testimonials h2, .contact h2 {
+    color: #3451f7;
+}
+
+.services .row, .testimonials .row {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.service, .testimonial {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    margin: 10px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.service:hover, .testimonial:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.contact .btn {
+    background-color: #1a62e9;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.contact .btn:hover {
+    background-color: #194ee0;
+}
+
+
+
+
+/* Modal Container */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(112, 105, 105, 0.5); /* Semi-transparent background */
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Modal Content */
+.modal-content {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    max-width: 800px;
+    width: 90%;
+    padding: 30px;
+    box-shadow: 0 4px 10px rgba(97, 95, 95, 0.2);
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    position: relative;
+}
+
+/* Close Button */
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #666;
+    cursor: pointer;
+}
+
+/* Modal Columns */
+.modal-content .container {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+}
+
+.modal-content .col {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+}
+
+/* Card Styling */
+.card {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+/* Form Fields */
+.form-outline {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.form-outline input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.form-outline label {
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    background: #ffffff;
+    padding: 0 5px;
+    font-size: 12px;
+    color: #666;
+}
+
+/* Buttons */
+button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+/* Hero Image */
+.hero-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Centered Text Links */
+.text-center {
+    text-align: center;
+    margin-top: 5px;
+}
+
+.link {
+    color: #007bff;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.link:hover {
+    color: #0056b3;
+}
+
+/* Active Modal (to display) */
+.modal.active {
+    display: flex;
+}

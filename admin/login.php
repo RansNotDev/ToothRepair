@@ -1,45 +1,38 @@
 <?php
 require_once 'db_connection.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = $_POST["email"];
-    $password = $_POST["password"]; 
+session_start();
 
-    try {
-        $stmt = $conn->prepare("SELECT * FROM admin WHERE email = ?");
-        $stmt->bind_param("s", $email);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Get email and password from the form
+    $email = trim($_POST['email']);
+    $password = trim($_POST['password']);
+
+    // Query to validate credentials
+    $query = "SELECT * FROM admin WHERE email = ? AND password = PASSWORD(?)";
+    $stmt = $conn->prepare($query);
+
+    if ($stmt) {
+        $stmt->bind_param('ss', $email, $password);
         $stmt->execute();
         $result = $stmt->get_result();
 
-        if ($result->num_rows == 1) {
-            $row = $result->fetch_assoc();
-            $hashedPassword = $row['password'];
+        if ($result->num_rows === 1) {
+            $admin = $result->fetch_assoc();
 
-            if (password_verify($password, $hashedPassword)) { 
-                // Authentication successful
-                session_start();
-                $_SESSION["email"] = $email;
-                echo "<script>
-                        console.log('Login successful, redirecting...');
-                        window.location.href = 'dashboard.php'; 
-                      </script>";
-            } else {
-                // Incorrect password
-                echo "<script>
-                        console.log('Incorrect password');
-                        alert('Incorrect email or password!'); 
-                      </script>"; 
-            }
+            // Set session variables
+            $_SESSION['admin_id'] = $admin['id'];
+            $_SESSION['admin_username'] = $admin['username'];
+            $_SESSION['admin_email'] = $admin['email'];
+
+            // Redirect to dashboard
+            header("Location: dashboard.php");
+            exit;
         } else {
-            // Email not found
-            echo "<script>
-                    console.log('Email not found');
-                    alert('Incorrect email or password!'); 
-                  </script>";
+            $error_message = "Invalid email or password.";
         }
-
-    } catch(Exception $e) {
-        echo "Error: " . $e->getMessage(); 
+    } else {
+        $error_message = "Database query error. Please try again.";
     }
 }
 ?>
@@ -50,9 +43,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Tooth Repair Dental Clinic | Login </title>
+    <title>Tooth Repair Dental Clinic | Login</title>
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
 </head>
 <body class="bg-gradient-primary">
@@ -68,7 +60,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     <div class="text-center">
                                         <h1 class="h4 text-gray-900 mb-4">Welcome Admin</h1>
                                     </div>
-                                    <form class="user" method="POST" action="login.php"> 
+                                    <?php if (!empty($error_message)): ?>
+                                        <div class="alert alert-danger" role="alert">
+                                            <?= htmlspecialchars($error_message); ?>
+                                        </div>
+                                    <?php endif; ?>
+                                    <form class="user" method="POST" action="login.php">
                                         <div class="form-group">
                                             <input type="email" class="form-control form-control-user" name="email" id="exampleInputEmail" aria-describedby="emailHelp" placeholder="Enter Email Address..." required>
                                         </div>

@@ -22,6 +22,13 @@
     <!-- Custom styles for this page  for data tables-->
     <link href="vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
     <!-- jQuery -->
+
+    <!-- Full Calendar -->
+    <link rel="stylesheet" href="../assets/Assetscalendar/fullcalendar/main.css">
+
+    <!-- Sweet Alert -->
+    <link rel="stylesheet" href="../assets/Assetscalendar/sweetalert2/sweetalert2.min.css">
+    
     <script src="vendor/jquery/jquery.min.js"></script>
 </head>
 

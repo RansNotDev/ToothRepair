@@ -22,6 +22,11 @@
     <!-- Logout Modal-->
     <?php include_once('includes/logout-modal.php'); ?>
 
+    <!-- full calendar -->
+    <script src="../assets/Assetscalendar/moment/moment.min.js"></script>
+    <script src="../assets/Assetscalendar/fullcalendar/main.js"></script>
+    <script src="../assets/Assetscalendar/sweetalert2/sweetalert2.all.min.js"></script> 
+
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -34,5 +39,15 @@
     <!-- Page level custom scripts -->
     <script src="js/demo/chart-area-demo.js"></script>
     <script src="js/demo/chart-pie-demo.js"></script>
+
+
+    
+<!-- Include jQuery, Bootstrap, and DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+
+
 </body>
 </html>
