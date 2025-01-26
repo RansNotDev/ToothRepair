@@ -1,7 +1,6 @@
 <?php
 require_once 'db_connection.php';
 
-<<<<<<< HEAD
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -15,21 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($stmt) {
         $stmt->bind_param('ss', $email, $password);
-=======
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = trim($_POST["email"]);
-    $password = trim($_POST["password"]);
-
-    try {
-        // Prepare the SQL statement
-        $stmt = $conn->prepare("SELECT * FROM admin WHERE email = ?");
-        $stmt->bind_param("s", $email);
->>>>>>> 0003e1ed493a19b28403b75ca385eb70342caa11
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result->num_rows === 1) {
-<<<<<<< HEAD
             $admin = $result->fetch_assoc();
 
             // Set session variables
@@ -45,38 +33,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     } else {
         $error_message = "Database query error. Please try again.";
-=======
-            $row = $result->fetch_assoc();
-            $hashedPassword = $row['password'];
-
-            // Debugging: Log the hashed password and input password
-            error_log("Hashed password from DB: " . $hashedPassword);
-            error_log("Input password: " . $password);
-
-            // Verify the password
-            if (password_verify($password, $hashedPassword)) {
-                // Start session and set session variables
-                session_start();
-                $_SESSION['email'] = $email;
-                $_SESSION['admin_id'] = $row['id']; // Assuming there's an ID column for admins
-
-                // Redirect to the dashboard
-                header("Location: dashboard.php");
-                exit();
-            } else {
-                // Debugging: Log password verification failure
-                error_log("Password verification failed for email: " . $email);
-                echo "<script>alert('Incorrect email or password!');</script>";
-            }
-        } else {
-            // Debugging: Log email not found
-            error_log("Email not found: " . $email);
-            echo "<script>alert('Incorrect email or password!');</script>";
-        }
-    } catch (Exception $e) {
-        error_log("Error: " . $e->getMessage());
-        echo "<script>alert('An error occurred. Please try again later.');</script>";
->>>>>>> 0003e1ed493a19b28403b75ca385eb70342caa11
     }
 }
 ?>

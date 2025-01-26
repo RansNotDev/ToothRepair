@@ -51,8 +51,8 @@ section {
 }
 
 .home {
-    background: linear-gradient(to right, #2776ec, #1862d1);
-    color: #fff;
+    background: url('/images/Clinic.jpg') no-repeat center center/cover;
+    color: #1d1b1b;
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -60,6 +60,8 @@ section {
     align-items: center;
 }
 
+
+/* Content Styling */
 .home .content h2 {
     font-size: 3rem;
     margin: 0 0 15px;
@@ -70,6 +72,7 @@ section {
     margin: 0 0 20px;
 }
 
+/* Button Styling */
 .home .btn {
     display: inline-block;
     padding: 10px 20px;
@@ -83,8 +86,11 @@ section {
 }
 
 .home .btn:hover {
-    background-color: #ffdfba;
+    background-color: #4f2ce9;
+    color: #fff;
 }
+
+
 
 .services, .about, .testimonials, .contact {
     background-color: #f9f9f9;
@@ -132,137 +138,17 @@ section {
     background-color: #194ee0;
 }
 
-
-
-
-/* Modal Container */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(112, 105, 105, 0.5); /* Semi-transparent background */
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Modal Content */
-.modal-content {
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 8px;
-    max-width: 800px;
-    width: 90%;
-    padding: 30px;
-    box-shadow: 0 4px 10px rgba(97, 95, 95, 0.2);
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-    position: relative;
-}
-
-/* Close Button */
-.close {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 20px;
+.button-style {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    text-align: center;
     font-weight: bold;
-    color: #666;
-    cursor: pointer;
 }
 
-/* Modal Columns */
-.modal-content .container {
-    display: flex;
-    flex: 1;
-    flex-wrap: wrap;
-}
-
-.modal-content .col {
-    flex: 1;
-    padding: 10px;
-    text-align: center;
-}
-
-/* Card Styling */
-.card {
-    background: rgba(255, 255, 255, 0.8);
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    text-align: left;
-}
-
-/* Form Fields */
-.form-outline {
-    margin-bottom: 20px;
-    position: relative;
-}
-
-.form-outline input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    box-sizing: border-box;
-}
-
-.form-outline label {
-    position: absolute;
-    top: -10px;
-    left: 10px;
-    background: #ffffff;
-    padding: 0 5px;
-    font-size: 12px;
-    color: #666;
-}
-
-/* Buttons */
-button {
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-button:hover {
-    background: #0056b3;
-}
-
-/* Hero Image */
-.hero-image {
-    max-width: 100%;
-    height: auto;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-/* Centered Text Links */
-.text-center {
-    text-align: center;
-    margin-top: 5px;
-}
-
-.link {
-    color: #007bff;
-    cursor: pointer;
-    text-decoration: underline;
-}
-
-.link:hover {
-    color: #0056b3;
-}
-
-/* Active Modal (to display) */
-.modal.active {
-    display: flex;
+.button-style:hover {
+    background-color: #0056b3;
 }
