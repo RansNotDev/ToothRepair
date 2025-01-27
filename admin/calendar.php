@@ -1,7 +1,7 @@
 <?php
 include_once('includes/header.php');
 include_once('includes/sidebar.php');
-include_once('db_connection.php'); // Ensure this connects to your database
+include_once('../database/db_connection.php'); // Ensure this connects to your database
 include_once('includes/topbar.php');
 
 // Fetch appointment data from the database
@@ -9,7 +9,7 @@ $sched_arr = [];
 $query = "
     SELECT 
         a.appointment_id AS id, 
-        u.username AS patient_name, 
+        u.fullname AS patient_name, 
         a.appointment_date, 
         a.appointment_time, 
         a.service, 
@@ -66,6 +66,13 @@ if ($result) {
     }
 </style>
 
+<!-- Include FullCalendar and Moment.js libraries -->
+<link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.10.1/main.min.css' rel='stylesheet' />
+<script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.10.1/main.min.js'></script>
+<!-- Include the sbadmin -->
+<script src="js/sbadmin.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var calendarEl = document.getElementById('calendar');
@@ -76,6 +83,20 @@ document.addEventListener('DOMContentLoaded', function () {
             left: 'prev,next today',
             center: 'title',
             right: 'dayGridMonth'
+        },
+        customButtons: {
+            prev: {
+                text: '<',
+                click: function() {
+                    calendar.prev();
+                }
+            },
+            next: {
+                text: '>',
+                click: function() {
+                    calendar.next();
+                }
+            }
         },
         themeSystem: 'bootstrap',
         initialView: 'dayGridMonth',
@@ -90,9 +111,11 @@ document.addEventListener('DOMContentLoaded', function () {
             };
         }),
         eventClick: function(info) {
-    uni_modal("Appointment Details", "view_details.php?id=" + info.event.id);
-}
-
+            uni_modal("Appointment Details", "view_details.php?id=" + info.event.id);
+        },
+        validRange: {
+            start: moment().format("YYYY-MM-DD")
+        }
     });
 
     calendar.render();

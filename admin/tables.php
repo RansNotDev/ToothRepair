@@ -2,7 +2,7 @@
 include_once('includes/header.php');
 include_once('includes/sidebar.php');
 include_once('includes/topbar.php');
-include_once('db_connection.php');
+include_once('../database/db_connection.php');
 
 // Check for success message
 if (isset($_GET['success']) && $_GET['success'] == 1) {
@@ -197,10 +197,10 @@ $result = $conn->query($sql);
                         <input type="text" class="form-control" name="fullname" id="fullname" required>
                     </div>
 
-                    <!-- Username -->
+                    <!-- fullname -->
                     <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" class="form-control" name="username" id="username" required>
+                        <label for="fullname">fullname</label>
+                        <input type="text" class="form-control" name="fullname" id="fullname" required>
                     </div>
 
                     <!-- Email -->

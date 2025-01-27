@@ -1,7 +1,7 @@
 <?php
-require("database/db_connection.php"); // Add this line to include the database connection
-include_once("includes/header.php");
-include_once("includes/topbar.php");
+require("../database/db_connection.php"); // Add this line to include the database connection
+include_once("../includes/header.php");
+include_once("../includes/topbar.php");
 
 session_start();
 
@@ -20,7 +20,6 @@ $result = $stmt->get_result();
 $appointment = $result->fetch_assoc();
 $stmt->close();
 
-
 ?>
 
 <div class="container-fluid min-vh-100 overflow-hidden d-flex flex-column">
@@ -28,10 +27,10 @@ $stmt->close();
 
     <div class="container mt-5 flex-grow-1">
         <div class="text-center">
-            <h3 class="text-success">Dental Clinic Appointment Status</h3>
+            <h3 class="text-primary">Dental Clinic Appointment Status</h3>
             <p>Your appointment details are below:</p>
             <div class="my-4">
-                <i class="bi bi-check-circle-fill text-success" style="font-size: 50px;"></i>
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 50px; background-color: blue;"></i>
             </div>
         </div>
 
@@ -52,7 +51,7 @@ $stmt->close();
                         <a href="#" class="btn btn-primary">Add to Google Calendar</a>
                         <form method="POST" action="">
                             <input type="hidden" name="appointment_id" value="<?php echo isset($appointment['id']) ? htmlspecialchars($appointment['id']) : ''; ?>">
-                            <button type="submit" name="cancel_appointment" class="btn btn-secondary">Cancel</button>
+                            <button type="submit" name="temporary_logout" class="btn btn-secondary">Temporary Logout</button>
                         </form>
                     </div>
                 <?php else: ?>
@@ -61,8 +60,7 @@ $stmt->close();
             </div>
         </div>
     </div>
-</div>
-
+    
 <script>
     document.querySelector('form').addEventListener('submit', function (e) {
         if (!confirm('Are you sure you want to cancel this appointment?')) {
@@ -71,5 +69,17 @@ $stmt->close();
     });
 </script>
 
-<?php include_once("includes/footer.php"); ?>
-<?php include_once("includes/user_footer.php"); ?>
+<?php include_once("../includes/footer.php"); ?>
+</div>
+
+<?php
+session_start();
+
+if (isset($_POST['temporary_logout'])) {
+    // Destroy the session to log out the user temporarily
+    session_destroy();
+    // Redirect to the login page or any other page
+    header("Location: loginpage.php");
+    exit();
+}
+?>
