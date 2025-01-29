@@ -1,5 +1,6 @@
 <?php
-include_once('../db_connection.php'); // Include database connection
+include('../../database/db_connection.php');
+// Include database connection
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (!empty($_POST['appointment_ids'])) {

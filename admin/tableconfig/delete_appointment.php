@@ -1,5 +1,5 @@
 <?php
-include('../db_connection.php');
+include('../../database/db_connection.php');
 
 // Check if the delete request has appointment IDs (for bulk deletion)
 if (isset($_POST['appointments']) && !empty($_POST['appointments'])) {

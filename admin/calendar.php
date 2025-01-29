@@ -49,11 +49,14 @@ if ($result) {
 <style>
     /* Ensure only the calendar scrolls */
     #calendar-container {
-        height: 600px; /* Adjust as needed */
-        overflow-y: auto; /* Enable vertical scrolling */
+        height: 600px;
+        /* Adjust as needed */
+        overflow-y: auto;
+        /* Enable vertical scrolling */
         border: 1px solid #ddd;
         padding: 10px;
-        background: #f8f9fc; /* Optional styling */
+        background: #f8f9fc;
+        /* Optional styling */
     }
 
     .fc-event {
@@ -74,61 +77,61 @@ if ($result) {
 <script src="js/sbadmin.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    var calendarEl = document.getElementById('calendar');
-    var scheds = <?php echo json_encode($sched_arr); ?>; // Convert PHP array to JavaScript
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+        var scheds = <?php echo json_encode($sched_arr); ?>; // Convert PHP array to JavaScript
 
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth'
-        },
-        customButtons: {
-            prev: {
-                text: '<',
-                click: function() {
-                    calendar.prev();
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth'
+            },
+            customButtons: {
+                prev: {
+                    text: '<',
+                    click: function () {
+                        calendar.prev();
+                    }
+                },
+                next: {
+                    text: '>',
+                    click: function () {
+                        calendar.next();
+                    }
                 }
             },
-            next: {
-                text: '>',
-                click: function() {
-                    calendar.next();
-                }
+            themeSystem: 'bootstrap',
+            initialView: 'dayGridMonth',
+            events: scheds.map(function (sched) {
+                var bgColor = sched.status === "pending" ? "orange" : "green";
+                return {
+                    id: sched.id,
+                    title: sched.patient_name,
+                    start: sched.appointment_date + 'T' + sched.appointment_time,
+                    backgroundColor: bgColor,
+                    borderColor: bgColor,
+                };
+            }),
+            eventClick: function (info) {
+                uni_modal("Appointment Details", "viewdetails.php?id=" + info.event.id);
+            },
+
+            validRange: {
+                start: moment().format("YYYY-MM-DD")
             }
-        },
-        themeSystem: 'bootstrap',
-        initialView: 'dayGridMonth',
-        events: scheds.map(function (sched) {
-            var bgColor = sched.status === "pending" ? "orange" : "green";
-            return {
-                id: sched.id,
-                title: sched.patient_name,
-                start: sched.appointment_date + 'T' + sched.appointment_time,
-                backgroundColor: bgColor,
-                borderColor: bgColor,
-            };
-        }),
-        eventClick: function(info) {
-            uni_modal("Appointment Details", "view_details.php?id=" + info.event.id);
-        },
-        validRange: {
-            start: moment().format("YYYY-MM-DD")
-        }
+        });
+
+        calendar.render();
     });
 
-    calendar.render();
-});
-
-// Function to open a modal dynamically
-function uni_modal(title, url) {
-    // Dynamically load content into a modal
-    $('#uniModal .modal-title').text(title);
-    $('#uniModal .modal-body').load(url, function () {
-        $('#uniModal').modal('show');
-    });
-}
+    // Function to open a modal dynamically
+    function uni_modal(title, url) {
+        $('#uniModal .modal-title').text(title);
+        $('#uniModal .modal-body').load(url, function () {
+            $('#uniModal').modal('show');
+        });
+    }
 </script>
 
 <!-- Universal Modal -->

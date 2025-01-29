@@ -1,5 +1,5 @@
 <?php
-require_once 'db_connection.php';
+require_once '../database/db_connection.php';
 
 $date = $_GET['date'];
 $time = $_GET['time'];

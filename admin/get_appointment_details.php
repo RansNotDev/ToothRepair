@@ -1,5 +1,5 @@
 <?php
-include_once('db_connection.php');
+include_once('../database/db_connection.php');
 
 $id = $_GET['id'];
 $query = "SELECT patient_name, appointment_date, status FROM appointments WHERE id = $id";
