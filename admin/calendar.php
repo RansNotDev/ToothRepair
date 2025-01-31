@@ -70,20 +70,10 @@ if ($result) {
 <style>
     #calendar-container {
         height: 600px;
-<<<<<<< HEAD
         overflow-y: auto;
         border: 1px solid #ddd;
         padding: 10px;
         background: #f8f9fc;
-=======
-        /* Adjust as needed */
-        overflow-y: auto;
-        /* Enable vertical scrolling */
-        border: 1px solid #ddd;
-        padding: 10px;
-        background: #f8f9fc;
-        /* Optional styling */
->>>>>>> a7b1f08c2342e52e88bef234c038b286dd85eeed
     }
 
     .fc-event {
@@ -113,7 +103,6 @@ if ($result) {
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-<<<<<<< HEAD
         const maxDaily = <?php echo $max_daily; ?>;
         const closures = <?php echo json_encode($closures); ?>;
         const appointmentCounts = <?php echo json_encode($appointmentCounts); ?>;
@@ -122,17 +111,10 @@ if ($result) {
         const scheds = <?php echo json_encode($sched_arr); ?>;
 
         const calendar = new FullCalendar.Calendar(calendarEl, {
-=======
-        var calendarEl = document.getElementById('calendar');
-        var scheds = <?php echo json_encode($sched_arr); ?>; // Convert PHP array to JavaScript
-
-        var calendar = new FullCalendar.Calendar(calendarEl, {
->>>>>>> a7b1f08c2342e52e88bef234c038b286dd85eeed
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
                 right: 'dayGridMonth'
-<<<<<<< HEAD
             },
             themeSystem: 'bootstrap',
             initialView: 'dayGridMonth',
@@ -164,57 +146,15 @@ if ($result) {
                         </div>
                     `
                 };
-=======
-            },
-            customButtons: {
-                prev: {
-                    text: '<',
-                    click: function () {
-                        calendar.prev();
-                    }
-                },
-                next: {
-                    text: '>',
-                    click: function () {
-                        calendar.next();
-                    }
-                }
-            },
-            themeSystem: 'bootstrap',
-            initialView: 'dayGridMonth',
-            events: scheds.map(function (sched) {
-                var bgColor = sched.status === "pending" ? "orange" : "green";
-                return {
-                    id: sched.id,
-                    title: sched.patient_name,
-                    start: sched.appointment_date + 'T' + sched.appointment_time,
-                    backgroundColor: bgColor,
-                    borderColor: bgColor,
-                };
-            }),
-            eventClick: function (info) {
-                uni_modal("Appointment Details", "viewdetails.php?id=" + info.event.id);
-            },
-
-            validRange: {
-                start: moment().format("YYYY-MM-DD")
->>>>>>> a7b1f08c2342e52e88bef234c038b286dd85eeed
             }
         });
 
         calendar.render();
     });
 
-<<<<<<< HEAD
     function uni_modal(title, url) {
         $('#uniModal .modal-title').text(title);
         $('#uniModal .modal-body').load(url, function() {
-=======
-    // Function to open a modal dynamically
-    function uni_modal(title, url) {
-        $('#uniModal .modal-title').text(title);
-        $('#uniModal .modal-body').load(url, function () {
->>>>>>> a7b1f08c2342e52e88bef234c038b286dd85eeed
             $('#uniModal').modal('show');
         });
     }
