@@ -1,14 +1,15 @@
 <?php
-require_once 'db_connection.php';
+include_once('database/db_connection.php');
 
-$date = $_GET['date'];
+$result = $conn->query("SELECT available_date, time_start, time_end FROM availability_tb");
+$availability = [];
 
-$query = "SELECT COUNT(*) as count FROM appointments WHERE date = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("s", $date);
-$stmt->execute();
-$result = $stmt->get_result();
-$row = $result->fetch_assoc();
+while ($row = $result->fetch_assoc()) {
+    $availability[$row['available_date']] = [
+        "time_start" => $row['time_start'],
+        "time_end" => $row['time_end']
+    ];
+}
 
-echo json_encode(['count' => $row['count']]);
+echo json_encode($availability);
 ?>

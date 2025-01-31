@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     //validate Inputs
     if (empty($email) || empty($password)) {
-        echo "Please fill in all fields";
+        echo "Please fill in all fields"; 
         die();
     }
 
@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="col">
             <h1>Welcome Back</h1>
             <img src="../images/loginpage.png" alt="Login Image" class="hero-image">
-            <p>Log in to your account to access all the features and services we provide.</p>
+            <p>Log in to your account to see your appointment details</p>
         </div>
 
         <!-- Login Form -->
@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label for="password">Password</label>
                     </div>
                     <button type="submit">Login</button>
-                    <p class="text-center">Don’t have an account? <a href="registerpage.php">Register here</a></p>
+                    
                 </form>
             </div>
         </div>

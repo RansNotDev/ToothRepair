@@ -14,13 +14,13 @@
         rel="stylesheet">
 
     <!-- Custom fonts for this template-->
-    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="../plugins//fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     
     <!-- Custom styles for this template-->
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
 
     <!-- Custom styles for this page  for data tables-->
-    <link href="vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+    <link href="../plugins//datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
     <!-- jQuery -->
 
     <!-- Full Calendar -->
@@ -29,7 +29,7 @@
     <!-- Sweet Alert -->
     <link rel="stylesheet" href="../assets/Assetscalendar/sweetalert2/sweetalert2.min.css">
     
-    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="../plugins//jquery/jquery.min.js"></script>
 </head>
 
 <body id="page-top">
