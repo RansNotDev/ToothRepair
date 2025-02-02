@@ -31,12 +31,14 @@
         }
 
         .nav-links li {
-            margin-right: 1rem;
+            margin-right: 2rem;
         }
 
         .nav-links a {
             color: white;
             text-decoration: none;
+            font-size: 20px;
+            font-weight: bold;
         }
 
         .nav-links a:hover,
@@ -57,6 +59,10 @@
             padding: 0.5rem 1rem;
             border-radius: 5px;
             text-decoration: none;
+        }
+        .home .btn:active,  .home .btn:focus,  .home .btn:hover {
+            background-color: rgb(31, 102, 179);
+            color: white;
         }
 
         .home .btn:hover {
@@ -298,12 +304,45 @@
             background: #f8f9fa;
             border-radius: 8px;
         }
+
+        body {
+            padding-top: 56px; /* Height of navbar */
+        }
+
+        .scroll-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #007bff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .scroll-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-to-top:hover {
+            background: rgb(31, 102, 179);
+            transform: translateY(-3px);
+        }
     </style>
 </head>
 
 <body>
     <!-- Navigation Bar -->
-    <nav class="navbar">
+    <nav class="navbar fixed-top">
         <div class="logo">
             <h4>Tooth Repair Clinic</h4>
         </div>
@@ -531,6 +570,10 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="assets/js/script.js"></script>
    
+    <!-- Add scroll-to-top button before closing body tag -->
+    <button class="scroll-to-top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
 
 </body>
 

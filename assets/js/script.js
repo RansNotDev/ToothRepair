@@ -226,3 +226,26 @@ phoneInput.addEventListener('input', function(e) {
  e.target.value = numbers.length <= 10 ? numbers.split('').map((n,i) => char[i] || n).join('') : numbers;
 });
 });
+
+// Add this JavaScript to handle scroll-to-top functionality
+
+document.addEventListener('DOMContentLoaded', function() {
+    const scrollBtn = document.querySelector('.scroll-to-top');
+    
+    // Show/hide button based on scroll position
+    window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 300) {
+            scrollBtn.classList.add('visible');
+        } else {
+            scrollBtn.classList.remove('visible');
+        }
+    });
+    
+    // Smooth scroll to top when clicked
+    scrollBtn.addEventListener('click', function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+});
