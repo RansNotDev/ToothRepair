@@ -243,7 +243,6 @@ if ($result) {
                 $('#uniModal').modal('show');
             },
         });
-
         calendar.render();
     });
 

@@ -2,13 +2,11 @@
 session_start();
 include_once('../database/db_connection.php');
 
-// Authentication check
 if (!isset($_SESSION['admin_id'])) {
     header("Location: admin_login.php");
     exit();
 }
 
-// Delete past dates function
 function deletePastAvailabilityDates($conn) {
     $currentDate = date("Y-m-d");
     $stmt = $conn->prepare("DELETE FROM availability_tb WHERE available_date < ?");
@@ -19,27 +17,24 @@ function deletePastAvailabilityDates($conn) {
 
 deletePastAvailabilityDates($conn);
 
-// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['available_dates']) && isset($_POST['time_start']) && isset($_POST['time_end'])) {
-        // Validate inputs
         $dates = $_POST['available_dates'];
         $timeStart = date("H:i:s", strtotime($_POST['time_start']));
         $timeEnd = date("H:i:s", strtotime($_POST['time_end']));
 
-        if (empty($dates) || empty($timeStart) || empty($timeEnd)) {
-            echo "<script>alert('Please select at least one date and set both time fields.'); window.history.back();</script>";
+        if (empty($timeStart) || empty($timeEnd)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Please set both time fields.']);
             exit();
         }
 
         try {
-            // Clear existing entries
+            $conn->begin_transaction();
             $conn->query("DELETE FROM availability_tb");
             
-            // Prepare insert statement
             $stmt = $conn->prepare("INSERT INTO availability_tb (available_date, time_start, time_end) VALUES (?, ?, ?)");
             
-            // Insert each selected date
             foreach ($dates as $date) {
                 if (DateTime::createFromFormat('Y-m-d', $date)) {
                     $stmt->bind_param("sss", $date, $timeStart, $timeEnd);
@@ -47,21 +42,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             }
             
-            echo "<script>
-                    alert('Availability updated successfully!');
-                    window.location.href = 'admin_availability.php';
-                  </script>";
+            $conn->commit();
+            header("Location: admin_availability.php?success=1");
             exit();
             
         } catch (Exception $e) {
-            error_log("Database error: " . $e->getMessage());
-            echo "<script>alert('Error saving availability. Please try again.'); window.history.back();</script>";
+            $conn->rollback();
+            http_response_code(500);
+            echo json_encode(['error' => 'Error saving availability']);
             exit();
         }
     }
 }
 
-// Include template components
 include_once('includes/header.php');
 include_once('includes/sidebar.php');
 include_once('includes/topbar.php');
@@ -131,7 +124,7 @@ include_once('includes/topbar.php');
   <?php include('includes/footer.php'); ?>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar');
     const currentMonthEl = document.getElementById('currentMonth');
     const prevMonthBtn = document.getElementById('prevMonth');
@@ -144,6 +137,58 @@ include_once('includes/topbar.php');
             .then(data => callback(data))
             .catch(error => console.error('Error:', error));
     }
+
+    function updateAvailability(date, isChecked) {
+        const formData = new FormData();
+        formData.append('date', date);
+        formData.append('checked', isChecked);
+        
+        if (isChecked) {
+            const timeStart = document.getElementById('time_start').value;
+            const timeEnd = document.getElementById('time_end').value;
+            
+            if (!timeStart || !timeEnd) {
+                alert('Please set start and end times first');
+                return false;
+            }
+            formData.append('timeStart', timeStart);
+            formData.append('timeEnd', timeEnd);
+        }
+
+        return fetch('update-availability.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Refresh calendar data instead of page reload
+                fetchAvailability(availability => renderCalendar(currentDate, availability));
+                return true;
+            }
+            return false;
+        })
+        .catch(() => false);
+    }
+
+    // Add time input handlers
+    function toggleCheckboxes() {
+        const timeStart = document.getElementById('time_start').value;
+        const timeEnd = document.getElementById('time_end').value;
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]:not(:checked)');
+        
+        checkboxes.forEach(checkbox => {
+            const dateObj = new Date(checkbox.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Disable unchecked boxes if no time set or date is in past
+            checkbox.disabled = (!timeStart || !timeEnd || dateObj < today);
+        });
+    }
+
+    document.getElementById('time_start').addEventListener('change', toggleCheckboxes);
+    document.getElementById('time_end').addEventListener('change', toggleCheckboxes);
 
     function renderCalendar(date, availability) {
         const year = date.getFullYear();
@@ -194,7 +239,6 @@ include_once('includes/topbar.php');
             // Check if date is available
             if (availability.includes(dateStr)) {
                 checkbox.checked = true;
-                
             }
 
             // Handle past dates
@@ -206,10 +250,24 @@ include_once('includes/topbar.php');
             // Add click handler for visual feedback
             label.addEventListener('click', function(e) {
                 if (!checkbox.disabled) {
-                    dayNumber.classList.toggle('bg-blue-500');
-                    dayNumber.classList.toggle('text-white');
-                    dayNumber.classList.toggle('rounded-full');
+                    // Remove toggling of 'bg-blue-500', 'text-white', 'rounded-full'
                 }
+            });
+
+            checkbox.addEventListener('change', function(e) {
+                if (this.checked && (!timeStart.value || !timeEnd.value)) {
+                    e.preventDefault();
+                    this.checked = false;
+                    alert('Please set start and end times first');
+                    return;
+                }
+
+                if (this.checked) {
+                    // Remove dayNumber.classList.add('bg-blue-500', 'text-white', 'rounded-full');
+                } else {
+                    // Remove dayNumber.classList.remove('bg-blue-500', 'text-white', 'rounded-full');
+                }
+                updateAvailability(dateStr, this.checked);
             });
 
             label.className = 'calendar-day';
@@ -218,6 +276,9 @@ include_once('includes/topbar.php');
             dayEl.appendChild(label);
             calendarEl.appendChild(dayEl);
         }
+
+        // Call toggleCheckboxes after rendering
+        toggleCheckboxes();
     }
 
     // Month navigation
