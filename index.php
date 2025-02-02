@@ -12,9 +12,7 @@
     <link rel="stylesheet" href="assets/css/style.css">
 
     <title>Tooth Repair Clinic | Landing Page</title>
-
     <style>
-        /* Add your custom styles here */
         .navbar {
             color: white;
             display: flex;
@@ -38,7 +36,7 @@
             color: white;
             text-decoration: none;
             font-size: 20px;
-            font-weight: bold;
+            font-weight: 900px;
         }
 
         .nav-links a:hover,

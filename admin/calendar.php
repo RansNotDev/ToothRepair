@@ -16,29 +16,33 @@ while ($row = mysqli_fetch_assoc($result)) {
     $closures[] = $row['closure_date'];
 }
 
-// Get appointment counts
+// Update appointment counts query - exclude deleted status
 $appointmentCounts = [];
 $result = mysqli_query($conn, 
     "SELECT appointment_date, COUNT(*) AS count 
      FROM appointments 
-     WHERE status IN ('confirmed','pending') 
+     WHERE status IN ('confirmed', 'pending') 
+     AND status != 'deleted'  
      GROUP BY appointment_date");
 while ($row = mysqli_fetch_assoc($result)) {
     $appointmentCounts[$row['appointment_date']] = $row['count'];
 }
 
-// Fetch appointment data
+// Update main appointment fetch query
 $sched_arr = [];
 $query = "SELECT 
-            a.appointment_id AS id, 
-            u.fullname AS patient_name, 
-            a.appointment_date, 
-            a.appointment_time, 
-            s.service_name AS service,
-            a.status
-          FROM appointments a
-          INNER JOIN users u ON a.user_id = u.user_id
-          INNER JOIN services s ON a.service_id = s.service_id";
+    a.appointment_id AS id, 
+    u.fullname AS patient_name, 
+    a.appointment_date, 
+    a.appointment_time, 
+    s.service_name AS service,
+    TIME_FORMAT(a.appointment_time, '%h:%i %p') AS formatted_time,
+    a.status
+    FROM appointments a
+    INNER JOIN users u ON a.user_id = u.user_id
+    INNER JOIN services s ON a.service_id = s.service_id
+    WHERE a.status != 'deleted'
+    ORDER BY a.appointment_date, a.appointment_time";
 $result = mysqli_query($conn, $query);
 
 if ($result) {
@@ -78,21 +82,59 @@ if ($result) {
 
     .fc-event {
         cursor: pointer;
+        margin: 2px 0;
+        padding: 2px 4px;
+        border-radius: 3px;
     }
 
     .fc-event:hover {
         background-color: #4e73df !important;
         color: white !important;
+        opacity: 0.9;
     }
 
     .slot-info {
-        color: #666;
-        font-size: 0.8em;
-        margin-top: 2px;
+        color: #4a5568;
+        text-align: center;
+        width: 100%;
+        padding: 5px;
+        font-size: 0.9rem;
+        margin-top: 5px;
+    }
+
+    .fc-daygrid-day-frame {
+        min-height: 100px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     .fc-day-past .slot-info {
         display: none;
+    }
+
+    .text-warning {
+        color: #ffa500 !important;
+    }
+
+    .fc-daygrid-day-number {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin: 5px 0;
+    }
+
+    .badge {
+        padding: 0.5em 1em;
+        font-size: 0.875em;
+        text-transform: capitalize;
+    }
+    .badge-warning {
+        background-color: #ffa500;
+        color: #fff;
+    }
+    .badge-success {
+        background-color: #28a745;
+        color: #fff;
     }
 </style>
 
@@ -114,19 +156,28 @@ if ($result) {
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
-                right: 'dayGridMonth'
+                right: 'dayGridMonth,timeGridDay'
             },
             themeSystem: 'bootstrap',
             initialView: 'dayGridMonth',
+            timeZone: 'Asia/Manila',  // Set Philippine timezone
             events: scheds.map(sched => ({
                 id: sched.id,
-                title: sched.patient_name,
+                title: `${sched.patient_name} (${sched.formatted_time})
+                        ${sched.status === "pending" ? "⏳" : "✓"}`,
                 start: `${sched.appointment_date}T${sched.appointment_time}`,
-                backgroundColor: sched.status === "pending" ? "orange" : "green",
-                borderColor: sched.status === "pending" ? "orange" : "green"
+                backgroundColor: sched.status === "pending" ? "#ffa500" : "#28a745",
+                borderColor: sched.status === "pending" ? "#ff8c00" : "#218838",
+                textColor: '#fff',
+                extendedProps: {
+                    status: sched.status,
+                    service: sched.service
+                }
             })),
-            eventClick: function(info) {
-                uni_modal("Appointment Details", `viewdetails.php?id=${info.event.id}`);
+            eventDidMount: function(info) {
+                info.el.style.fontSize = '0.85em';
+                info.el.style.padding = '4px';
+                info.el.style.margin = '2px';
             },
             validRange: {
                 start: moment().format("YYYY-MM-DD")
@@ -135,18 +186,62 @@ if ($result) {
                 const dateStr = args.date.toISOString().split('T')[0];
                 const isPast = args.date < new Date().setHours(0,0,0,0);
                 const isClosed = closures.includes(dateStr);
+                
+                // Get appointment counts for the day
                 const count = appointmentCounts[dateStr] || 0;
                 const available = isClosed ? 0 : Math.max(maxDaily - count, 0);
-                
+
                 return {
                     html: `
                         <div class="fc-daygrid-day-number">${args.dayNumberText}</div>
-                        <div class="slot-info small">
-                            ${isPast ? '' : (isClosed ? 'Closed' : `${available} slots available`)}
+                        <div class="slot-info">
+                            ${isPast ? '' : (isClosed ? 'Closed' : 
+                                `${available} slot${available !== 1 ? 's' : ''} available`)}
                         </div>
                     `
                 };
-            }
+            },
+            eventClick: function(info) {
+                const event = info.event;
+                const details = `
+                    <div class="p-3">
+                        <h5 class="text-primary mb-3">Appointment Details</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="35%">Patient Name</th>
+                                <td>${event.title.split('(')[0]}</td>
+                            </tr>
+                            <tr>
+                                <th>Date</th>
+                                <td>${moment(event.start).format('MMMM D, YYYY')}</td>
+                            </tr>
+                            <tr>
+                                <th>Time</th>
+                                <td>${moment(event.start).format('h:mm A')}</td>
+                            </tr>
+                            <tr>
+                                <th>Service</th>
+                                <td>${event.extendedProps.service}</td>
+                            </tr>
+                            <tr>
+                                <th>Status</th>
+                                <td>
+                                    <span class="badge badge-${event.extendedProps.status === 'pending' ? 'warning' : 'success'}">
+                                        ${event.extendedProps.status}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                        <div class="text-right mt-3">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                `;
+                
+                $('#uniModal .modal-title').html('Appointment Information');
+                $('#uniModal .modal-body').html(details);
+                $('#uniModal').modal('show');
+            },
         });
 
         calendar.render();

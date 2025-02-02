@@ -172,38 +172,42 @@ while ($row = mysqli_fetch_assoc($result)) {
                                 <label for="address">Address</label>
                                 <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
                             </div>
-                        </form>
-                    </div>
-                    <!-- Right Column -->
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="date">Appointment Date</label>
-                            <input type="date" class="form-control" id="date" name="appointment_date" readonly required>
-                        </div>
-                        <div class="form-group">
-                            <label for="time">Appointment Time</label>
-                            <select class="form-control" id="time" name="appointment_time" required>
-                                <option value="">Select Time</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="service">Select Service</label>
-                            <select class="form-control" id="service" name="service" required>
-                                <option value="" disabled selected>Select a service</option>
-                                <?php
-                                $services = mysqli_query($conn, "SELECT * FROM services");
-                                if ($services) {
-                                    while ($service = mysqli_fetch_assoc($services)) {
-                                        $service_id = htmlspecialchars($service['service_id']);
-                                        $service_name = htmlspecialchars($service['service_name']);
-                                        echo "<option value='{$service_id}'>{$service_name}</option>";
+                            <div class="form-group">
+                                <label for="date">Appointment Date</label>
+                                <input type="date" class="form-control" id="date" name="appointment_date" readonly required>
+                            </div>
+                            <div class="form-group">
+                                <label for="time">Appointment Time</label>
+                                <select class="form-control" id="time" name="appointment_time" required>
+                                    <option value="">Select Time</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="service">Select Service</label>
+                                <select class="form-control" id="service" name="service" required>
+                                    <option value="" disabled selected>Select a service</option>
+                                    <?php
+                                    $services = mysqli_query($conn, "SELECT * FROM services");
+                                    if ($services) {
+                                        while ($service = mysqli_fetch_assoc($services)) {
+                                            $service_id = htmlspecialchars($service['service_id']);
+                                            $service_name = htmlspecialchars($service['service_name']);
+                                            echo "<option value='{$service_id}'>{$service_name}</option>";
+                                        }
+                                    } else {
+                                        echo "<option value='' disabled>Error fetching services</option>";
                                     }
-                                } else {
-                                    echo "<option value='' disabled>Error fetching services</option>";
-                                }
-                                ?>
-                            </select>
-                        </div>
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="text-center mt-4">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                                    <label class="form-check-label" for="terms">I agree to the <b class="text-primary">terms and conditions</b></label>
+                                </div>
+                                <button type="submit" class="btn btn-primary px-4">Submit</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
                 
@@ -219,14 +223,6 @@ while ($row = mysqli_fetch_assoc($result)) {
                         <h5 class="alert-heading">Important Notice</h5>
                         <p class="mb-0">Make sure to bring valid ID and any relevant medical records.</p>
                     </div>
-                    <!-- Terms and Submit Button -->
-                <div class="text-center mt-4">
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
-                        <label class="form-check-label" for="terms">I agree to the <b class="text-primary">terms and conditions</b></label>
-                    </div>
-                    <button type="submit" class="btn btn-primary px-4">Submit</button>
-                </div>
                 </div>
                 
                 
@@ -337,20 +333,33 @@ document.addEventListener('DOMContentLoaded', function () {
             return slots;
         }
 
-        $('#appointmentForm').submit(function (e) {
+        $('#appointmentForm').on('submit', function(e) {
             e.preventDefault();
+            
+            // Validate required fields
+            if(!this.checkValidity()) {
+                e.stopPropagation();
+                return false;
+            }
+            
             const formData = $(this).serialize();
-
+            
             $.ajax({
                 url: 'save_appointment.php',
-                method: 'POST',
+                type: 'POST',
                 data: formData,
-                success: function (response) {
-                    $('#appointmentModal').modal('hide');
-                    calendar.refetchEvents();
-                    Swal.fire('Success!', 'Appointment booked successfully!', 'success');
+                dataType: 'json',
+                success: function(response) {
+                    if(response.status === 'success') {
+                        Swal.fire('Success!', 'Appointment booked successfully!', 'success');
+                        $('#appointmentModal').modal('hide');
+                        calendar.refetchEvents();
+                    } else {
+                        Swal.fire('Error!', response.message || 'Failed to book appointment.', 'error');
+                    }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
+                    console.error(error);
                     Swal.fire('Error!', 'Failed to book appointment.', 'error');
                 }
             });
