@@ -2,14 +2,12 @@
 include_once('database/db_connection.php');
 include_once('includes/header.php');
 
-
 // Get clinic settings
 $max_daily = 20;
 $settingsResult = mysqli_query($conn, "SELECT max_daily_appointments FROM clinic_settings LIMIT 1");
 if ($settingsResult && mysqli_num_rows($settingsResult) > 0) {
     $max_daily = mysqli_fetch_assoc($settingsResult)['max_daily_appointments'];
 }
-
 
 // Get closure dates
 $closures = [];
@@ -30,8 +28,6 @@ while ($row = mysqli_fetch_assoc($result)) {
     $availability[$row['available_date']] = $row;
 }
 
-
-
 // Get booked time slots
 $bookedSlots = [];
 $result = mysqli_query(
@@ -46,60 +42,63 @@ while ($row = mysqli_fetch_assoc($result)) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-
     <title>Tooth Repair Clinic - Dashboard</title>
-
     <link href="assets/Assetscalendar/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link href="assets/Assetscalendar/fullcalendar/main.css" rel="stylesheet">
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="admin/css/sb-admin-2.min.css" rel="stylesheet">
-    <!--cdn online bootstrap -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-
 </head>
-
 <body>
-
-</body>
-
-</html>
 <style>
     .has-slots {
         background-color: rgba(78, 115, 223, 0.1) !important;
+        
     }
-
     .fc-day-disabled .slot-info {
         color: #718096 !important;
+        
     }
-
-    .has-slots .fc-daygrid-day-number {
+    .has-slots {
         font-weight: bold;
         color: #2b6cb0;
     }
-
     .fc-daygrid-day-frame {
-        cursor: pointer !important;
+        min-height: 120px !important;  /* Increased height */
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        padding: 5px !important;
     }
 
+    .fc-daygrid-day-number {
+        font-size: 2rem !important;  /* Larger date size */
+        font-weight: bold !important;
+        margin: 5px 0 15px 0 !important;  /* Add bottom margin to separate from slot info */
+        width: 100% !important;
+        text-align: center !important;
+        color:rgb(0, 0, 0);
+    }
+    
     .fc-day-disabled {
         background-color: #f8f9fc;
         opacity: 0.6;
     }
-
     .slot-info {
-        color: #4a5568;
+        color:rgb(49, 109, 212);
+        text-align: center !important;
+        width: 100% !important;
+        padding: 5px !important;
+        font-size: 1rem !important;
+        border-top: 1px solid #edf2f7 !important;  /* Add separator line */
+        margin-top: auto !important;
+        font-weight: bold;
     }
-
     .time-slot {
         margin: 5px;
         padding: 8px 12px;
@@ -107,19 +106,16 @@ while ($row = mysqli_fetch_assoc($result)) {
         border-radius: 4px;
         cursor: pointer;
     }
-
     .time-slot.available {
         background-color: #e7f4ff;
         border-color: #4e73df;
         color: #2a4365;
     }
-
     .time-slot.booked {
         background-color: #f8d7da;
         border-color: #dc3545;
         cursor: not-allowed;
     }
-
     .time-slot.selected {
         background-color: #4e73df !important;
         color: white !important;
@@ -127,14 +123,16 @@ while ($row = mysqli_fetch_assoc($result)) {
 </style>
 
 <div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Appointment Calendar</h1>
+    <div class="bg-primary text-white p-3 mb-4">
+        <div class="container">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <h1 class="h3 mb-0">Appointment Calendar</h1>
+            </div>
+        </div>
     </div>
-    <hr>
-
     <div class="container">
-        <div class="card">
-            <div class="card-body">
+        <div class="card ">
+            <div class="card-body ">
                 <div id="calendar-container">
                     <div id="calendar"></div>
                 </div>
@@ -143,81 +141,145 @@ while ($row = mysqli_fetch_assoc($result)) {
     </div>
 </div>
 
-<!-- Booking Modal -->
-<div class="modal fade" id="bookingModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+<!-- Appointment Modal -->
+<div class="modal fade" id="appointmentModal" tabindex="-1" role="dialog" aria-labelledby="appointmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Book Appointment</h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h5 class="modal-title" id="appointmentModalLabel">Book an Appointment</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
-                <form id="bookingForm">
-                    <div class="form-group">
-                        <label>Selected Date:</label>
-                        <input type="text" id="selectedDate" class="form-control" readonly>
+                <div class="row">
+                    <!-- Left Column - Form -->
+                    <div class="col-md-6 border-right">
+                        <form action="save_appointment.php" method="POST" id="appointmentForm">
+                            <div class="form-group">
+                                <label for="name">Full Name</label>
+                                <input type="text" class="form-control" id="name" name="fullname" placeholder="Enter your name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone</label>
+                                <input type="tel" class="form-control" id="phone" name="contact_number" placeholder="Enter your phone number">
+                            </div>
+                            <div class="form-group">
+                                <label for="address">Address</label>
+                                <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                            </div>
+                        </form>
                     </div>
-
-                    <div class="form-group">
-                        <label>Available Time Slots:</label>
-                        <div id="timeSlots" class="d-flex flex-wrap"></div>
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="date">Appointment Date</label>
+                            <input type="date" class="form-control" id="date" name="appointment_date" readonly required>
+                        </div>
+                        <div class="form-group">
+                            <label for="time">Appointment Time</label>
+                            <select class="form-control" id="time" name="appointment_time" required>
+                                <option value="">Select Time</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="service">Select Service</label>
+                            <select class="form-control" id="service" name="service" required>
+                                <option value="" disabled selected>Select a service</option>
+                                <?php
+                                $services = mysqli_query($conn, "SELECT * FROM services");
+                                if ($services) {
+                                    while ($service = mysqli_fetch_assoc($services)) {
+                                        $service_id = htmlspecialchars($service['service_id']);
+                                        $service_name = htmlspecialchars($service['service_name']);
+                                        echo "<option value='{$service_id}'>{$service_name}</option>";
+                                    }
+                                } else {
+                                    echo "<option value='' disabled>Error fetching services</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
                     </div>
-
-                    <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" name="fullname" class="form-control" disabled required>
+                </div>
+                
+                <!-- Guidelines Section -->
+                <div class="text-center p-4 border-top mt-4">
+                    <h4 class="text-primary mb-4">Appointment Guidelines</h4>
+                    <ul class="list-unstyled">
+                        <li class="mb-3"><i class="fas fa-clock mr-2"></i> Duration: 30 minutes per session</li>
+                        <li class="mb-3"><i class="fas fa-info-circle mr-2"></i> Please arrive 10 minutes before your appointment</li>
+                        <li class="mb-3"><i class="fas fa-exclamation-triangle mr-2"></i> Cancellation requires 24-hour notice</li>
+                    </ul>
+                    <div class="alert alert-info mt-4 w-75 mx-auto">
+                        <h5 class="alert-heading">Important Notice</h5>
+                        <p class="mb-0">Make sure to bring valid ID and any relevant medical records.</p>
                     </div>
-
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" name="email" class="form-control" disabled required>
+                    <!-- Terms and Submit Button -->
+                <div class="text-center mt-4">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                        <label class="form-check-label" for="terms">I agree to the <b class="text-primary">terms and conditions</b></label>
                     </div>
-
-                    <div class="form-group">
-                        <label>Service</label>
-                        <select name="service" class="form-control" disabled required>
-                            <option value="">Select Service</option>
-                            <?php
-                            $services = mysqli_query($conn, "SELECT * FROM services");
-                            while ($service = mysqli_fetch_assoc($services)) {
-                                echo "<option value='{$service['service_id']}'>{$service['service_name']}</option>";
-                            }
-                            ?>
-                        </select>
-                    </div>
-
-                    <input type="hidden" name="selectedTime">
-                    <button type="submit" class="btn btn-primary" disabled>Book Appointment</button>
-                </form>
+                    <button type="submit" class="btn btn-primary px-4">Submit</button>
+                </div>
+                </div>
+                
+                
             </div>
         </div>
     </div>
 </div>
 
-
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const maxDaily = <?php echo $max_daily; ?>;
-        const calendarEl = document.getElementById('calendar');
-        const closures = <?php echo json_encode($closures); ?>;
-        const availability = <?php echo json_encode($availability); ?>;
-        const bookedSlots = <?php echo json_encode($bookedSlots); ?>;
+document.addEventListener('DOMContentLoaded', function () {
+    // Define PHP variables for JavaScript use
+    const availability = <?php echo json_encode($availability); ?>;
+    const closures = <?php echo json_encode($closures); ?>;
+    const bookedSlots = <?php echo json_encode($bookedSlots); ?>;
+    const maxDaily = <?php echo $max_daily; ?>;
+    
+    // Get calendar element
+    const calendarEl = document.getElementById('calendar');
+    
+    // Initialize calendar with defined variables
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        validRange: { start: new Date() },
+        timeZone: 'Asia/Manila',
+        dateClick: function (info) {
+            const dateStr = info.dateStr;
+            const isPast = info.date < new Date().setHours(0, 0, 0, 0);
+            const isAvailable = availability[dateStr] && !closures.includes(dateStr);
 
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            validRange: { start: new Date() },
-            dateClick: function (info) {
-                const dateStr = info.dateStr;
-                const isPast = info.date < new Date().setHours(0, 0, 0, 0);
-                const isAvailable = availability[dateStr] && !closures.includes(dateStr);
+            if (!isPast && isAvailable) {
+                const { time_start, time_end } = availability[dateStr];
+                const slots = generateTimeSlots(time_start, time_end);
+                const booked = bookedSlots[dateStr] || [];
+                const bookedCount = booked.length;
+                const remaining = Math.max(maxDaily - bookedCount, 0);
 
-                if (!isPast && isAvailable) {
-                    $('#selectedDate').val(dateStr);
-                    showTimeSlots(dateStr);
-                    $('#bookingModal').modal('show');
-                }
-            },
+                $('#date').val(dateStr);
+                const timeSelect = $('#time');
+                timeSelect.empty().append('<option value="">Select Time</option>');
+
+                slots.forEach(time => {
+                    if (!booked.includes(time) && remaining > 0) {
+                        timeSelect.append(`<option value="${time}">${time}</option>`);
+                    }
+                });
+
+                $('#appointmentModal').modal('show');
+            }
+        },
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
@@ -262,32 +324,9 @@ while ($row = mysqli_fetch_assoc($result)) {
 
         calendar.render();
 
-        function showTimeSlots(dateStr) {
-
-
-            const { time_start, time_end } = availability[dateStr];
-            const slots = generateTimeSlots(time_start, time_end);
-            const booked = bookedSlots[dateStr] || [];
-            const bookedCount = booked.length;
-            const remaining = Math.max(maxDaily - bookedCount, 0);
-
-            const slotHtml = slots.map(time => {
-                const isBooked = booked.includes(time) || remaining <= 0;
-                return `
-        <div class="time-slot ${isBooked ? 'booked' : 'available'}" 
-             data-time="${time}"
-             ${isBooked ? 'disabled' : ''}>
-            ${time}
-        </div>
-            `;
-            }).join('');
-
-            $('#timeSlots').html(slotHtml);
-        }
-
         function generateTimeSlots(startTime, endTime) {
             const slots = [];
-            const start = new Date(`1970-01-01T${startTime}`);  // Added backticks
+            const start = new Date(`1970-01-01T${startTime}`);
             const end = new Date(`1970-01-01T${endTime}`);
 
             let current = new Date(start);
@@ -298,36 +337,24 @@ while ($row = mysqli_fetch_assoc($result)) {
             return slots;
         }
 
-        // Handle time slot selection
-        $('#timeSlots').on('click', '.time-slot.available', function () {
-            $('.time-slot').removeClass('selected');
-            $(this).addClass('selected');
-            const selectedTime = $(this).data('time');
-            $('input[name="selectedTime"]').val(selectedTime);
-            $('#bookingForm input, #bookingForm select, #bookingForm button').prop('disabled', false);
-        });
-
-        // Handle form submission
-        $('#bookingForm').submit(function (e) {
+        $('#appointmentForm').submit(function (e) {
             e.preventDefault();
             const formData = $(this).serialize();
 
             $.ajax({
-                url: 'book_appointment.php',
+                url: 'save_appointment.php',
                 method: 'POST',
-                data: formData + '&date=' + $('#selectedDate').val(),
+                data: formData,
                 success: function (response) {
-                    $('#bookingModal').modal('hide');
-                    calendar.refetchEvents(); // Remove this line
-                    calendar.render();        // Add this instead
+                    $('#appointmentModal').modal('hide');
+                    calendar.refetchEvents();
                     Swal.fire('Success!', 'Appointment booked successfully!', 'success');
                 },
-                error: function () {
-                    alert('Error booking appointment. Please try again.');
+                error: function (xhr, status, error) {
+                    Swal.fire('Error!', 'Failed to book appointment.', 'error');
                 }
             });
         });
     });
 </script>
-
 <?php include_once('includes/footer.php'); ?>

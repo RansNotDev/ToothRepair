@@ -1,16 +1,17 @@
 <?php
-// db_connection.php
-
-$servername = "localhost"; // Replace with your database server
-$username = "root";        // Replace with your database username
-$password = "";            // Replace with your database password
-$dbname = "toothrepair_clinic_db"; // Replace with your database name
+$host = "localhost"; // Database host (usually "localhost")
+$user = "root";      // Database username (default is "root" in XAMPP)
+$pass = "";          // Database password (empty by default in XAMPP)
+$dbname = "toothrepair_clinic_db"; // Replace with your actual database name
 
 // Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($host, $user, $pass, $dbname);
 
 // Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
+
+// Start transaction (if needed)
+$conn->begin_transaction();
 ?>

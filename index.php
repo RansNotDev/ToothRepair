@@ -322,7 +322,7 @@
         <div class="content">
             <h2>Welcome to Tooth Repair Clinic</h2>
             <p>Get your teeth fixed by the best dentists in town.</p>
-            <a href="#contact" class="btn" data-toggle="modal" data-target="#appointmentModal">Book an Appointment</a>
+            <a href="calendar.php" class="btn">Book an Appointment</a>
         </div>
     </section>
 
