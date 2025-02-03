@@ -13,7 +13,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Fetch user's appointment
-$stmt = $conn->prepare("SELECT appointment_date, appointment_time, service, status FROM appointments WHERE user_id = ? ORDER BY appointment_date LIMIT 1");
+$stmt = $conn->prepare("SELECT appointment_date, appointment_time, service_id, status FROM appointments WHERE user_id = ? ORDER BY appointment_date LIMIT 1");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -38,7 +38,7 @@ $stmt->close();
         <div class="card mx-auto" style="max-width: 500px;">
             <div class="card-body">
                 <?php if ($appointment): ?>
-                    <h5 class="card-title"><?php echo htmlspecialchars($appointment['service']); ?></h5>
+                    <h5 class="card-title"><?php echo htmlspecialchars($appointment['service_id']); ?></h5>
                     <p class="card-text">
                         <strong>Date of Appointment:</strong>
                         <?php echo date('M-d-Y', strtotime($appointment['appointment_date'])); ?> <br>

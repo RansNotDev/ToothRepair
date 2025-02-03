@@ -740,12 +740,13 @@ if (isset($_GET['date'])) {
         .btn-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 10px;
         }
 
         .btn-sm {
             width: 100%;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
+            margin-left: 10px;
         }
     }
 
@@ -806,6 +807,24 @@ if (isset($_GET['date'])) {
 
         .form-group {
             margin-bottom: 1rem;
+        }
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .action-button {
+        min-width: 100px;
+        padding: 6px 12px;
+        margin: 2px;
+    }
+
+    @media (max-width: 576px) {
+        .action-button {
+            min-width: 100%;
+            margin-bottom: 5px;
         }
     }
 </style>

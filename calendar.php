@@ -336,7 +336,6 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#appointmentForm').on('submit', function(e) {
             e.preventDefault();
             
-            // Validate required fields
             if(!this.checkValidity()) {
                 e.stopPropagation();
                 return false;
@@ -351,7 +350,36 @@ document.addEventListener('DOMContentLoaded', function () {
                 dataType: 'json',
                 success: function(response) {
                     if(response.status === 'success') {
-                        Swal.fire('Success!', 'Appointment booked successfully!', 'success');
+                        const email = $('#email').val();
+                        Swal.fire({
+                            title: 'Appointment Booked Successfully!',
+                            html: `
+                                <div class="text-left">
+                                    <p><strong>Your login credentials:</strong></p>
+                                    <p>Email: ${email}</p>
+                                    <p>Password: 1234</p>
+                                    <p>Please save these credentials for future access.</p>
+                                </div>
+                            `,
+                            icon: 'success',
+                            confirmButtonText: 'OK',
+                            allowOutsideClick: false
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                Swal.fire({
+                                    title: 'Proceed to Login?',
+                                    text: 'Click below to go to the login page',
+                                    icon: 'question',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Proceed to Login',
+                                    cancelButtonText: 'Stay Here'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = 'loginpage.php';
+                                    }
+                                });
+                            }
+                        });
                         $('#appointmentModal').modal('hide');
                         calendar.refetchEvents();
                     } else {
