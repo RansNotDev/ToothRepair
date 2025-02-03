@@ -3,7 +3,10 @@ include_once('includes/header.php');
 include_once('includes/sidebar.php');
 include_once('includes/topbar.php');
 include_once('../database/db_connection.php');
-
+?>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<?php
 // Check for success messages
 if (isset($_GET['success'])) {
     $message = match($_GET['success']) {
@@ -65,30 +68,32 @@ $services = $services_result->fetch_all(MYSQLI_ASSOC);
                         <?php if ($result->num_rows > 0): ?>
                             <?php while ($row = $result->fetch_assoc()): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($row['fullname']) ?></td>
-                                    <td><?= htmlspecialchars($row['appointment_date']) ?></td>
-                                    <td><?= htmlspecialchars($row['appointment_time']) ?></td>
-                                    <td><?= htmlspecialchars($row['service_name']) ?></td>
-                                    <td>
+                                    <td data-label="Full Name"><?= htmlspecialchars($row['fullname']) ?></td>
+                                    <td data-label="Appointment Date"><?= htmlspecialchars($row['appointment_date']) ?></td>
+                                    <td data-label="Appointment Time"><?= htmlspecialchars($row['appointment_time']) ?></td>
+                                    <td data-label="Service"><?= htmlspecialchars($row['service_name']) ?></td>
+                                    <td data-label="Status">
                                         <span class="badge badge-<?= getStatusBadge($row['status']) ?>">
                                             <?= ucfirst($row['status']) ?>
                                         </span>
                                     </td>
-                                    <td>
-                                        <button class="btn btn-info btn-sm view-btn" 
-                                                data-id="<?= $row['appointment_id'] ?>">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-primary btn-sm edit-btn" 
-                                                data-id="<?= $row['appointment_id'] ?>"
-                                                data-status="<?= $row['status'] ?>"
-                                                data-service="<?= $row['service_id'] ?>">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-danger btn-sm delete-btn" 
-                                                data-id="<?= $row['appointment_id'] ?>">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                    <td data-label="Actions">
+                                        <div class="btn-group">
+                                            <button class="btn btn-info btn-sm view-btn" 
+                                                    data-id="<?= $row['appointment_id'] ?>">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-primary btn-sm edit-btn" 
+                                                    data-id="<?= $row['appointment_id'] ?>"
+                                                    data-status="<?= $row['status'] ?>"
+                                                    data-service="<?= $row['service_id'] ?>">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-sm delete-btn" 
+                                                    data-id="<?= $row['appointment_id'] ?>">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endwhile; ?>
@@ -111,7 +116,9 @@ $services = $services_result->fetch_all(MYSQLI_ASSOC);
             <form action="tableconfig/add_appointment.php" method="POST">
                 <div class="modal-header">
                     <h5 class="modal-title">Add New Appointment</h5>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <div class="row">
@@ -179,7 +186,7 @@ $services = $services_result->fetch_all(MYSQLI_ASSOC);
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary">Create Appointment</button>
                 </div>
             </form>
@@ -194,7 +201,9 @@ $services = $services_result->fetch_all(MYSQLI_ASSOC);
             <form action="tableconfig/edit_appointment.php" method="POST">
                 <div class="modal-header">
                     <h5 class="modal-title">Edit Appointment</h5>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="appointment_id" id="editAppointmentId">
@@ -264,7 +273,6 @@ $services = $services_result->fetch_all(MYSQLI_ASSOC);
     </div>
 </div>
 
-<?php include_once('includes/footer.php'); ?>
 
 <script>
 $(document).ready(function() {
@@ -304,6 +312,25 @@ $(document).ready(function() {
     setTimeout(() => {
         $('.alert').alert('close');
     }, 5000);
+
+    // Handle close button click
+    $('.close').click(function() {
+        $(this).closest('.modal').modal('hide');
+    });
+    
+    // Handle clicking outside modal
+    $('.modal').click(function(e) {
+        if ($(e.target).hasClass('modal')) {
+            $(this).modal('hide');
+        }
+    });
+    
+    // Handle ESC key press
+    $(document).keyup(function(e) {
+        if (e.key === "Escape") {
+            $('.modal').modal('hide');
+        }
+    });
 });
 
 <?php
@@ -320,13 +347,116 @@ function getStatusBadge($status) {
 </script>
 
 <style>
+/* General Responsive Styles */
+.container-fluid {
+    padding: 15px;
+}
+
+/* Table Responsiveness */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+    .table thead {
+        display: none;
+    }
+    
+    .table tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+    }
+    
+    .table td {
+        display: block;
+        text-align: left;
+        position: relative;
+        padding-left: 50%;
+    }
+    
+    .table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        width: 45%;
+        font-weight: bold;
+    }
+}
+
+/* Modal Responsiveness */
+@media (max-width: 576px) {
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .modal-content {
+        padding: 10px;
+    }
+    
+    .form-group {
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Button Responsiveness */
+@media (max-width: 576px) {
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .btn-sm {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+}
+
+/* Badge Styles */
 .badge {
     font-size: 0.9em;
     padding: 0.5em 0.75em;
+    white-space: normal;
+    text-align: center;
+    display: inline-block;
 }
+
 .badge-warning { background-color: #ffc107; }
-.badge-primary { background-color: #007bff; }
-.badge-success { background-color: #28a745; }
-.badge-danger { background-color: #dc3545; }
-.btn-group .btn { margin-right: 5px; }
+.badge-primary { background-color: #007bff; color: white; }
+.badge-success { background-color: #28a745; color: white; }
+.badge-danger { background-color: #dc3545; color: white; }
+
+/* Card Header Responsiveness */
+.card-header {
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+@media (max-width: 576px) {
+    .card-header {
+        text-align: center;
+    }
+    
+    .card-header button {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+
+/* Form Responsiveness */
+@media (max-width: 768px) {
+    .row {
+        margin: 0;
+    }
+    
+    .col-md-6 {
+        padding: 0;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+}
 </style>

@@ -1,53 +1,60 @@
 <?php
-include('../../database/db_connection.php'); // Database connection
+include_once('../../database/db_connection.php');
 
 // Check if the form is submitted
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Get user input
-    $fullname = $_POST['fullname'];
-    $email = $_POST['email'];
-    $contact_number = $_POST['contact_number'];
-    $address = $_POST['address'];
-    $appointment_date = $_POST['appointment_date'];
-    $appointment_time = $_POST['appointment_time'];
-    $service = $_POST['service'];
-    $message = $_POST['message'];
-    $created_at = date('Y-m-d H:i:s'); // Current timestamp
-
-    // Set default password
-    $default_password = '1234';
-    $hashed_password = password_hash($default_password, PASSWORD_BCRYPT); // Hash password using bcrypt
-
-    // Begin transaction
-    $conn->begin_transaction();
-
     try {
-        // Insert into users table
-        $user_sql = "INSERT INTO users (fullname, email, password, contact_number, address, created_at) 
-                    VALUES (?, ?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($user_sql);
-        $stmt->bind_param("ssssss", $fullname, $email, $hashed_password, $contact_number, $address, $created_at);
+        // Validate required fields
+        $required = ['fullname', 'email', 'contact_number', 'address', 'appointment_date', 'appointment_time', 'service_id'];
+        foreach ($required as $field) {
+            if (!isset($_POST[$field]) || empty($_POST[$field])) {
+                throw new Exception("$field is required");
+            }
+        }
+
+        // Check if timeslot is available
+        $check_stmt = $conn->prepare("SELECT COUNT(*) as count FROM appointments WHERE appointment_date = ? AND appointment_time = ?");
+        $check_stmt->bind_param("ss", $_POST['appointment_date'], $_POST['appointment_time']);
+        $check_stmt->execute();
+        $result = $check_stmt->get_result()->fetch_assoc();
+        
+        if ($result['count'] > 0) {
+            throw new Exception("This time slot is already booked");
+        }
+
+        // Check if within availability
+        $avail_stmt = $conn->prepare("SELECT time_start, time_end FROM availability_tb WHERE available_date = ? AND is_active = 1");
+        $avail_stmt->bind_param("s", $_POST['appointment_date']);
+        $avail_stmt->execute();
+        $avail = $avail_stmt->get_result()->fetch_assoc();
+        
+        if (!$avail) {
+            throw new Exception("No availability for selected date");
+        }
+
+        $selected_time = strtotime($_POST['appointment_time']);
+        $start_time = strtotime($avail['time_start']);
+        $end_time = strtotime($avail['time_end']);
+        
+        if ($selected_time < $start_time || $selected_time > $end_time) {
+            throw new Exception("Selected time is outside available hours");
+        }
+
+        // Create user if not exists
+        $user_stmt = $conn->prepare("INSERT INTO users (fullname, email, contact_number, address) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE user_id=LAST_INSERT_ID(user_id)");
+        $user_stmt->bind_param("ssss", $_POST['fullname'], $_POST['email'], $_POST['contact_number'], $_POST['address']);
+        $user_stmt->execute();
+        $user_id = $user_stmt->insert_id;
+
+        // Create appointment
+        $stmt = $conn->prepare("INSERT INTO appointments (user_id, service_id, appointment_date, appointment_time, status) VALUES (?, ?, ?, ?, 'pending')");
+        $stmt->bind_param("iiss", $user_id, $_POST['service_id'], $_POST['appointment_date'], $_POST['appointment_time']);
         $stmt->execute();
 
-        // Get the last inserted user_id
-        $user_id = $conn->insert_id;
+        header('Location: ../appointmentlist.php?success=add');
 
-        // Insert into appointments table
-        $appointment_sql = "INSERT INTO appointments (user_id, appointment_date, appointment_time, service, message, status) 
-                            VALUES (?, ?, ?, ?, ?, 'pending')";
-        $stmt = $conn->prepare($appointment_sql);
-        $stmt->bind_param("issss", $user_id, $appointment_date, $appointment_time, $service, $message);
-        $stmt->execute();
-
-        // Commit transaction
-        $conn->commit();
-
-        // Redirect with success message
-        header("Location: ../tables.php?success=1");
     } catch (Exception $e) {
-        // Rollback transaction on error
-        $conn->rollback();
-        echo "Error: " . $e->getMessage();
+        header('Location: ../appointmentlist.php?error=' . urlencode($e->getMessage()));
     }
 }
 ?>

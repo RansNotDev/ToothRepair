@@ -141,7 +141,6 @@ if ($result) {
 <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.10.1/main.min.css' rel='stylesheet' />
 <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js'></script>
 <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.10.1/main.min.js'></script>
-<script src="js/sbadmin.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
