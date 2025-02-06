@@ -85,13 +85,13 @@ if (!isset($_SESSION)) {
             <li class="nav-item">
                 <a class="nav-link" href="calendar.php">
                     <i class="fas fa-fw fa-calendar"></i>
-                    <span>Appointment List</span>
+                    <span>Calendar</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="appointmentlist.php">
                     <i class="fas fa-fw fa-users"></i>
-                    <span>Manage Users</span>
+                    <span>Appointment List</span>
                 </a>
             </li>
             <li class="nav-item">

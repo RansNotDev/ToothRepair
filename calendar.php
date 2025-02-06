@@ -267,9 +267,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 const timeSelect = $('#time');
                 timeSelect.empty().append('<option value="">Select Time</option>');
 
-                slots.forEach(time => {
-                    if (!booked.includes(time) && remaining > 0) {
-                        timeSelect.append(`<option value="${time}">${time}</option>`);
+                slots.forEach(slot => {
+                    if (!booked.includes(slot.value) && remaining > 0) {
+                        timeSelect.append(`<option value="${slot.value}">${slot.display}</option>`);
                     }
                 });
 
@@ -321,17 +321,29 @@ document.addEventListener('DOMContentLoaded', function () {
         calendar.render();
 
         function generateTimeSlots(startTime, endTime) {
-            const slots = [];
-            const start = new Date(`1970-01-01T${startTime}`);
-            const end = new Date(`1970-01-01T${endTime}`);
+    const slots = [];
+    const start = new Date(`1970-01-01T${startTime}`);
+    const end = new Date(`1970-01-01T${endTime}`);
 
-            let current = new Date(start);
-            while (current <= end) {
-                slots.push(current.toTimeString().substr(0, 5));
-                current.setMinutes(current.getMinutes() + 30);
-            }
-            return slots;
-        }
+    let current = new Date(start);
+    while (current <= end) {
+        // Convert to 12-hour format for display
+        const hours = current.getHours();
+        const minutes = current.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const formattedHours = hours % 12 || 12;
+        const formattedTime = `${formattedHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+        
+        // Store both display format and 24-hour format
+        slots.push({
+            display: formattedTime,
+            value: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+        });
+        
+        current.setMinutes(current.getMinutes() + 30);
+    }
+    return slots;
+}
 
         $('#appointmentForm').on('submit', function(e) {
             e.preventDefault();
@@ -351,37 +363,64 @@ document.addEventListener('DOMContentLoaded', function () {
                 success: function(response) {
                     if(response.status === 'success') {
                         const email = $('#email').val();
-                        Swal.fire({
-                            title: 'Appointment Booked Successfully!',
-                            html: `
-                                <div class="text-left">
-                                    <p><strong>Your login credentials:</strong></p>
+                        
+                        // Send confirmation email
+                        $.ajax({
+                            url: 'sendmail.php',
+                            type: 'POST',
+                            data: {
+                                sendmail: true,
+                                email: email,
+                                subject: 'ToothRepair Registration Confirmation',
+                                message: `
+                                    <h2>Welcome to ToothRepair Dental Clinic!</h2>
+                                    <p>Your account has been created successfully.</p>
+                                    <p><strong>Login Credentials:</strong></p>
                                     <p>Email: ${email}</p>
                                     <p>Password: 1234</p>
-                                    <p>Please save these credentials for future access.</p>
-                                </div>
-                            `,
-                            icon: 'success',
-                            confirmButtonText: 'OK',
-                            allowOutsideClick: false
-                        }).then((result) => {
-                            if (result.isConfirmed) {
+                                    <p>Please keep these credentials safe for future access.</p>
+                                    <br>
+                                    <p>Thank you for choosing ToothRepair Dental Clinic!</p>
+                                `
+                            },
+                            success: function() {
+                                // Show success message
                                 Swal.fire({
-                                    title: 'Proceed to Login?',
-                                    text: 'Click below to go to the login page',
-                                    icon: 'question',
-                                    showCancelButton: true,
-                                    confirmButtonText: 'Proceed to Login',
-                                    cancelButtonText: 'Stay Here'
+                                    title: 'Appointment Booked Successfully!',
+                                    html: `
+                                        <div class="text-left">
+                                            <p><strong>Your login credentials:</strong></p>
+                                            <p>Email: ${email}</p>
+                                            <p>Password: 1234</p>
+                                            <p>Please save these credentials for future access.</p>
+                                        </div>
+                                    `,
+                                    icon: 'success',
+                                    confirmButtonText: 'OK',
+                                    allowOutsideClick: false
                                 }).then((result) => {
                                     if (result.isConfirmed) {
-                                        window.location.href = 'loginpage.php';
+                                        Swal.fire({
+                                            title: 'Proceed to Login?',
+                                            text: 'Click below to go to the login page',
+                                            icon: 'question',
+                                            showCancelButton: true,
+                                            confirmButtonText: 'Proceed to Login',
+                                            cancelButtonText: 'Stay Here'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                window.location.href = 'pages/loginpage.php';
+                                            }
+                                        });
                                     }
                                 });
+                                $('#appointmentModal').modal('hide');
+                                calendar.refetchEvents();
+                            },
+                            error: function() {
+                                console.log('Error sending confirmation email');
                             }
                         });
-                        $('#appointmentModal').modal('hide');
-                        calendar.refetchEvents();
                     } else {
                         Swal.fire('Error!', response.message || 'Failed to book appointment.', 'error');
                     }

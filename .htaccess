@@ -19,4 +19,11 @@ RewriteRule ^(.*)$ index.php [QSA,L]
     Header always set X-XSS-Protection "1; mode=block"
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    <FilesMatch "\.(css)$">
+        Header set Content-Type text/css
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_mime.c>
+    AddType text/css .css
 </IfModule>

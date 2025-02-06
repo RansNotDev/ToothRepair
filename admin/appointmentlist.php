@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Asia/Manila');
 include_once('includes/header.php');
 include_once('includes/sidebar.php');
 include_once('includes/topbar.php');
@@ -17,11 +18,23 @@ function getAvailableTimeSlots($date, $conn)
         $end = strtotime($row['time_end']);
 
         for ($time = $start; $time <= $end; $time += (30 * 60)) {
-            $slots[] = date('H:i', $time);
+            $slots[] = date('h:i A', $time); // 12-hour format
         }
     }
 
     return $slots;
+}
+
+// Add status badge function
+function getStatusBadge($status) {
+    return match(strtolower($status)) {
+        'booked' => 'warning',
+        'pending' => 'info',
+        'confirmed' => 'primary',
+        'completed' => 'success',
+        'cancelled' => 'danger',
+        default => 'secondary'
+    };
 }
 
 // Check for success messages
@@ -41,7 +54,7 @@ $sql = "SELECT
             users.fullname,
             users.created_at AS register_date,
             appointments.appointment_date,
-            appointments.appointment_time,
+            DATE_FORMAT(appointments.appointment_time, '%h:%i %p') as appointment_time,
             users.contact_number,
             users.email,
             services.service_name,
@@ -76,7 +89,7 @@ if (isset($_GET['date'])) {
 
         // Generate 30-minute slots
         for ($time = $start_time; $time <= $end_time; $time += (30 * 60)) {
-            $time_slots[] = date('H:i', $time);
+            $time_slots[] = date('h:i A', $time); // Changed to 12-hour format
         }
 
         // Get booked slots
@@ -97,9 +110,7 @@ if (isset($_GET['date'])) {
     } else {
         echo json_encode(['error' => 'No availability found']);
     }
-} else {
-    echo json_encode(['error' => 'Date not provided']);
-}
+} 
 ?>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -305,6 +316,7 @@ if (isset($_GET['date'])) {
                             <div class="form-group">
                                 <label>Status</label>
                                 <select name="status" id="editStatus" class="form-control" required>
+                                    <option value="booked">Booked</option>
                                     <option value="pending">Pending</option>
                                     <option value="confirmed">Confirmed</option>
                                     <option value="completed">Completed</option>
@@ -662,23 +674,18 @@ if (isset($_GET['date'])) {
         });
     });
 
-    <?php
-    function getStatusBadge($status)
-    {
-        switch ($status) {
-            case 'pending':
-                return 'warning';
-            case 'confirmed':
-                return 'primary';
-            case 'completed':
-                return 'success';
-            case 'cancelled':
-                return 'danger';
-            default:
-                return 'secondary';
-        }
+    // Update the time slot display in JavaScript
+    function formatTime(time) {
+        const [hours, minutes] = time.split(':');
+        const date = new Date();
+        date.setHours(hours);
+        date.setMinutes(minutes);
+        return date.toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit', 
+            hour12: true 
+        });
     }
-    ?>
 </script>
 
 <style>
@@ -827,4 +834,16 @@ if (isset($_GET['date'])) {
             margin-bottom: 5px;
         }
     }
+
+    .badge {
+        padding: 8px 12px;
+        font-size: 0.9em;
+    }
+
+    .badge-warning { background-color: #ffc107; color: #212529; }
+    .badge-info { background-color:rgb(190, 148, 9); color: #fff; }
+    .badge-primary { background-color: #007bff; color: #fff; }
+    .badge-success { background-color: #28a745; color: #fff; }
+    .badge-danger { background-color: #dc3545; color: #fff; }
+    .badge-secondary { background-color: #6c757d; color: #fff; }
 </style>

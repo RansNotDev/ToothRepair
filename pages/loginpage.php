@@ -13,17 +13,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die();
     }
 
-    $stmt = $conn->prepare("SELECT user_id, password FROM users WHERE email = ?");
+    $stmt = $conn->prepare("SELECT user_id, password, fullname FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $stmt->store_result();
 
     if ($stmt->num_rows > 0) {
-        $stmt->bind_result($user_id, $hashed_password);
+        $stmt->bind_result($user_id, $hashed_password, $fullname);
         $stmt->fetch();
 
         if (password_verify($password, $hashed_password)) {
             $_SESSION['user_id'] = $user_id;
+            $_SESSION['fullname'] = $fullname; // Add this line where you set other session variables
             header('Location: userdashboard.php');
             exit();
         } else {
@@ -87,7 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label for="password">Password</label>
                     </div>
                     <button type="submit">Login</button>
-                    
+                    <div class="forgot-password">
+                        <a href="forgot_password.php">Forgot Password?</a>
+                    </div>
                 </form>
             </div>
         </div>

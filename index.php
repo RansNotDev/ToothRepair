@@ -75,6 +75,7 @@
             color: white;
             text-align: center;
             padding: 5rem 0;
+            height: 100vh;
         }
 
         .content {
@@ -351,7 +352,7 @@
             <li><a href="#testimonials">Testimonials</a></li>
             <li><a href="#contact">Contact</a></li>
             <!-- Use an <a> tag styled as a button -->
-            <li><a href="./pages/loginpage.php" class="button-style">Log In</a></li>
+            <li><a href="pages/loginpage.php" class="button-style">Log In</a></li>
         </ul>
     </nav>
     <!-- Home Section -->
