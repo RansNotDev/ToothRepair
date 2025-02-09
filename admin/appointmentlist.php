@@ -5,29 +5,24 @@ include_once('includes/sidebar.php');
 include_once('includes/topbar.php');
 include_once('../database/db_connection.php');
 
-function getAvailableTimeSlots($date, $conn)
-{
-    $stmt = $conn->prepare("SELECT time_start, time_end FROM availability_tb WHERE available_date = ? AND is_active = 1");
-    $stmt->bind_param("s", $date);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    $slots = [];
-    if ($row = $result->fetch_assoc()) {
-        $start = strtotime($row['time_start']);
-        $end = strtotime($row['time_end']);
-
-        for ($time = $start; $time <= $end; $time += (30 * 60)) {
-            $slots[] = date('h:i A', $time); // 12-hour format
-        }
-    }
-
-    return $slots;
+$availability = [];
+$result = mysqli_query(
+    $conn,
+    "SELECT available_date, 
+            TIME_FORMAT(time_start, '%H:%i') as time_start, 
+            TIME_FORMAT(time_end, '%H:%i') as time_end 
+     FROM availability_tb 
+     WHERE is_active = 1"
+);
+while ($row = mysqli_fetch_assoc($result)) {
+    $availability[$row['available_date']] = $row;
 }
 
+
 // Add status badge function
-function getStatusBadge($status) {
-    return match(strtolower($status)) {
+function getStatusBadge($status)
+{
+    return match (strtolower($status)) {
         'booked' => 'warning',
         'pending' => 'info',
         'confirmed' => 'primary',
@@ -75,32 +70,29 @@ $services = $services_result->fetch_all(MYSQLI_ASSOC);
 if (isset($_GET['date'])) {
     $date = $_GET['date'];
 
-    // Get availability for the selected date
-    $stmt = $conn->prepare("SELECT time_start, time_end FROM availability_tb WHERE available_date = ? AND is_active = 1");
-    $stmt->bind_param("s", $date);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($row = $result->fetch_assoc()) {
-        $start_time = strtotime($row['time_start']);
-        $end_time = strtotime($row['time_end']);
+    if (isset($availability[$date])) {
+        $start_time = strtotime($availability[$date]['time_start']);
+        $end_time = strtotime($availability[$date]['time_end']);
 
         $time_slots = array();
 
         // Generate 30-minute slots
         for ($time = $start_time; $time <= $end_time; $time += (30 * 60)) {
-            $time_slots[] = date('h:i A', $time); // Changed to 12-hour format
+            $time_slots[] = date('h:i A', $time);
         }
 
         // Get booked slots
-        $stmt = $conn->prepare("SELECT appointment_time FROM appointments WHERE appointment_date = ? AND status IN ('confirmed','pending')");
+        $stmt = $conn->prepare("SELECT TIME_FORMAT(appointment_time, '%h:%i %p') as booked_time 
+                               FROM appointments 
+                               WHERE appointment_date = ? 
+                               AND status IN ('confirmed', 'pending')");
         $stmt->bind_param("s", $date);
         $stmt->execute();
-        $booked = $stmt->get_result();
+        $booked_result = $stmt->get_result();
         $booked_slots = array();
 
-        while ($book = $booked->fetch_assoc()) {
-            $booked_slots[] = $book['appointment_time'];
+        while ($row = $booked_result->fetch_assoc()) {
+            $booked_slots[] = $row['booked_time'];
         }
 
         echo json_encode([
@@ -108,9 +100,10 @@ if (isset($_GET['date'])) {
             'booked' => $booked_slots
         ]);
     } else {
-        echo json_encode(['error' => 'No availability found']);
+        echo json_encode(['error' => 'No availability found for selected date']);
     }
-} 
+    exit;
+}
 ?>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -188,7 +181,7 @@ if (isset($_GET['date'])) {
 <div class="modal fade" id="addAppointmentModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <form action="tableconfig/add_appointment.php" method="POST">
+            <form action="appointments/add_appointment.php" method="POST">
                 <div class="modal-header">
                     <h5 class="modal-title">Add New Appointment</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -228,6 +221,27 @@ if (isset($_GET['date'])) {
                                 <label>Appointment Time</label>
                                 <select name="appointment_time" class="form-control" required>
                                     <option value="">Select Time</option>
+                                    <option value="07:30:00">7:30 AM</option>
+                                    <option value="08:00:00">8:00 AM</option>
+                                    <option value="08:30:00">8:30 AM</option>
+                                    <option value="09:00:00">9:00 AM</option>
+                                    <option value="09:30:00">9:30 AM</option>
+                                    <option value="10:00:00">10:00 AM</option>
+                                    <option value="10:30:00">10:30 AM</option>
+                                    <option value="11:00:00">11:00 AM</option>
+                                    <option value="11:30:00">11:30 AM</option>
+                                    <option value="12:00:00">12:00 PM</option>
+                                    <option value="12:30:00">12:30 PM</option>
+                                    <option value="13:00:00">1:00 PM</option>
+                                    <option value="13:30:00">1:30 PM</option>
+                                    <option value="14:00:00">2:00 PM</option>
+                                    <option value="14:30:00">2:30 PM</option>
+                                    <option value="15:00:00">3:00 PM</option>
+                                    <option value="15:30:00">3:30 PM</option>
+                                    <option value="16:00:00">4:00 PM</option>
+                                    <option value="16:30:00">4:30 PM</option>
+                                    <option value="17:00:00">5:00 PM</option>
+                                    <option value="17:30:00">5:30 PM</option>
                                 </select>
                             </div>
                         </div>
@@ -235,6 +249,7 @@ if (isset($_GET['date'])) {
                             <div class="form-group">
                                 <label>Service</label>
                                 <select name="service_id" class="form-control" required>
+                                    <option value="">Select Service</option>
                                     <?php foreach ($services as $service): ?>
                                         <option value="<?= $service['service_id'] ?>">
                                             <?= htmlspecialchars($service['service_name']) ?>
@@ -242,11 +257,20 @@ if (isset($_GET['date'])) {
                                     <?php endforeach; ?>
                                 </select>
                             </div>
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select name="status" class="form-control" required>
+                                    <option value="pending">Pending</option>
+                                    <option value="confirmed">Confirmed</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary">Create Appointment</button>
                 </div>
             </form>
@@ -264,27 +288,28 @@ if (isset($_GET['date'])) {
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="tableconfig/edit_appointment.php" method="POST">
+            <form action="appointments/edit_appointment.php" method="POST">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Full Name</label>
-                                <input type="text" name="fullname" id="editFullname" class="form-control" required>
+                                <input type="text" name="fullname" id="editFullname" class="form-control">
+                                <input type="hidden" name="appointment_id" id="editAppointmentId">
                             </div>
                             <div class="form-group">
                                 <label>Email</label>
-                                <input type="email" name="email" id="editEmail" class="form-control" required>
+                                <input type="email" name="email" id="editEmail" class="form-control">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Contact Number</label>
-                                <input type="tel" name="contact_number" id="editContact" class="form-control" required>
+                                <input type="tel" name="contact_number" id="editContact" class="form-control">
                             </div>
                             <div class="form-group">
                                 <label>Address</label>
-                                <textarea name="address" id="editAddress" class="form-control" required></textarea>
+                                <textarea name="address" id="editAddress" class="form-control"></textarea>
                             </div>
                         </div>
                     </div>
@@ -293,19 +318,41 @@ if (isset($_GET['date'])) {
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Appointment Date</label>
-                                <input type="date" name="appointment_date" id="editDate" class="form-control" required>
+                                <input type="date" name="appointment_date" id="editDate" class="form-control">
                             </div>
                             <div class="form-group">
-                                <label for="time">Appointment Time</label>
-                                <select class="form-control" id="time" name="appointment_time" required>
+                                <label>Appointment Time</label>
+                                <select class="form-control" id="editTime" name="appointment_time" required>
                                     <option value="">Select Time</option>
+                                    <option value="07:30:00">7:30 AM</option>
+                                    <option value="08:00:00">8:00 AM</option>
+                                    <option value="08:30:00">8:30 AM</option>
+                                    <option value="09:00:00">9:00 AM</option>
+                                    <option value="09:30:00">9:30 AM</option>
+                                    <option value="10:00:00">10:00 AM</option>
+                                    <option value="10:30:00">10:30 AM</option>
+                                    <option value="11:00:00">11:00 AM</option>
+                                    <option value="11:30:00">11:30 AM</option>
+                                    <option value="12:00:00">12:00 PM</option>
+                                    <option value="12:30:00">12:30 PM</option>
+                                    <option value="13:00:00">1:00 PM</option>
+                                    <option value="13:30:00">1:30 PM</option>
+                                    <option value="14:00:00">2:00 PM</option>
+                                    <option value="14:30:00">2:30 PM</option>
+                                    <option value="15:00:00">3:00 PM</option>
+                                    <option value="15:30:00">3:30 PM</option>
+                                    <option value="16:00:00">4:00 PM</option>
+                                    <option value="16:30:00">4:30 PM</option>
+                                    <option value="17:00:00">5:00 PM</option>
+                                    <option value="17:30:00">5:30 PM</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Service</label>
-                                <select name="service_id" id="editService" class="form-control" required>
+                                <select name="service_id" id="editService" class="form-control">
+                                    <option value="">Select Service</option>
                                     <?php foreach ($services as $service): ?>
                                         <option value="<?= $service['service_id'] ?>">
                                             <?= htmlspecialchars($service['service_name']) ?>
@@ -315,7 +362,8 @@ if (isset($_GET['date'])) {
                             </div>
                             <div class="form-group">
                                 <label>Status</label>
-                                <select name="status" id="editStatus" class="form-control" required>
+                                <select name="status" id="editStatus" class="form-control">
+                                    <option value="">Select Status</option>
                                     <option value="booked">Booked</option>
                                     <option value="pending">Pending</option>
                                     <option value="confirmed">Confirmed</option>
@@ -403,40 +451,88 @@ if (isset($_GET['date'])) {
         // Replace or update existing edit button handler
         $('.edit-btn').on('click', function () {
             const appointmentId = $(this).data('id');
+            const button = $(this);
 
-            // Show loading state
-            $(this).prop('disabled', true);
+            button.prop('disabled', true);
 
             $.ajax({
-                url: 'tableconfig/get_appointment.php',
+                url: 'appointments/get_appointment.php',
                 type: 'GET',
                 data: { id: appointmentId },
-                dataType: 'json', // Add this line
+                dataType: 'json',
                 success: function (data) {
                     if (data.error) {
                         alert(data.error);
                         return;
                     }
 
+                    // Store original data in data attributes
+                    const form = $('#editAppointmentModal form');
+                    form.data('original', data);
+
+                    // Populate edit form with existing data
                     $('#editAppointmentId').val(data.appointment_id);
-                    $('#editFullname').val(data.fullname);
-                    $('#editEmail').val(data.email);
-                    $('#editContact').val(data.contact_number);
-                    $('#editAddress').val(data.address);
-                    $('#editDate').val(data.appointment_date);
-                    $('#time').val(data.appointment_time); // Updated selector
-                    $('#editService').val(data.service_id);
-                    $('#editStatus').val(data.status);
+                    $('#editFullname').val(data.fullname || '');
+                    $('#editEmail').val(data.email || '');
+                    $('#editContact').val(data.contact_number || '');
+                    $('#editAddress').val(data.address || '');
+                    $('#editDate').val(data.appointment_date || '');
+                    $('#editTime').val(data.appointment_time || '');
+                    $('#editService').val(data.service_id || '');
+                    $('#editStatus').val(data.status || '');
 
                     // Show modal
                     $('#editAppointmentModal').modal('show');
                 },
                 error: function (xhr, status, error) {
-                    alert('Error fetching appointment: ' + error);
+                    console.error('Error:', error);
+                    alert('Error fetching appointment details. Please try again.');
                 },
                 complete: function () {
-                    // Re-enable button
-                    $('.edit-btn').prop('disabled', false);
+                    button.prop('disabled', false);
+                }
+            });
+        });
+
+        // Add form submission handler for edit form
+        $('#editAppointmentModal form').on('submit', function(e) {
+            e.preventDefault();
+            
+            const form = $(this);
+            const submitBtn = form.find('button[type="submit"]');
+            const originalData = form.data('original');
+            
+            // Create FormData object
+            const formData = new FormData(this);
+            
+            // Check each field and use original value if empty
+            formData.forEach((value, key) => {
+                if (!value && originalData && originalData[key]) {
+                    formData.set(key, originalData[key]);
+                }
+            });
+            
+            // Disable submit button
+            submitBtn.prop('disabled', true);
+            
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: Object.fromEntries(formData),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        window.location.href = 'appointmentlist.php?success=edit';
+                    } else {
+                        alert('Error: ' + (response.error || 'Failed to update appointment'));
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Server error:', xhr.responseText);
+                    alert('Failed to update appointment. Please try again.');
+                },
+                complete: function() {
+                    submitBtn.prop('disabled', false);
                 }
             });
         });
@@ -449,7 +545,7 @@ if (isset($_GET['date'])) {
             button.prop('disabled', true);
 
             $.ajax({
-                url: 'tableconfig/get_appointment.php',
+                url: 'appointments/get_appointment.php',
                 type: 'GET',
                 data: { id: appointmentId },
                 dataType: 'json', // Add this line
@@ -499,7 +595,7 @@ if (isset($_GET['date'])) {
             button.prop('disabled', true);
 
             $.ajax({
-                url: 'tableconfig/delete_appointment.php',
+                url: 'appointments/delete_appointment.php',
                 type: 'POST',
                 data: { id: appointmentId },
                 dataType: 'json',
@@ -536,7 +632,7 @@ if (isset($_GET['date'])) {
 
             if (dateSelected) {
                 $.ajax({
-                    url: 'tableconfig/get_timeslots.php',
+                    url: 'appointments/get_timeslots.php',
                     type: 'GET',
                     data: { date: dateSelected },
                     success: function (response) {
@@ -566,7 +662,7 @@ if (isset($_GET['date'])) {
 
             if (dateSelected) {
                 $.ajax({
-                    url: 'tableconfig/get_timeslots.php',
+                    url: 'appointments/get_timeslots.php',
                     type: 'GET',
                     data: { date: dateSelected },
                     dataType: 'json',
@@ -621,7 +717,7 @@ if (isset($_GET['date'])) {
             button.prop('disabled', true);
 
             $.ajax({
-                url: 'tableconfig/get_appointment.php',
+                url: 'appointments/get_appointment.php',
                 type: 'GET',
                 data: { id: appointmentId },
                 dataType: 'json',
@@ -672,6 +768,115 @@ if (isset($_GET['date'])) {
                 $('.modal').modal('hide');
             }
         });
+
+        // Add this code inside your existing $(document).ready() function
+
+        // Handle all close buttons in modals
+        $('.modal .close, .modal .btn-secondary, .modal .btn-danger[data-dismiss="modal"]').on('click', function (e) {
+            e.preventDefault();
+            $(this).closest('.modal').modal('hide');
+        });
+
+        // Handle modal closing when clicking outside
+        $('.modal').on('click', function (e) {
+            if ($(e.target).is('.modal')) {
+                $(this).modal('hide');
+            }
+        });
+
+        // Handle ESC key
+        $(document).on('keydown', function (e) {
+            if (e.key === 'Escape') {
+                $('.modal:visible').modal('hide');
+            }
+        });
+
+        // Cleanup form data when modal is hidden
+        $('.modal').on('hidden.bs.modal', function () {
+            $(this).find('form').trigger('reset');
+            $(this).find('.alert').remove();
+        });
+    });
+
+    // Replace the existing form submission handler
+    $(document).ready(function() {
+        $('#addAppointmentModal form').on('submit', function(e) {
+            e.preventDefault();
+            
+            const form = $(this);
+            const submitBtn = form.find('button[type="submit"]');
+            
+            // Disable submit button to prevent double submission
+            submitBtn.prop('disabled', true);
+            
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: form.serialize(),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Show success message
+                        $('#addAppointmentModal').modal('hide');
+                        
+                        // Refresh the appointments table
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (response.error || 'Failed to add appointment'));
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Server error:', xhr.responseText);
+                    alert('Failed to add appointment. Please try again.');
+                },
+                complete: function() {
+                    // Re-enable submit button
+                    submitBtn.prop('disabled', false);
+                }
+            });
+        });
+    });
+
+    // Add this to your existing script section
+    $(document).ready(function () {
+        // Handle date selection for both add and edit forms
+        $('input[name="appointment_date"], #editDate').on('change', function () {
+            const dateSelected = $(this).val();
+            const timeSelect = $(this).closest('form').find('select[name="appointment_time"]');
+
+            if (dateSelected) {
+                timeSelect.prop('disabled', true); // Disable while loading
+
+                $.ajax({
+                    url: 'appointments/get_timeslots.php',
+                    type: 'GET',
+                    data: { date: dateSelected },
+                    dataType: 'json',
+                    success: function (response) {
+                        timeSelect.empty().append('<option value="">Select Time</option>');
+
+                        if (response.slots && response.slots.length > 0) {
+                            response.slots.forEach(time => {
+                                const isBooked = response.booked.includes(time);
+                                if (!isBooked) {
+                                    timeSelect.append(`<option value="${time}">${time}</option>`);
+                                }
+                            });
+                        } else if (response.error) {
+                            timeSelect.append(`<option value="" disabled>${response.error}</option>`);
+                        }
+                    },
+                    error: function () {
+                        timeSelect.empty().append('<option value="">Error loading times</option>');
+                    },
+                    complete: function () {
+                        timeSelect.prop('disabled', false); // Re-enable after loading
+                    }
+                });
+            } else {
+                timeSelect.empty().append('<option value="">Select Time</option>');
+            }
+        });
     });
 
     // Update the time slot display in JavaScript
@@ -680,12 +885,256 @@ if (isset($_GET['date'])) {
         const date = new Date();
         date.setHours(hours);
         date.setMinutes(minutes);
-        return date.toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit', 
-            hour12: true 
+        return date.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
         });
     }
+
+    // Replace or add this code in your existing JavaScript section
+    $(document).ready(function () {
+        // Function to generate time slots
+        function generateTimeSlots(startTime, endTime) {
+            const slots = [];
+            const [startHours, startMinutes] = startTime.split(':').map(Number);
+            const [endHours, endMinutes] = endTime.split(':').map(Number);
+
+            let currentDate = new Date();
+            currentDate.setHours(startHours, startMinutes, 0);
+
+            const endDate = new Date();
+            endDate.setHours(endHours, endMinutes, 0);
+
+            while (currentDate <= endDate) {
+                slots.push(currentDate.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                }));
+
+                // Add 30 minutes
+                currentDate = new Date(currentDate.getTime() + 30 * 60000);
+            }
+
+            return slots;
+        }
+
+        // Handle date selection change
+        $('input[name="appointment_date"], #editDate').on('change', function () {
+            const dateSelected = $(this).val();
+            const timeSelect = $(this).closest('form').find('select[name="appointment_time"]');
+
+            if (dateSelected) {
+                $.ajax({
+                    url: window.location.pathname,
+                    type: 'GET',
+                    data: { date: dateSelected },
+                    dataType: 'json',
+                    success: function (response) {
+                        timeSelect.empty().append('<option value="">Select Time</option>');
+
+                        if (response.available && response.booked) {
+                            const availableSlots = response.available;
+                            const bookedSlots = response.booked;
+
+                            availableSlots.forEach(timeSlot => {
+                                if (!bookedSlots.includes(timeSlot)) {
+                                    timeSelect.append(`<option value="${timeSlot}">${timeSlot}</option>`);
+                                }
+                            });
+                        } else if (response.error) {
+                            timeSelect.append('<option value="" disabled>' + response.error + '</option>');
+                        }
+                    },
+                    error: function () {
+                        timeSelect.empty()
+                            .append('<option value="">Error loading time slots</option>');
+                    }
+                });
+            } else {
+                timeSelect.empty().append('<option value="">Select Time</option>');
+            }
+        });
+    });
+
+    $(document).ready(function() {
+        // Form submission handler
+        $('#addAppointmentModal form').on('submit', function(e) {
+            e.preventDefault();
+            
+            const form = $(this);
+            const submitBtn = form.find('button[type="submit"]');
+            
+            // Disable submit button
+            submitBtn.prop('disabled', true);
+            
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: form.serialize(),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Show success message and reload page
+                        window.location.href = 'appointmentlist.php?success=add';
+                    } else {
+                        alert('Error: ' + (response.error || 'Failed to add appointment'));
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Server error:', xhr.responseText);
+                    alert('Failed to add appointment. Please try again.');
+                },
+                complete: function() {
+                    // Re-enable submit button
+                    submitBtn.prop('disabled', false);
+                }
+            });
+        });
+
+        // Set minimum date to today for appointment date
+        $('input[name="appointment_date"]').attr('min', new Date().toISOString().split('T')[0]);
+    });
+
+    function updateTimeSlots(dateInput, timeSelect, originalTime = null) {
+        const dateSelected = dateInput.val();
+        
+        if (!dateSelected) {
+            timeSelect.empty().append('<option value="">Select Time</option>');
+            return;
+        }
+    
+        timeSelect.prop('disabled', true);
+        
+        $.ajax({
+            url: 'appointments/get_timeslots.php',
+            type: 'GET',
+            data: { 
+                date: dateSelected,
+                current_time: originalTime 
+            },
+            dataType: 'json',
+            success: function(response) {
+                timeSelect.empty().append('<option value="">Select Time</option>');
+                
+                if (response.available && response.available.length > 0) {
+                    response.available.forEach(time => {
+                        const isBooked = response.booked && response.booked.includes(time);
+                        const isOriginalTime = time === originalTime;
+                        
+                        if (!isBooked || isOriginalTime) {
+                            timeSelect.append(`<option value="${time}" ${isOriginalTime ? 'selected' : ''}>${time}</option>`);
+                        }
+                    });
+                }
+            },
+            error: function(xhr) {
+                console.error('Error loading timeslots:', xhr.responseText);
+                timeSelect.empty().append('<option value="">Error loading times</option>');
+            },
+            complete: function() {
+                timeSelect.prop('disabled', false);
+            }
+        });
+    }
+    
+    // Update edit form handler
+    $('.edit-btn').on('click', function() {
+        const appointmentId = $(this).data('id');
+        const button = $(this);
+        
+        button.prop('disabled', true);
+        
+        $.ajax({
+            url: 'appointments/get_appointment.php',
+            type: 'GET',
+            data: { id: appointmentId },
+            dataType: 'json',
+            success: function(data) {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+    
+                const form = $('#editAppointmentModal form');
+                form.data('original', data);
+    
+                $('#editAppointmentId').val(data.appointment_id);
+                $('#editFullname').val(data.fullname || '');
+                $('#editEmail').val(data.email || '');
+                $('#editContact').val(data.contact_number || '');
+                $('#editAddress').val(data.address || '');
+                $('#editDate').val(data.appointment_date || '');
+                $('#editService').val(data.service_id || '');
+                $('#editStatus').val(data.status || '');
+    
+                // Update time slots while preserving original time
+                const timeSelect = $('#editTime');
+                updateTimeSlots($('#editDate'), timeSelect, data.appointment_time);
+    
+                $('#editAppointmentModal').modal('show');
+            },
+            error: function(xhr) {
+                console.error('Error:', xhr.responseText);
+                alert('Error fetching appointment details.');
+            },
+            complete: function() {
+                button.prop('disabled', false);
+            }
+        });
+    });
+    
+    // Handle date changes
+    $('#editDate').on('change', function() {
+        const timeSelect = $('#editTime');
+        const originalData = $('#editAppointmentModal form').data('original');
+        updateTimeSlots($(this), timeSelect, originalData?.appointment_time);
+    });
+
+    // Update the date change handler for add appointment
+    $(document).ready(function () {
+        $('input[name="appointment_date"]').on('change', function () {
+            const dateSelected = $(this).val();
+            // Fix: Change from '#time' to 'select[name="appointment_time"]'
+            const timeSelect = $(this).closest('form').find('select[name="appointment_time"]');
+
+            if (dateSelected) {
+                timeSelect.prop('disabled', true);
+
+                $.ajax({
+                    url: 'appointments/get_timeslots.php',
+                    type: 'GET',
+                    data: { date: dateSelected },
+                    dataType: 'json',
+                    success: function (response) {
+                        timeSelect.empty().append('<option value="">Select Time</option>');
+
+                        if (response.available && response.available.length > 0) {
+                            response.available.forEach(time => {
+                                const isBooked = response.booked && response.booked.includes(time);
+                                if (!isBooked) {
+                                    // Fix: Add proper value format for the time options
+                                    const timeValue = time.replace(' ', ':00 '); // Add seconds to match required format
+                                    timeSelect.append(`<option value="${timeValue}">${time}</option>`);
+                                }
+                            });
+                        } else if (response.error) {
+                            timeSelect.append(`<option value="" disabled>${response.error}</option>`);
+                        }
+                    },
+                    error: function () {
+                        timeSelect.empty().append('<option value="">Error loading times</option>');
+                    },
+                    complete: function () {
+                        timeSelect.prop('disabled', false);
+                    }
+                });
+            } else {
+                timeSelect.empty().append('<option value="">Select Time</option>');
+            }
+        });
+    });
 </script>
 
 <style>
@@ -738,101 +1187,6 @@ if (isset($_GET['date'])) {
         }
 
         .form-group {
-            margin-bottom: 0.5rem;
-        }
-    }
-
-    /* Button Responsiveness */
-    @media (max-width: 576px) {
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .btn-sm {
-            width: 100%;
-            margin-bottom: 10px;
-            margin-left: 10px;
-        }
-    }
-
-    /* Badge Styles */
-    .badge {
-        font-size: 0.9em;
-        padding: 0.5em 0.75em;
-        white-space: normal;
-        text-align: center;
-        display: inline-block;
-    }
-
-    .badge-warning {
-        background-color: #ffc107;
-    }
-
-    .badge-primary {
-        background-color: #007bff;
-        color: white;
-    }
-
-    .badge-success {
-        background-color: #28a745;
-        color: white;
-    }
-
-    .badge-danger {
-        background-color: #dc3545;
-        color: white;
-    }
-
-    /* Card Header Responsiveness */
-    .card-header {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    @media (max-width: 576px) {
-        .card-header {
-            text-align: center;
-        }
-
-        .card-header button {
-            width: 100%;
-            margin-top: 10px;
-        }
-    }
-
-    /* Form Responsiveness */
-    @media (max-width: 768px) {
-        .row {
-            margin: 0;
-        }
-
-        .col-md-6 {
-            padding: 0;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-    }
-
-    .action-buttons {
-        display: flex;
-        gap: 10px;
-    }
-
-    .action-button {
-        min-width: 100px;
-        padding: 6px 12px;
-        margin: 2px;
-    }
-
-    @media (max-width: 576px) {
-        .action-button {
-            min-width: 100%;
-            margin-bottom: 5px;
-        }
     }
 
     .badge {
@@ -840,10 +1194,33 @@ if (isset($_GET['date'])) {
         font-size: 0.9em;
     }
 
-    .badge-warning { background-color: #ffc107; color: #212529; }
-    .badge-info { background-color:rgb(190, 148, 9); color: #fff; }
-    .badge-primary { background-color: #007bff; color: #fff; }
-    .badge-success { background-color: #28a745; color: #fff; }
-    .badge-danger { background-color: #dc3545; color: #fff; }
-    .badge-secondary { background-color: #6c757d; color: #fff; }
+    .badge-warning {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .badge-info {
+        background-color: rgb(190, 148, 9);
+        color: #fff;
+    }
+
+    .badge-primary {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    .badge-success {
+        background-color: #28a745;
+        color: #fff;
+    }
+
+    .badge-danger {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    .badge-secondary {
+        background-color: #6c757d;
+        color: #fff;
+    }
 </style>

@@ -46,7 +46,7 @@ $services_result = $conn->query($services_query);
             <div class="card shadow">
                 <div class="card-body">
                     <h4 class="card-title mb-4">Book New Appointment</h4>
-                    <form id="appointmentForm" method="POST">
+                    <form id="appointmentForm" method="POST" action="process_booking.php">
                         <div class="mb-3">
                             <label>Select Service</label>
                             <select class="form-control" name="service_id" required>
@@ -85,10 +85,15 @@ $services_result = $conn->query($services_query);
                 <div class="card-body p-4">
                     <h5 class="card-title text-primary mb-4">Quick Actions</h5>
                     <div class="d-grid gap-3">
+                    <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-calendar-plus text-primary me-3"></i>
+                            <span>Home</span>
+                        </a>
                         <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center">
                             <i class="fas fa-calendar-plus text-primary me-3"></i>
                             <span>Book New Appointment</span>
                         </a>
+                        
                         <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center">
                             <i class="fas fa-history text-primary me-3"></i>
                             <span>View History</span>

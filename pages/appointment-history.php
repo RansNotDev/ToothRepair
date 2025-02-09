@@ -77,6 +77,10 @@ $result = $stmt->get_result();
                 <div class="card-body p-4">
                     <h5 class="card-title text-primary mb-4">Quick Actions</h5>
                     <div class="d-grid gap-3">
+                    <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-calendar-plus text-primary me-3"></i>
+                            <span>Home</span>
+                        </a>
                         <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center">
                             <i class="fas fa-calendar-plus text-primary me-3"></i>
                             <span>Book New Appointment</span>

@@ -1,5 +1,5 @@
 <?php
-require("../database/db_connection.php");
+require_once("../database/db_connection.php");
 require("../phpmailer/PHPMailer.php");
 require("../phpmailer/SMTP.php");
 require("../phpmailer/Exception.php");
@@ -52,70 +52,79 @@ function sendCancellationEmail($userEmail, $appointmentDetails) {
     }
 }
 
-if (isset($_POST['appointment_id'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $appointment_id = $_POST['appointment_id'] ?? null;
+    $cancel_reason = $_POST['cancel_reason'] ?? '';
+
+    if (!$appointment_id) {
+        echo json_encode(['success' => false, 'message' => 'Appointment ID is required']);
+        exit;
+    }
+
+    // Prepare the update data
+    $appointmentValues = [];
+    $appointmentTypes = '';
+    $appointmentUpdates = [];
+
+    // Add status update
+    $appointmentUpdates[] = "status = ?";
+    $appointmentValues[] = 'Cancelled';
+    $appointmentTypes .= 's';
+
+    // Add cancel reason if provided
+    if (!empty($cancel_reason)) {
+        $appointmentUpdates[] = "cancel_reason = ?";
+        $appointmentValues[] = $cancel_reason;
+        $appointmentTypes .= 's';
+    }
+
     try {
-        $appointment_id = $_POST['appointment_id'];
-        $user_id = $_SESSION['user_id'];
-        $cancel_reason = $_POST['cancel_reason'] ?? 'No reason provided';
-        $current_time = date('Y-m-d H:i:s');
-
-        // Get appointment and user details
-        $stmt = $conn->prepare("
-            SELECT a.*, s.service_name, u.email
-            FROM appointments a
-            JOIN services s ON a.service_id = s.service_id
-            JOIN users u ON a.user_id = u.user_id
-            WHERE a.appointment_id = ? AND a.user_id = ?
-        ");
-        $stmt->bind_param("ii", $appointment_id, $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result->num_rows === 0) {
-            echo json_encode(['success' => false, 'message' => 'Appointment not found']);
-            exit;
-        }
-
-        $appointment = $result->fetch_assoc();
-
-        if ($appointment['status'] === 'Cancelled') {
-            echo json_encode(['success' => false, 'message' => 'Appointment is already cancelled']);
-            exit;
-        }
+        $conn->begin_transaction();
 
         // Update appointment status
-        $update = $conn->prepare("
-            UPDATE appointments 
-            SET status = 'Cancelled',
-                cancel_reason = ?,
-                cancelled_at = ?
-            WHERE appointment_id = ? AND user_id = ?
-        ");
-        $update->bind_param("ssii", $cancel_reason, $current_time, $appointment_id, $user_id);
+        $sql = "UPDATE appointments SET " . implode(', ', $appointmentUpdates) . 
+               " WHERE appointment_id = ?";
+        $appointmentValues[] = $appointment_id;
+        $appointmentTypes .= 'i';
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param($appointmentTypes, ...$appointmentValues);
+        $stmt->execute();
 
-        if ($update->execute()) {
-            // Send email
-            $emailDetails = [
-                'date' => date('F d, Y', strtotime($appointment['appointment_date'])),
-                'time' => date('h:i A', strtotime($appointment['appointment_time'])),
-                'service' => $appointment['service_name'],
-                'reason' => $cancel_reason
-            ];
+        // Get appointment details for email notification
+        $query = "SELECT u.email, u.fullname, a.appointment_date, a.appointment_time, s.service_name 
+                 FROM appointments a 
+                 JOIN users u ON a.user_id = u.user_id 
+                 JOIN services s ON a.service_id = s.service_id 
+                 WHERE a.appointment_id = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $appointment_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $appointment = $result->fetch_assoc();
 
-            $emailSent = sendCancellationEmail($appointment['email'], $emailDetails);
+        $conn->commit();
 
-            echo json_encode([
-                'success' => true,
-                'message' => 'Appointment cancelled successfully' . ($emailSent ? ' and notification sent' : ''),
-                'appointment' => $emailDetails
-            ]);
-        } else {
-            throw new Exception('Failed to update appointment status');
-        }
+        // Send email notification (you can implement this part)
+        // sendCancellationEmail($appointment['email'], $appointment);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Appointment cancelled successfully',
+            'appointment' => [
+                'date' => $appointment['appointment_date'],
+                'time' => $appointment['appointment_time'],
+                'service' => $appointment['service_name']
+            ]
+        ]);
 
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        $conn->rollback();
+        error_log("Cancel appointment error: " . $e->getMessage());
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error cancelling appointment: ' . $e->getMessage()
+        ]);
     }
-} else {
-    echo json_encode(['success' => false, 'message' => 'No appointment ID provided']);
+    exit;
 }

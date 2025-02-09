@@ -16,7 +16,7 @@ try {
         u.contact_number,
         u.address,
         a.appointment_date,
-        a.appointment_time,
+        TIME_FORMAT(a.appointment_time, '%H:%i:%s') as appointment_time,
         s.service_name,
         a.service_id,
         a.status

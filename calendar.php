@@ -238,11 +238,11 @@ while ($row = mysqli_fetch_assoc($result)) {
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     // Define PHP variables for JavaScript use
-    const availability = <?php echo json_encode($availability); ?>;
+   
     const closures = <?php echo json_encode($closures); ?>;
     const bookedSlots = <?php echo json_encode($bookedSlots); ?>;
     const maxDaily = <?php echo $max_daily; ?>;
-    
+    const availability = <?php echo json_encode($availability); ?>;
     // Get calendar element
     const calendarEl = document.getElementById('calendar');
     

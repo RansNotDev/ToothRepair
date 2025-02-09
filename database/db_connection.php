@@ -16,6 +16,7 @@ try {
 } catch (Exception $e) {
     die("Database connection failed: " . $e->getMessage());
 }
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 // Start transaction (if needed)
 $conn->begin_transaction();

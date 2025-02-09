@@ -33,23 +33,57 @@ function getStatusClass($currentStatus, $status) {
     return ($statusIndex <= $currentIndex) ? 'bg-primary' : 'bg-light text-dark';
 }
 
-// Fetch user's appointment with formatted time
+// Replace the existing query with this updated version
+// Place this after session_start() and before the HTML
+
+// First, get the current appointment
 $stmt = $conn->prepare("
     SELECT a.appointment_id, 
            a.appointment_date, 
            DATE_FORMAT(a.appointment_time, '%h:%i %p') as appointment_time, 
            a.status, 
-           s.service_name 
+           s.service_name,
+           s.service_id
     FROM appointments a
     JOIN services s ON a.service_id = s.service_id
-    WHERE a.user_id = ?
-    ORDER BY a.appointment_date DESC LIMIT 1
-");
+    WHERE a.user_id = ? AND a.status IN ('pending', 'confirmed')
+    ORDER BY a.appointment_date ASC, a.appointment_time ASC
+    LIMIT 1");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $appointment = $result->fetch_assoc();
 $stmt->close();
+
+// Then get all upcoming appointments
+$stmt = $conn->prepare("
+    SELECT a.appointment_id, 
+           a.appointment_date, 
+           DATE_FORMAT(a.appointment_time, '%h:%i %p') as appointment_time, 
+           a.status, 
+           s.service_name,
+           s.service_id
+    FROM appointments a
+    JOIN services s ON a.service_id = s.service_id
+    WHERE a.user_id = ? AND a.status IN ('pending', 'confirmed')
+    ORDER BY a.appointment_date ASC, a.appointment_time ASC");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$appointments = $result->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+// Add helper function for status badge colors
+function getStatusBadge($status) {
+    return match(strtolower($status)) {
+        'booked' => 'warning',
+        'pending' => 'info',
+        'confirmed' => 'primary',
+        'completed' => 'success',
+        'cancelled' => 'danger',
+        default => 'secondary'
+    };
+}
 
 ?>
 
@@ -59,7 +93,7 @@ $stmt->close();
             <div class="dashboard-header mb-4 bg-primary p-4 rounded shadow-sm">
                 <div class="d-flex justify-content-between align-items-start">
                     <div class="mb-3 mb-md-0">
-                        <h1 class="h3 text-white fw-bold">Welcome Back, <?php echo htmlspecialchars($_SESSION['fullname'] ?? 'User'); ?>!</h1>
+                        <h1 class="h3 text-white fw-bold">Welcome Back, <?php echo htmlspecialchars($_SESSION['fullname'] ?? 'User'); ?></h1>
                         <p class="text-white-50">Here's your appointment overview</p>
                     </div>
                    
@@ -75,12 +109,14 @@ $stmt->close();
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="card-title text-primary mb-0">Current Appointment</h5>
-                        <span class="badge <?php echo $appointment['status'] === 'Confirmed' ? 'bg-success' : 'bg-warning'; ?> px-3 py-2 rounded-pill">
-                            <?php echo htmlspecialchars($appointment['status'] ?? 'No Status'); ?>
+                        <?php if ($appointment): ?>
+                        <span class="badge bg-<?php echo getStatusBadge($appointment['status']); ?> px-3 py-2 rounded-pill">
+                            <?php echo htmlspecialchars(ucfirst($appointment['status'])); ?>
                         </span>
+                        <?php endif; ?>
                     </div>
 
-                    <?php if ($appointment && $appointment['status'] === 'Cancelled'): ?>
+                    <?php if ($appointment && $appointment['status'] === 'cancelled'): ?>
                         <div class="alert alert-warning">
                             <h4>Appointment Cancelled</h4>
                             <p>Your appointment scheduled for <?php echo date('M d, Y', strtotime($appointment['appointment_date'])); ?> 
@@ -155,26 +191,67 @@ $stmt->close();
             </div>
         </div>
 
+        <?php if (count($appointments) > 1): ?>
+            <div class="col-lg-8 col-md-12 mb-4">
+                <div class="card border-0 shadow-sm rounded-lg">
+                    <div class="card-body p-4">
+                        <h5 class="card-title text-primary mb-4">Upcoming Appointments</h5>
+                        <?php 
+                        // Skip the first appointment as it's already shown
+                        array_shift($appointments);
+                        foreach ($appointments as $apt): 
+                        ?>
+                            <div class="upcoming-appointment mb-3 p-3 bg-light rounded">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1"><?php echo htmlspecialchars($apt['service_name']); ?></h6>
+                                        <p class="mb-0 text-muted">
+                                            <i class="fas fa-calendar-alt me-2"></i>
+                                            <?php echo date('M d, Y', strtotime($apt['appointment_date'])); ?> at 
+                                            <?php echo $apt['appointment_time']; ?>
+                                        </p>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <span class="badge bg-<?php echo getStatusBadge($apt['status']); ?>">
+                                            <?php echo ucfirst($apt['status']); ?>
+                                        </span>
+                                        <button onclick="confirmCancelAppointment(<?php echo $apt['appointment_id']; ?>)" 
+                                                class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <!-- Quick Actions Card -->
         <div class="col-lg-4 col-md-12 mb-4">
-            <div class="card border-0 shadow-sm rounded-lg quick-actions-card">
+            <div class="card border-0 shadow-sm rounded-lg">
                 <div class="card-body p-4">
-                    <h5 class="card-title text-white mb-4">Quick Actions</h5>
+                    <h5 class="card-title text-primary mb-4">Quick Actions</h5>
                     <div class="d-grid gap-3">
-                        <a href="book-appointment.php" class="btn quick-action-btn text-start p-3 d-flex align-items-center">
-                            <i class="fas fa-calendar-plus me-3"></i>
+                    <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-calendar-plus text-primary me-3"></i>
+                            <span>Home</span>
+                        </a>
+                        <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-calendar-plus text-primary me-3"></i>
                             <span>Book New Appointment</span>
                         </a>
-                        <a href="appointment-history.php" class="btn quick-action-btn text-start p-3 d-flex align-items-center">
-                            <i class="fas fa-history me-3"></i>
+                        <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-history text-primary me-3"></i>
                             <span>View History</span>
                         </a>
-                        <a href="profile.php" class="btn quick-action-btn text-start p-3 d-flex align-items-center">
-                            <i class="fas fa-user me-3"></i>
+                        <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-user text-primary me-3"></i>
                             <span>Update Profile</span>
                         </a>
-                        <a href="logout.php" onclick="return confirmLogout();" class="btn quick-action-btn text-start p-3 d-flex align-items-center">
-                            <i class="fas fa-sign-out-alt me-3"></i>
+                        <a href="logout.php" onclick="return confirmLogout();" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-sign-out-alt text-primary me-3"></i>
                             <span>Logout</span>
                         </a>
                     </div>
@@ -185,13 +262,6 @@ $stmt->close();
 </div>
 
 <style>
-.dashboard-header {
-    background: linear-gradient(to right, #4e73df, #224abe);
-    padding: 2rem;
-    border-radius: 1rem;
-    color: white;
-    margin-bottom: 2rem;
-}
 
 .dashboard-header .btn-light {
     transition: all 0.3s;
@@ -237,40 +307,6 @@ $stmt->close();
     font-size: 0.8rem;
 }
 
-.quick-actions .btn {
-    transition: all 0.3s;
-}
-
-.quick-actions .btn:hover {
-    background:rgb(255, 255, 255);
-    transform: translateX(5px);
-}
-
-.quick-actions-card {
-    background: #ffffff;
-    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
-}
-
-.quick-actions-card .card-title {
-    color: #4e73df;
-}
-
-.quick-action-btn {
-    background: rgba(78, 115, 223, 0.1);
-    color: #4e73df;
-    border: none;
-    transition: all 0.3s;
-}
-
-.quick-action-btn:hover {
-    background: rgba(78, 115, 223, 0.2);
-    color: #4e73df;
-    transform: translateX(5px);
-}
-
-.quick-action-btn i {
-    color: #4e73df;
-}
 
 @media (max-width: 768px) {
     .quick-actions-card {
@@ -295,19 +331,29 @@ $stmt->close();
     transform: translateX(5px);
 }
 
-.quick-actions {
-    min-width: 200px;
-}
 
 @media (max-width: 768px) {
     .dashboard-header .d-flex {
         flex-direction: column;
     }
-    
-    .quick-actions {
-        width: 100%;
-        margin-top: 1rem;
-    }
+}
+
+.upcoming-appointment {
+    transition: transform 0.2s;
+    border-left: 4px solid #4e73df;
+}
+
+.upcoming-appointment:hover {
+    transform: translateX(5px);
+}
+
+.badge {
+    padding: 0.5em 0.75em;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
 }
 </style>
 
@@ -365,6 +411,8 @@ function updateAppointmentStatus(appointmentId, status) {
     }
 }
 
+// Update the confirmCancelAppointment function
+
 function confirmCancelAppointment() {
     const appointmentId = <?php echo $appointment['appointment_id'] ?? 'null'; ?>;
     if (!appointmentId) {
@@ -402,14 +450,18 @@ function confirmCancelAppointment() {
                         Swal.fire({
                             icon: 'success',
                             title: 'Cancelled!',
-                            text: 'Your appointment has been cancelled and a confirmation email has been sent.',
+                            text: 'Your appointment has been cancelled successfully.',
                             confirmButtonText: 'OK'
-                        }).then(() => window.location.reload());
+                        }).then(() => {
+                            // Refresh the page to show updated status
+                            window.location.reload();
+                        });
                     } else {
                         Swal.fire('Error!', response.message || 'Could not cancel appointment.', 'error');
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
                     Swal.fire('Error!', 'Could not connect to server.', 'error');
                 }
             });

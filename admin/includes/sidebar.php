@@ -59,6 +59,9 @@ if (!isset($_SESSION)) {
         #accordionSidebar .sidebar-brand .sidebar-brand-icon {
             font-size: 2rem;
         }
+        .sidebar-divider{
+            background-color: white;
+        }
     </style>
 </head>
 
@@ -67,24 +70,24 @@ if (!isset($_SESSION)) {
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="dashboard.php">
                 <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-laugh-wink"></i>
+                    <i class="fas fa-tooth"></i>
                 </div>
                 <div class="sidebar-brand-text mx-2">Tooth Repair</div>
             </a>
-            <hr class="sidebar-divider my-0">
+           
 
             <li class="nav-item">
                 <a class="nav-link" href="dashboard.php">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <i class="fas fa-fw fa-chart-pie"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <hr class="sidebar-divider">
 
-            <div class="sidebar-heading">Interface</div>
+            <div class="sidebar-heading">Management</div>
             <li class="nav-item">
                 <a class="nav-link" href="calendar.php">
-                    <i class="fas fa-fw fa-calendar"></i>
+                    <i class="fas fa-fw fa-calendar-alt"></i>
                     <span>Calendar</span>
                 </a>
             </li>
@@ -112,7 +115,10 @@ if (!isset($_SESSION)) {
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Custom Pages:</h6>
                         <a class="collapse-item" href="settings.php">Settings</a>
-                        <a class="collapse-item" href="admin_availability.php">Availability</a>
+                        <a class="collapse-item" href="admin_availability.php"><i class="fas fa-fw fa-calendar-plus"></i> Set Available Dates</a>
+                         <a class="collapse-item" href="#"><i class="fas fa-fw fa-info-circle"></i> Set About</a>
+                <a class="collapse-item" href="#"><i class="fas fa-fw fa-plus-circle"></i> Add Services</a>
+                <a class="collapse-item" href="#"><i class="fas fa-fw fa-umbrella-beach"></i> Set Holidays</a>
                     </div>
                 </div>
             </li>

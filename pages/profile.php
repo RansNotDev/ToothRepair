@@ -1,6 +1,6 @@
 <?php
-require("../database/db_connection.php");
-include_once("../includes/header.php");
+require "../database/db_connection.php";
+include_once "../includes/header.php";
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
@@ -9,10 +9,78 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$stmt = $conn->prepare("SELECT * FROM users WHERE user_id = ?");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$user = $stmt->get_result()->fetch_assoc();
+
+// Fetch existing user data
+try {
+    $query = $conn->prepare("SELECT fullname, email, contact_number FROM users WHERE user_id = ?");
+    $query->bind_param("i", $user_id);
+    $query->execute();
+    $result = $query->get_result();
+    $user = $result->fetch_assoc();
+} catch (Exception $e) {
+    $_SESSION['error'] = "Error fetching user data: " . $e->getMessage();
+    header("Location: profile.php");
+    exit;
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $fullname = trim($_POST['fullname']);
+    $email = trim($_POST['email']);
+    $contact_number = trim($_POST['contact_number']);
+    $password = trim($_POST['password']);
+
+    if (empty($fullname) || empty($email) || empty($contact_number)) {
+        $_SESSION['error'] = "All fields except password are required.";
+        header("Location: profile.php");
+        exit;
+    }
+
+    // Check if email is being changed
+    if ($email !== $user['email']) {
+        try {
+            $check_email = $conn->prepare("SELECT user_id FROM users WHERE email = ? AND user_id != ?");
+            $check_email->bind_param("si", $email, $user_id);
+            $check_email->execute();
+            if ($check_email->get_result()->num_rows > 0) {
+                $_SESSION['error'] = "This email is already registered by another user.";
+                header("Location: profile.php");
+                exit;
+            }
+        } catch (Exception $e) {
+            $_SESSION['error'] = "Error checking email availability: " . $e->getMessage();
+            header("Location: profile.php");
+            exit;
+        }
+    }
+
+    try {
+        $conn->begin_transaction();
+
+        if (!empty($password)) {
+            // Update with new password
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $update_query = $conn->prepare("UPDATE users SET fullname=?, email=?, contact_number=?, password=? WHERE user_id=?");
+            $update_query->bind_param("ssssi", $fullname, $email, $contact_number, $hashed_password, $user_id);
+        } else {
+            // Update without changing password
+            $update_query = $conn->prepare("UPDATE users SET fullname=?, email=?, contact_number=? WHERE user_id=?");
+            $update_query->bind_param("sssi", $fullname, $email, $contact_number, $user_id);
+        }
+
+        $update_query->execute();
+        $conn->commit();
+
+        $_SESSION['fullname'] = $fullname; // Update session
+        $_SESSION['success'] = "Profile updated successfully!";
+        
+    } catch (Exception $e) {
+        $conn->rollback();
+        $_SESSION['error'] = "Error updating profile: " . $e->getMessage();
+    }
+
+    header("Location: profile.php");
+    exit;
+}
 ?>
 
 <div class="container-fluid py-4 bg-light">
@@ -24,6 +92,12 @@ $user = $stmt->get_result()->fetch_assoc();
             </div>
         </div>
     </div>
+
+    <?php if (isset($_SESSION['success'])): ?>
+        <div class="alert alert-success"><?php echo $_SESSION['success']; unset($_SESSION['success']); ?></div>
+    <?php elseif (isset($_SESSION['error'])): ?>
+        <div class="alert alert-danger"><?php echo $_SESSION['error']; unset($_SESSION['error']); ?></div>
+    <?php endif; ?>
 
     <div class="row">
         <!-- Profile Form Card -->
@@ -68,6 +142,10 @@ $user = $stmt->get_result()->fetch_assoc();
                 <div class="card-body p-4">
                     <h5 class="card-title text-primary mb-4">Quick Actions</h5>
                     <div class="d-grid gap-3">
+                    <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-calendar-plus text-primary me-3"></i>
+                            <span>Home</span>
+                        </a>
                         <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center">
                             <i class="fas fa-calendar-plus text-primary me-3"></i>
                             <span>Book New Appointment</span>
@@ -90,3 +168,16 @@ $user = $stmt->get_result()->fetch_assoc();
         </div>
     </div>
 </div>
+
+<script>
+document.querySelector('form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (confirm('Are you sure you want to update your profile?')) {
+        this.submit();
+    }
+});
+
+function confirmLogout() {
+    return confirm('Are you sure you want to logout?');
+}
+</script>
