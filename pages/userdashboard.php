@@ -212,6 +212,32 @@ body {
         background-color: #007bff !important;
         color: white !important;
     }
+.sticky-top {
+    position: sticky;
+    top: 20px;
+    z-index: 1000;
+}
+
+@media (max-width: 991px) {
+    .sticky-top {
+        position: relative;
+        top: 0;
+    }
+}
+
+.quick-actions .btn {
+    transition: all 0.3s ease;
+}
+
+.quick-actions .btn:hover {
+    transform: translateX(5px);
+    background-color: #f8f9fa;
+}
+
+.btn i {
+    width: 20px;
+    text-align: center;
+}
 </style>
 </head>
 <body>
@@ -232,11 +258,55 @@ body {
         </div>
     </div>
 
+    <?php if (isset($_SESSION['success'])): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?php 
+        echo $_SESSION['success'];
+        unset($_SESSION['success']);
+        ?>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <?php endif; ?>
+
     <div class="row">
-        <!-- Appointment Status Card -->
-        <div class="col-lg-8 col-md-12 mb-4">
-            <div class="card border-0 shadow-sm rounded-lg">
-                <div class="card-body p-4">
+    <!-- Quick Actions Card - Left Column -->
+    <div class="col-lg-3 mb-4">
+        <div class="card border-0 shadow-sm rounded-lg sticky-top" style="top: 20px;">
+            <div class="card-body p-4">
+                <h5 class="card-title text-primary mb-4">Quick Actions</h5>
+                <div class="d-grid gap-3">
+                    <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                        <i class="fas fa-home text-primary me-3"></i>
+                        <span>Home</span>
+                    </a>
+                    <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                        <i class="fas fa-calendar-plus text-primary me-3"></i>
+                        <span>Book New Appointment</span>
+                    </a>
+                    <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                        <i class="fas fa-history text-primary me-3"></i>
+                        <span>View History</span>
+                    </a>
+                    <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                        <i class="fas fa-user text-primary me-3"></i>
+                        <span>Update Profile</span>
+                    </a>
+                    <a href="logout.php" onclick="return confirmLogout();" class="btn btn-light text-start p-3 d-flex align-items-center">
+                        <i class="fas fa-sign-out-alt text-primary me-3"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment Cards - Right Column -->
+    <div class="col-lg-9">
+        <!-- Current Appointment Card -->
+        <div class="card border-0 shadow-sm rounded-lg mb-4">
+            <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="card-title text-primary mb-0">Current Appointment</h5>
                         <?php if ($appointment): ?>
@@ -301,13 +371,31 @@ body {
                             </div>
 
                             <div class="action-buttons mt-4 d-flex gap-3">
-                                <button class="btn btn-primary px-4 d-flex align-items-center gap-2">
-                                    <i class=""></i> Add to Calendar
-                                </button>
-                                <button onclick="confirmCancelAppointment()" class="btn btn-outline-danger px-4 d-flex align-items-center gap-2">
-                                    <i class=""></i> Cancel Appointment
-                                </button>
-                            </div>
+    <?php if ($appointment): ?>
+        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=<?php 
+            echo urlencode('Dental Appointment - ' . $appointment['service_name']); 
+            ?>&dates=<?php 
+            $date = date('Ymd', strtotime($appointment['appointment_date']));
+            $time = date('His', strtotime($appointment['appointment_time']));
+            echo $date . 'T' . $time . '/' . $date . 'T' . date('His', strtotime($appointment['appointment_time'] . '+30 minutes'));
+            ?>&details=<?php 
+            echo urlencode('Dental appointment at ToothRepair Clinic\nService: ' . $appointment['service_name']); 
+            ?>" 
+            target="_blank" 
+            class="btn btn-primary px-4 d-flex align-items-center gap-2">
+            <i class="fas fa-calendar-plus"></i> Add to Calendar
+        </a>
+        
+        <form id="cancelForm" action="cancel_appointment.php" method="POST" class="d-inline">
+            <input type="hidden" name="appointment_id" value="<?php echo $appointment['appointment_id']; ?>">
+            <button type="button" 
+                    onclick="confirmCancelAppointment(<?php echo $appointment['appointment_id']; ?>)" 
+                    class="btn btn-outline-danger px-4 d-flex align-items-center gap-2">
+                <i class="fas fa-times"></i> Cancel Appointment
+            </button>
+        </form>
+    <?php endif; ?>
+</div>
                         </div>
                     <?php else: ?>
                         <div class="text-center py-5">
@@ -318,13 +406,12 @@ body {
                         </div>
                     <?php endif; ?>
                 </div>
-            </div>
         </div>
 
+        <!-- Upcoming Appointments Card -->
         <?php if (count($appointments) > 1): ?>
-            <div class="col-lg-8 col-md-12 mb-4">
-                <div class="card border-0 shadow-sm rounded-lg">
-                    <div class="card-body p-4">
+        <div class="card border-0 shadow-sm rounded-lg mb-4">
+            <div class="card-body p-4">
                         <h5 class="card-title text-primary mb-4">Upcoming Appointments</h5>
                         <?php 
                         // Skip the first appointment as it's already shown
@@ -354,41 +441,10 @@ body {
                             </div>
                         <?php endforeach; ?>
                     </div>
-                </div>
-            </div>
-        <?php endif; ?>
-
-        <!-- Quick Actions Card -->
-<div class="col-lg-4 col-md-12 mb-4">
-    <div class="card border-0 shadow-sm rounded-lg">
-        <div class="card-body p-4">
-            <h5 class="card-title text-primary mb-4">Quick Actions</h5>
-            <div class="d-grid gap-3">
-                <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                    <i class="text-primary me-3"></i>
-                    <span>Home</span>
-                </a>
-                <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                    <i class="text-primary me-3"></i>
-                    <span>Book New Appointment</span>
-                </a>
-                <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                    <i class="text-primary me-3"></i>
-                    <span>View History</span>
-                </a>
-                <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                    <i class="text-primary me-3"></i>
-                    <span>Update Profile</span>
-                </a>
-                <a href="logout.php" onclick="return confirmLogout();" class="btn btn-light text-start p-3 d-flex align-items-center">
-                    <i class="text-primary me-3"></i>
-                    <span>Logout</span>
-                </a>
-            </div>
         </div>
+        <?php endif; ?>
     </div>
 </div>
-    </div>
 </div>
 
 
@@ -447,15 +503,9 @@ function updateAppointmentStatus(appointmentId, status) {
     }
 }
 
-// Update the confirmCancelAppointment function
+// Update the confirmCancelAppointment function in your script section
 
-function confirmCancelAppointment() {
-    const appointmentId = <?php echo $appointment['appointment_id'] ?? 'null'; ?>;
-    if (!appointmentId) {
-        Swal.fire('Error', 'No appointment found', 'error');
-        return;
-    }
-
+function confirmCancelAppointment(appointmentId) {
     Swal.fire({
         title: 'Cancel Appointment',
         text: 'Please provide a reason for cancellation:',
@@ -473,33 +523,16 @@ function confirmCancelAppointment() {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            $.ajax({
-                url: 'cancel_appointment.php',
-                type: 'POST',
-                data: { 
-                    appointment_id: appointmentId,
-                    cancel_reason: result.value
-                },
-                dataType: 'json',
-                success: function(response) {
-                    if(response.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Cancelled!',
-                            text: 'Your appointment has been cancelled successfully.',
-                            confirmButtonText: 'OK'
-                        }).then(() => {
-                            location.reload();
-                        });
-                    } else {
-                        Swal.fire('Error!', response.message || 'Could not cancel appointment.', 'error');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error:', error);
-                    Swal.fire('Error!', 'Could not connect to server.', 'error');
-                }
-            });
+            const form = document.getElementById('cancelForm');
+            // Add the reason to the form
+            const reasonInput = document.createElement('input');
+            reasonInput.type = 'hidden';
+            reasonInput.name = 'cancel_reason';
+            reasonInput.value = result.value;
+            form.appendChild(reasonInput);
+            
+            // Submit the form
+            form.submit();
         }
     });
 }

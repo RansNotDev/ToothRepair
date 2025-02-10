@@ -37,9 +37,56 @@ $result = $stmt->get_result();
 
     <style>
         .active {
-        background-color: #007bff !important;
-        color: white !important;
-    }
+            background-color: #007bff !important;
+            color: white !important;
+        }
+
+        .sticky-top {
+            position: sticky;
+            top: 20px;
+            z-index: 1000;
+        }
+
+        @media (max-width: 991px) {
+            .sticky-top {
+                position: relative;
+                top: 0;
+            }
+        }
+
+        .quick-actions .btn {
+            transition: all 0.3s ease;
+        }
+
+        .quick-actions .btn:hover {
+            transform: translateX(5px);
+            background-color: #f8f9fa;
+        }
+
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Add spacing between icon and text in quick action buttons */
+        .btn i {
+            width: 20px;
+            margin-right: 10px;
+            text-align: center;
+        }
+
+        /* Improve table responsiveness */
+        .table-responsive {
+            margin: 0;
+            padding: 0;
+        }
+
+        .table td, .table th {
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -54,7 +101,38 @@ $result = $stmt->get_result();
     </div>
 
     <div class="row">
-        <!-- Appointment History Card -->
+        <!-- Quick Actions Card - Left Column -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card border-0 shadow-sm rounded-lg sticky-top" style="top: 20px;">
+                <div class="card-body p-4">
+                    <h5 class="card-title text-primary mb-4">Quick Actions</h5>
+                    <div class="d-grid gap-3">
+                        <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-home text-primary"></i>
+                            <span>Home</span>
+                        </a>
+                        <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-calendar-plus text-primary"></i>
+                            <span>Book New Appointment</span>
+                        </a>
+                        <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-history text-primary"></i>
+                            <span>View History</span>
+                        </a>
+                        <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-user text-primary"></i>
+                            <span>Update Profile</span>
+                        </a>
+                        <a href="logout.php" onclick="return confirmLogout();" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-sign-out-alt text-primary"></i>
+                            <span>Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appointment History Card - Right Column -->
         <div class="col-lg-8 col-md-12 mb-4">
             <div class="card shadow">
                 <div class="card-body">
@@ -93,37 +171,6 @@ $result = $stmt->get_result();
                 </div>
             </div>
         </div>
-
-        <!-- Quick Actions Card -->
-<div class="col-lg-4 col-md-12 mb-4">
-    <div class="card border-0 shadow-sm rounded-lg">
-        <div class="card-body p-4">
-            <h5 class="card-title text-primary mb-4">Quick Actions</h5>
-            <div class="d-grid gap-3">
-                <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                    <i class="text-primary me-3"></i>
-                    <span>Home</span>
-                </a>
-                <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                    <i class="text-primary me-3"></i>
-                    <span>Book New Appointment</span>
-                </a>
-                <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                    <i class="text-primary me-3"></i>
-                    <span>View History</span>
-                </a>
-                <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                    <i class="text-primary me-3"></i>
-                    <span>Update Profile</span>
-                </a>
-                <a href="logout.php" onclick="return confirmLogout();" class="btn btn-light text-start p-3 d-flex align-items-center">
-                    <i class="text-primary me-3"></i>
-                    <span>Logout</span>
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
     </div>
 </div>
 <script>

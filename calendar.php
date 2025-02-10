@@ -1,4 +1,13 @@
 <?php
+function generateRandomPassword($length = 8) {
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $password = '';
+    for ($i = 0; $i < $length; $i++) {
+        $password .= $characters[rand(0, strlen($characters) - 1)];
+    }
+    return $password;
+}
+
 include_once('database/db_connection.php');
 include_once('includes/header.php');
 
@@ -48,7 +57,7 @@ while ($row = mysqli_fetch_assoc($result)) {
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Tooth Repair Clinic - Dashboard</title>
     <link href="assets/Assetscalendar/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="assets/Assetscalendar/fullcalendar/main.css" rel="stylesheet">
+  
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="admin/css/sb-admin-2.min.css" rel="stylesheet">
@@ -120,6 +129,10 @@ while ($row = mysqli_fetch_assoc($result)) {
         background-color: #4e73df !important;
         color: white !important;
     }
+    .btn-primary:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
 </style>
 
 <div class="container-fluid">
@@ -145,16 +158,20 @@ while ($row = mysqli_fetch_assoc($result)) {
 <div class="modal fade" id="appointmentModal" tabindex="-1" role="dialog" aria-labelledby="appointmentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="appointmentModalLabel">Book an Appointment</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="appointmentModalLabel">
+                    <i class="fas fa-calendar-plus mr-2"></i>Book an Appointment
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <div class="row">
-                    <!-- Left Column - Form -->
+                <!-- Top Row - Two Columns -->
+                <div class="row mb-4">
+                    <!-- Left Column - Personal Information -->
                     <div class="col-md-6 border-right">
+                        <h5 class="text-primary mb-4"><i class="fas fa-user mr-2"></i>Personal Information</h5>
                         <form action="save_appointment.php" method="POST" id="appointmentForm">
                             <div class="form-group">
                                 <label for="name">Full Name</label>
@@ -172,6 +189,11 @@ while ($row = mysqli_fetch_assoc($result)) {
                                 <label for="address">Address</label>
                                 <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
                             </div>
+                        </div>
+
+                    <!-- Right Column - Appointment Details -->
+                    <div class="col-md-6">
+                        <h5 class="text-primary mb-4"><i class="fas fa-clock mr-2"></i>Appointment Details</h5>
                             <div class="form-group">
                                 <label for="date">Appointment Date</label>
                                 <input type="date" class="form-control" id="date" name="appointment_date" readonly required>
@@ -203,29 +225,62 @@ while ($row = mysqli_fetch_assoc($result)) {
                             <div class="text-center mt-4">
                                 <div class="form-check mb-3">
                                     <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
-                                    <label class="form-check-label" for="terms">I agree to the <b class="text-primary">terms and conditions</b></label>
+                                    <label class="form-check-label" for="terms">
+                                        I agree to the <b class="text-primary">terms and conditions</b>
+                                    </label>
                                 </div>
-                                <button type="submit" class="btn btn-primary px-4">Submit</button>
+                                <button type="submit" class="btn btn-primary btn-lg px-5" disabled>
+    <i class="fas fa-check mr-2"></i>Confirm Booking
+</button>
                             </div>
                         </form>
                     </div>
                 </div>
-                
-                <!-- Guidelines Section -->
-                <div class="text-center p-4 border-top mt-4">
-                    <h4 class="text-primary mb-4">Appointment Guidelines</h4>
-                    <ul class="list-unstyled">
-                        <li class="mb-3"><i class="fas fa-clock mr-2"></i> Duration: 30 minutes per session</li>
-                        <li class="mb-3"><i class="fas fa-info-circle mr-2"></i> Please arrive 10 minutes before your appointment</li>
-                        <li class="mb-3"><i class="fas fa-exclamation-triangle mr-2"></i> Cancellation requires 24-hour notice</li>
-                    </ul>
-                    <div class="alert alert-info mt-4 w-75 mx-auto">
-                        <h5 class="alert-heading">Important Notice</h5>
-                        <p class="mb-0">Make sure to bring valid ID and any relevant medical records.</p>
+
+                <!-- Bottom Section - Guidelines (Merged Columns) -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-body bg-light">
+                                <h4 class="text-primary mb-4 text-center">
+                                    <i class="fas fa-info-circle mr-2"></i>Appointment Guidelines
+                                </h4>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="text-center mb-3">
+                                            <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                                            <h5>Duration</h5>
+                                            <p class="mb-0">30 minutes per session</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center mb-3">
+                                            <i class="fas fa-hourglass-start fa-2x text-primary mb-2"></i>
+                                            <h5>Arrival Time</h5>
+                                            <p class="mb-0">Please arrive 10 minutes early</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center mb-3">
+                                            <i class="fas fa-ban fa-2x text-primary mb-2"></i>
+                                            <h5>Cancellation Policy</h5>
+                                            <p class="mb-0">24-hour notice required</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="alert alert-info mt-4 mb-0">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-medical fa-2x mr-3"></i>
+                                        <div>
+                                            <h5 class="alert-heading mb-1">Important Notice</h5>
+                                            <p class="mb-0">Please bring valid ID and any relevant medical records.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                
             </div>
         </div>
     </div>
@@ -233,7 +288,8 @@ while ($row = mysqli_fetch_assoc($result)) {
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.15/index.global.min.js"></script>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -346,91 +402,129 @@ document.addEventListener('DOMContentLoaded', function () {
 }
 
         $('#appointmentForm').on('submit', function(e) {
-            e.preventDefault();
-            
-            if(!this.checkValidity()) {
-                e.stopPropagation();
-                return false;
-            }
-            
-            const formData = $(this).serialize();
-            
-            $.ajax({
-                url: 'save_appointment.php',
-                type: 'POST',
-                data: formData,
-                dataType: 'json',
-                success: function(response) {
-                    if(response.status === 'success') {
-                        const email = $('#email').val();
-                        
-                        // Send confirmation email
-                        $.ajax({
-                            url: 'sendmail.php',
-                            type: 'POST',
-                            data: {
-                                sendmail: true,
-                                email: email,
-                                subject: 'ToothRepair Registration Confirmation',
-                                message: `
-                                    <h2>Welcome to ToothRepair Dental Clinic!</h2>
-                                    <p>Your account has been created successfully.</p>
-                                    <p><strong>Login Credentials:</strong></p>
-                                    <p>Email: ${email}</p>
-                                    <p>Password: 1234</p>
-                                    <p>Please keep these credentials safe for future access.</p>
-                                    <br>
-                                    <p>Thank you for choosing ToothRepair Dental Clinic!</p>
-                                `
-                            },
-                            success: function() {
-                                // Show success message
+    e.preventDefault();
+    
+    if(!this.checkValidity()) {
+        e.stopPropagation();
+        return false;
+    }
+    
+    const formData = new FormData(this);
+    
+    // Get appointment details for email
+    const appointmentDate = $('#date').val();
+    const appointmentTime = $('#time option:selected').text();
+    const serviceName = $('#service option:selected').text();
+    const fullName = $('#name').val();
+    
+    $.ajax({
+        url: 'save_appointment.php',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        success: function(response) {
+            if(response.status === 'success') {
+                const email = $('#email').val();
+                const plainPassword = response.password; // Get the plain password from response
+                
+                // Send confirmation email with enhanced design and appointment details
+                $.ajax({
+                    url: 'sendmail.php',
+                    type: 'POST',
+                    data: {
+                        sendmail: true,
+                        email: email,
+                        subject: 'ToothRepair Appointment Confirmation',
+                        message: `
+                            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; border-radius: 10px;">
+                                <div style="text-align: center; background-color: #4e73df; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                                    <h2 style="color: white; margin: 0;">Welcome to ToothRepair Dental Clinic!</h2>
+                                </div>
+                                
+                                <div style="background-color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <h3 style="color: #4e73df; margin-bottom: 15px;">Your Appointment Details</h3>
+                                    <p><strong>Patient Name:</strong> ${fullName}</p>
+                                    <p><strong>Date:</strong> ${appointmentDate}</p>
+                                    <p><strong>Time:</strong> ${appointmentTime}</p>
+                                    <p><strong>Service:</strong> ${serviceName}</p>
+                                </div>
+                                
+                                <div style="background-color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <h3 style="color: #4e73df; margin-bottom: 15px;">Your Login Credentials</h3>
+                                    <p><strong>Email:</strong> ${email}</p>
+                                    <p><strong>Password:</strong> ${plainPassword}</p>
+                                    <p style="color: #dc3545;"><em>Please change your password upon first login.</em></p>
+                                </div>
+                                
+                                <div style="text-align: center; margin-top: 20px;">
+                                    <p style="color: #6c757d;">Thank you for choosing ToothRepair Dental Clinic!</p>
+                                    <p style="font-size: 12px; color: #6c757d;">If you have any questions, please contact us.</p>
+                                </div>
+                            </div>
+                        `
+                    },
+                    success: function() {
+                        Swal.fire({
+                            title: 'Appointment Booked Successfully!',
+                            html: `
+                                <div class="text-left">
+                                    <p>An email has been sent with your:</p>
+                                    <ul>
+                                        <li>Appointment details</li>
+                                        <li>Login credentials</li>
+                                    </ul>
+                                    <p>Please check your email inbox.</p>
+                                </div>
+                            `,
+                            icon: 'success',
+                            confirmButtonText: 'OK',
+                            allowOutsideClick: false
+                        }).then((result) => {
+                            if (result.isConfirmed) {
                                 Swal.fire({
-                                    title: 'Appointment Booked Successfully!',
-                                    html: `
-                                        <div class="text-left">
-                                            <p><strong>Your login credentials:</strong></p>
-                                            <p>Email: ${email}</p>
-                                            <p>Password: 1234</p>
-                                            <p>Please save these credentials for future access.</p>
-                                        </div>
-                                    `,
-                                    icon: 'success',
-                                    confirmButtonText: 'OK',
-                                    allowOutsideClick: false
+                                    title: 'Proceed to Login?',
+                                    text: 'Click below to go to the login page',
+                                    icon: 'question',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Proceed to Login',
+                                    cancelButtonText: 'Stay Here'
                                 }).then((result) => {
                                     if (result.isConfirmed) {
-                                        Swal.fire({
-                                            title: 'Proceed to Login?',
-                                            text: 'Click below to go to the login page',
-                                            icon: 'question',
-                                            showCancelButton: true,
-                                            confirmButtonText: 'Proceed to Login',
-                                            cancelButtonText: 'Stay Here'
-                                        }).then((result) => {
-                                            if (result.isConfirmed) {
-                                                window.location.href = 'pages/loginpage.php';
-                                            }
-                                        });
+                                        window.location.href = 'pages/loginpage.php';
                                     }
                                 });
-                                $('#appointmentModal').modal('hide');
-                                calendar.refetchEvents();
-                            },
-                            error: function() {
-                                console.log('Error sending confirmation email');
                             }
                         });
-                    } else {
-                        Swal.fire('Error!', response.message || 'Failed to book appointment.', 'error');
+                        $('#appointmentModal').modal('hide');
+                        calendar.refetchEvents();
+                    },
+                    error: function() {
+                        console.log('Error sending confirmation email');
                     }
-                },
-                error: function(xhr, status, error) {
-                    console.error(error);
-                    Swal.fire('Error!', 'Failed to book appointment.', 'error');
-                }
-            });
-        });
+                });
+            } else {
+                Swal.fire('Error!', response.message || 'Failed to book appointment.', 'error');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error(error);
+            Swal.fire('Error!', 'Failed to book appointment.', 'error');
+        }
     });
+});
+    });
+
+$(document).ready(function() {
+    // Initially disable the submit button
+    $('.btn-primary[type="submit"]').prop('disabled', true);
+    
+    // Listen for changes on the terms checkbox
+    $('#terms').change(function() {
+        // Enable/disable submit button based on checkbox state
+        $('.btn-primary[type="submit"]').prop('disabled', !this.checked);
+    });
+});
 </script>
 <?php include_once('includes/footer.php'); ?>

@@ -16,6 +16,13 @@ while ($row = mysqli_fetch_assoc($result)) {
     $closures[] = $row['closure_date'];
 }
 
+// Fetch available dates from availability_tb
+$availabilityDates = [];
+$resultAvail = mysqli_query($conn, "SELECT available_date FROM availability_tb WHERE is_active = 1");
+while ($rowAvail = mysqli_fetch_assoc($resultAvail)) {
+    $availabilityDates[] = $rowAvail['available_date'];
+}
+
 // Update appointment counts query - exclude deleted status
 $appointmentCounts = [];
 $result = mysqli_query($conn, 
@@ -53,25 +60,14 @@ if ($result) {
     die("Query failed: " . mysqli_error($conn));
 }
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
 
-<div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Appointment Calendar</h1>
-    </div>
-    <hr>
-
-    <div class="container">
-        <div class="card">
-            <div class="card-body">
-                <div id="calendar-container">
-                    <div id="calendar"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
+    <style>
     #calendar-container {
         height: 600px;
         overflow-y: auto;
@@ -137,17 +133,53 @@ if ($result) {
         color: #fff;
     }
 </style>
+</head>
+<body>
+    
 
-<link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.10.1/main.min.css' rel='stylesheet' />
+
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Appointment Calendar</h1>
+    </div>
+    <hr>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <div id="calendar-container">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="uniModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body"></div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.15/index.global.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js'></script>
-<script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.10.1/main.min.js'></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const maxDaily = <?php echo $max_daily; ?>;
         const closures = <?php echo json_encode($closures); ?>;
         const appointmentCounts = <?php echo json_encode($appointmentCounts); ?>;
-        
+        const availabilityDates = <?php echo json_encode($availabilityDates); ?>; // New: available dates
+
         const calendarEl = document.getElementById('calendar');
         const scheds = <?php echo json_encode($sched_arr); ?>;
 
@@ -163,7 +195,7 @@ if ($result) {
             events: scheds.map(sched => ({
                 id: sched.id,
                 title: `${sched.patient_name} (${sched.formatted_time})
-                        ${sched.status === "pending" ? "⏳" : "✓"}`,
+                    ${sched.status === "pending" ? "⏳" : "✓"}`,
                 start: `${sched.appointment_date}T${sched.appointment_time}`,
                 backgroundColor: sched.status === "pending" ? "#ffa500" : "#28a745",
                 borderColor: sched.status === "pending" ? "#ff8c00" : "#218838",
@@ -173,29 +205,24 @@ if ($result) {
                     service: sched.service
                 }
             })),
-            eventDidMount: function(info) {
-                info.el.style.fontSize = '0.85em';
-                info.el.style.padding = '4px';
-                info.el.style.margin = '2px';
-            },
             validRange: {
                 start: moment().format("YYYY-MM-DD")
             },
             dayCellContent: function(args) {
                 const dateStr = args.date.toISOString().split('T')[0];
                 const isPast = args.date < new Date().setHours(0,0,0,0);
-                const isClosed = closures.includes(dateStr);
+                // Check if day is open in availability_tb and not in closures
+                const isOpen = availabilityDates.includes(dateStr) && !closures.includes(dateStr);
                 
                 // Get appointment counts for the day
                 const count = appointmentCounts[dateStr] || 0;
-                const available = isClosed ? 0 : Math.max(maxDaily - count, 0);
+                const available = isOpen ? Math.max(maxDaily - count, 0) : 0;
 
                 return {
                     html: `
                         <div class="fc-daygrid-day-number">${args.dayNumberText}</div>
                         <div class="slot-info">
-                            ${isPast ? '' : (isClosed ? 'Closed' : 
-                                `${available} slot${available !== 1 ? 's' : ''} available`)}
+                            ${isPast ? '' : (isOpen ? `${available} slot${available !== 1 ? 's' : ''} available` : 'Closed')}
                         </div>
                     `
                 };
@@ -253,16 +280,7 @@ if ($result) {
     }
 </script>
 
-<div id="uniModal" class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"></h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body"></div>
-        </div>
-    </div>
-</div>
 
 <?php include_once('includes/footer.php'); ?>
+</body>
+</html>

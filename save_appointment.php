@@ -26,81 +26,71 @@ foreach ($required_fields as $field) {
     }
 }
 
-$fullname = htmlspecialchars($_POST['fullname']);
-$email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-$contact_number = htmlspecialchars($_POST['contact_number']);
-$address = htmlspecialchars($_POST['address']);
-$service_id = intval($_POST['service']);
+$fullname = mysqli_real_escape_string($conn, $_POST['fullname']);
+$email = mysqli_real_escape_string($conn, $_POST['email']);
+$contact_number = mysqli_real_escape_string($conn, $_POST['contact_number']);
+$address = mysqli_real_escape_string($conn, $_POST['address']);
+$appointment_date = mysqli_real_escape_string($conn, $_POST['appointment_date']);
+$appointment_time = mysqli_real_escape_string($conn, $_POST['appointment_time']);
+$service = mysqli_real_escape_string($conn, $_POST['service']);
 
-// Format the date to ensure consistency
-$appointment_date = date('Y-m-d', strtotime($_POST['appointment_date']));
-$appointment_time = $_POST['appointment_time'];
+// Generate random password
+function generateRandomPassword($length = 8) {
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $password = '';
+    for ($i = 0; $i < $length; $i++) {
+        $password .= $characters[rand(0, strlen($characters) - 1)];
+    }
+    return $password;
+}
+
+// Generate and store the plain password before hashing
+$plainPassword = generateRandomPassword(10);
+$hashedPassword = password_hash($plainPassword, PASSWORD_DEFAULT);
+
+// Start transaction
+mysqli_begin_transaction($conn);
 
 try {
-    $conn->begin_transaction();
-
-    // Check if user exists
-    $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result->num_rows === 0) {
-        $default_password = password_hash('1234', PASSWORD_DEFAULT);
-        $stmt = $conn->prepare("INSERT INTO users (fullname, email, password, contact_number, address) 
-                              VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssss", $fullname, $email, $default_password, $contact_number, $address);
-        $stmt->execute();
-        $user_id = $conn->insert_id;
-    } else {
-        $user_id = $result->fetch_assoc()['user_id'];
+    // Check if email already exists
+    $checkEmail = mysqli_query($conn, "SELECT email FROM users WHERE email = '$email'");
+    if (mysqli_num_rows($checkEmail) > 0) {
+        throw new Exception('Email already exists');
     }
 
-    // Check if service exists
-    $stmt = $conn->prepare("SELECT service_id FROM services WHERE service_id = ?");
-    $stmt->bind_param("i", $service_id);
-    $stmt->execute();
-    if ($stmt->get_result()->num_rows === 0) {
-        throw new Exception('Invalid service selection.');
-    }
+    // Insert into users table first (removed role field)
+    $userQuery = "INSERT INTO users (fullname, email, password, contact_number, address) 
+                  VALUES (?, ?, ?, ?, ?)";
+    $stmt = mysqli_prepare($conn, $userQuery);
+    mysqli_stmt_bind_param($stmt, "sssss", $fullname, $email, $hashedPassword, $contact_number, $address);
+    mysqli_stmt_execute($stmt);
+    $userId = mysqli_insert_id($conn);
 
-    // Check slot availability with timezone-aware date
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM appointments 
-                           WHERE appointment_date = ? 
-                           AND appointment_time = ? 
-                           AND status IN ('confirmed', 'pending')");
-    $stmt->bind_param("ss", $appointment_date, $appointment_time);
-    $stmt->execute();
-    $count = $stmt->get_result()->fetch_row()[0];
+    // Insert into appointments table
+    $appointmentQuery = "INSERT INTO appointments (user_id, service_id, appointment_date, appointment_time, status) 
+                        VALUES (?, ?, ?, ?, 'pending')";
+    $stmt = mysqli_prepare($conn, $appointmentQuery);
+    mysqli_stmt_bind_param($stmt, "iiss", $userId, $service, $appointment_date, $appointment_time);
+    mysqli_stmt_execute($stmt);
 
-    if ($count > 0) {
-        throw new Exception('The selected time slot is not available.');
-    }
+    // Commit transaction
+    mysqli_commit($conn);
 
-    // Insert appointment with timezone-aware date
-    $stmt = $conn->prepare("INSERT INTO appointments 
-                           (user_id, service_id, appointment_date, appointment_time, status) 
-                           VALUES (?, ?, ?, ?, 'pending')");
-    $stmt->bind_param("iiss", $user_id, $service_id, $appointment_date, $appointment_time);
-
-    if (!$stmt->execute()) {
-        throw new Exception("Error saving appointment: " . $stmt->error);
-    }
-
-    $conn->commit();
+    // Return success response with the plain password
     echo json_encode([
-        'status' => 'success', 
-        'message' => 'Appointment booked successfully'
+        'status' => 'success',
+        'message' => 'Appointment booked successfully',
+        'password' => $plainPassword // Send the plain password back to the client
     ]);
 
 } catch (Exception $e) {
-    $conn->rollback();
-    error_log("Appointment booking error: " . $e->getMessage());
-    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
-} finally {
-    if (isset($stmt)) {
-        $stmt->close();
-    }
-    $conn->close();
+    // Rollback transaction on error
+    mysqli_rollback($conn);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Error booking appointment: ' . $e->getMessage()
+    ]);
 }
+
+mysqli_close($conn);
 ?>

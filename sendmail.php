@@ -32,7 +32,7 @@ if(isset($_POST['sendmail'])) {
         $mail->send();
         echo "<script>
             alert('Email sent successfully!');
-            window.location.href='test.php';
+            window.location.href='calendar.php';
         </script>";
     } catch (Exception $e) {
         echo "<script>

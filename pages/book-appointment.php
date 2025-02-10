@@ -43,6 +43,43 @@ $services_result = $conn->query($services_query);
         background-color: #007bff !important;
         color: white !important;
     }
+
+    .sticky-top {
+        position: sticky;
+        top: 20px;
+        z-index: 1000;
+    }
+
+    @media (max-width: 991px) {
+        .sticky-top {
+            position: relative;
+            top: 0;
+        }
+    }
+
+    .quick-actions .btn {
+        transition: all 0.3s ease;
+    }
+
+    .quick-actions .btn:hover {
+        transform: translateX(5px);
+        background-color: #f8f9fa;
+    }
+
+    .card {
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+
+    /* Add spacing between icon and text in quick action buttons */
+    .btn i {
+        width: 20px;
+        margin-right: 10px;
+        text-align: center;
+    }
     </style>
 </head>
 <body>
@@ -62,7 +99,38 @@ $services_result = $conn->query($services_query);
     </div>
 
     <div class="row">
-        <!-- Booking Form Card -->
+        <!-- Quick Actions Card - Left Column -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card border-0 shadow-sm rounded-lg sticky-top" style="top: 20px;">
+                <div class="card-body p-4">
+                    <h5 class="card-title text-primary mb-4">Quick Actions</h5>
+                    <div class="d-grid gap-3">
+                        <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-home text-primary"></i>
+                            <span>Home</span>
+                        </a>
+                        <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-calendar-plus text-primary"></i>
+                            <span>Book New Appointment</span>
+                        </a>
+                        <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-history text-primary"></i>
+                            <span>View History</span>
+                        </a>
+                        <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-user text-primary"></i>
+                            <span>Update Profile</span>
+                        </a>
+                        <a href="logout.php" onclick="return confirmLogout();" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-sign-out-alt text-primary"></i>
+                            <span>Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Form Card - Right Column -->
         <div class="col-lg-8 col-md-12 mb-4">
             <div class="card shadow">
                 <div class="card-body">
@@ -99,37 +167,6 @@ $services_result = $conn->query($services_query);
                 </div>
             </div>
         </div>
-
-        <!-- Quick Actions Card -->
-<div class="col-lg-4 col-md-12 mb-4">
-    <div class="card border-0 shadow-sm rounded-lg">
-        <div class="card-body p-4">
-            <h5 class="card-title text-primary mb-4">Quick Actions</h5>
-            <div class="d-grid gap-3">
-                <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                    <i class="text-primary me-3"></i>
-                    <span>Home</span>
-                </a>
-                <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                    <i class="text-primary me-3"></i>
-                    <span>Book New Appointment</span>
-                </a>
-                <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                    <i class="text-primary me-3"></i>
-                    <span>View History</span>
-                </a>
-                <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                    <i class="text-primary me-3"></i>
-                    <span>Update Profile</span>
-                </a>
-                <a href="logout.php" onclick="return confirmLogout();" class="btn btn-light text-start p-3 d-flex align-items-center">
-                    <i class="text-primary me-3"></i>
-                    <span>Logout</span>
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
     </div>
 </div>
 
@@ -146,15 +183,37 @@ $services_result = $conn->query($services_query);
     });
 document.querySelector('input[name="appointment_date"]').addEventListener('change', function() {
     const selectedDate = this.value;
-    const timeSelect = document.getElementById('time');
+    const today = new Date().toISOString().split('T')[0];
     
-    // Clear existing options
+    // Check if selected date is not in the past
+    if (selectedDate < today) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Date',
+            text: 'Please select a future date'
+        });
+        this.value = '';
+        return;
+    }
+    
+    const timeSelect = document.getElementById('time');
     timeSelect.innerHTML = '<option value="">Select Time</option>';
     
-    // Fetch available times for selected date
+    // Add loading indicator
+    timeSelect.disabled = true;
+    
     fetch(`get_available_times.php?date=${selectedDate}`)
         .then(response => response.json())
         .then(data => {
+            timeSelect.disabled = false;
+            if (data.error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.error
+                });
+                return;
+            }
             if (data.available) {
                 generateTimeSlots(data.time_start, data.time_end).forEach(slot => {
                     const option = document.createElement('option');
@@ -162,9 +221,23 @@ document.querySelector('input[name="appointment_date"]').addEventListener('chang
                     option.textContent = slot.display;
                     timeSelect.appendChild(option);
                 });
+            } else {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'No Available Slots',
+                    text: 'No appointments available for this date'
+                });
             }
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            timeSelect.disabled = false;
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to fetch available times'
+            });
+        });
 });
 
 function generateTimeSlots(startTime, endTime) {
@@ -189,6 +262,37 @@ function generateTimeSlots(startTime, endTime) {
     }
     return slots;
 }
+
+// Add form validation
+document.getElementById('appointmentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const service = this.querySelector('[name="service_id"]').value;
+    const date = this.querySelector('[name="appointment_date"]').value;
+    const time = this.querySelector('[name="appointment_time"]').value;
+    
+    if (!service || !date || !time) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Incomplete Form',
+            text: 'Please fill all required fields'
+        });
+        return;
+    }
+    
+    // Show loading state
+    Swal.fire({
+        title: 'Booking Appointment',
+        text: 'Please wait...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
+    // Submit the form
+    this.submit();
+});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
