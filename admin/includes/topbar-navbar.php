@@ -1,83 +1,94 @@
-<ul class="navbar-nav ml-auto">
-    <!-- Nav Item - Search Dropdown (Visible Only XS) -->
-    <li class="nav-item dropdown no-arrow d-sm-none">
-        <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <i class="fas fa-search fa-fw"></i>
-        </a>
-        <!-- Dropdown - Messages -->
-        <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
-            aria-labelledby="searchDropdown">
-            <form class="form-inline mr-auto w-100 navbar-search">
-                <div class="input-group">
-                    <input type="text" class="form-control bg-light border-0 small"
-                        placeholder="Search for..." aria-label="Search"
-                        aria-describedby="basic-addon2">
-                    <div class="input-group-append">
-                        <button class="btn btn-primary" type="button">
-                            <i class="fas fa-search fa-sm"></i>
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </li>
+<?php
+include_once('../database/db_connection.php');
 
+// Fetch new users (last 10 days)
+$new_users_query = "SELECT COUNT(*) as count FROM users 
+                    WHERE DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 10 DAY)"; 
+$new_users_result = mysqli_query($conn, $new_users_query);
+$new_users = mysqli_fetch_assoc($new_users_result)['count'] ?? 0;
+
+// Fetch today's appointments
+$today_appt_query = "SELECT COUNT(*) as count FROM appointments 
+                     WHERE DATE(appointment_date) = CURDATE()
+                     AND status != 'deleted'";
+$today_appt_result = mysqli_query($conn, $today_appt_query);
+$today_appointments = mysqli_fetch_assoc($today_appt_result)['count'] ?? 0;
+
+// Fetch new appointments (last 24 hours)
+$new_appt_query = "SELECT COUNT(*) as count FROM appointments 
+                   WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+                   AND status != 'deleted'";
+$new_appt_result = mysqli_query($conn, $new_appt_query);
+$new_appointments = mysqli_fetch_assoc($new_appt_result)['count'] ?? 0;
+
+// Calculate total notifications
+$total_notifications = $new_users + $new_appointments + $today_appointments;
+
+// Add error handling
+if (!$new_users_result || !$today_appt_result || !$new_appt_result) {
+    error_log("Database query error: " . mysqli_error($conn));
+}
+?>
+
+<!-- Update the notifications section -->
+<ul class="navbar-nav ml-auto">
     <!-- Nav Item - Alerts -->
     <li class="nav-item dropdown no-arrow mx-1">
         <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <i class="fas fa-bell fa-fw"></i>
             <!-- Counter - Alerts -->
-            <span class="badge badge-danger badge-counter">1</span>
+            <?php if ($total_notifications > 0): ?>
+            <span class="badge badge-danger badge-counter"><?= $total_notifications ?></span>
+            <?php endif; ?>
         </a>
         <!-- Dropdown - Alerts -->
         <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
             aria-labelledby="alertsDropdown">
             <h6 class="dropdown-header">
-                Alerts Center
+                Notifications Center
             </h6>
-            <a class="dropdown-item d-flex align-items-center" href="#">
+            <?php if ($new_users > 0): ?>
+            <a class="dropdown-item d-flex align-items-center" href="registered_users.php">
                 <div class="mr-3">
-                    <div class="icon-circle bg-warning">
-                        <i class="fas fa-exclamation-triangle text-white"></i>
+                    <div class="icon-circle bg-primary">
+                        <i class="fas fa-user-plus text-white"></i>
                     </div>
                 </div>
                 <div>
-                    <div class="small text-gray-500">December 2, 2019</div>
-                    Spending Alert: We've noticed unusually high spending for your account.
+                    <div class="small text-gray-500">Last 10 days</div>
+                    <span class="font-weight-bold"><?= $new_users ?> New registered user(s)</span>
                 </div>
             </a>
-            <a class="dropdown-item text-center small text-gray-500" href="#">Show All Alerts</a>
-        </div>
-    </li>
+            <?php endif; ?>
 
-    <!-- Nav Item - Messages -->
-    <li class="nav-item dropdown no-arrow mx-1">
-        <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <i class="fas fa-envelope fa-fw"></i>
-            <!-- Counter - Messages -->
-            <span class="badge badge-danger badge-counter">7</span>
-        </a>
-        <!-- Dropdown - Messages -->
-        <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-            aria-labelledby="messagesDropdown">
-            <h6 class="dropdown-header">
-                Message Center
-            </h6>
-            <a class="dropdown-item d-flex align-items-center" href="#">
-                <div class="dropdown-list-image mr-3">
-                    <img class="rounded-circle" src="img/undraw_profile.svg" alt="...">
-                    <div class="status-indicator bg-success"></div>
+            <?php if ($new_appointments > 0): ?>
+            <a class="dropdown-item d-flex align-items-center" href="appointments.php">
+                <div class="mr-3">
+                    <div class="icon-circle bg-success">
+                        <i class="fas fa-calendar-check text-white"></i>
+                    </div>
                 </div>
                 <div>
-                    <div class="text-truncate">Am I a good boy? The reason I ask is because someone
-                        told me that people say this to all dogs, even if they aren't good...</div>
-                    <div class="small text-gray-500">Chicken the Dog · 2w</div>
+                    <div class="small text-gray-500">Last 24 hours</div>
+                    <span class="font-weight-bold"><?= $new_appointments ?> New appointment(s)</span>
                 </div>
             </a>
-            <a class="dropdown-item text-center small text-gray-500" href="#">Read More Messages</a>
+            <?php endif; ?>
+
+            <?php if ($today_appointments > 0): ?>
+            <a class="dropdown-item d-flex align-items-center" href="calendar.php">
+                <div class="mr-3">
+                    <div class="icon-circle bg-warning">
+                        <i class="fas fa-calendar-day text-white"></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="small text-gray-500"><?= date('F d, Y') ?></div>
+                    <span class="font-weight-bold"><?= $today_appointments ?> Appointment(s) today</span>
+                </div>
+            </a>
+            <?php endif; ?>
         </div>
     </li>
 
@@ -87,21 +98,23 @@
     <li class="nav-item dropdown no-arrow">
         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span class="mr-2 d-none d-lg-inline text-gray-600 small">Admin Rans</span>
+            <span class="mr-2 d-none d-lg-inline text-gray-600 small">
+                <?= isset($_SESSION['admin_name']) ? htmlspecialchars($_SESSION['admin_name']) : 'Admin' ?>
+            </span>
             <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
         </a>
         <!-- Dropdown - User Information -->
         <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
             aria-labelledby="userDropdown">
-            <a class="dropdown-item" href="#">
+            <a class="dropdown-item" href="profile.php">
                 <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                 Profile
             </a>
-            <a class="dropdown-item" href="#">
+            <a class="dropdown-item" href="settings.php">
                 <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
                 Settings
             </a>
-            <a class="dropdown-item" href="#">
+            <a class="dropdown-item" href="activity_logs.php">
                 <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
                 Activity Log
             </a>
@@ -113,3 +126,23 @@
         </div>
     </li>
 </ul>
+
+<!-- Logout Modal-->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-primary" href="../logout.php">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
