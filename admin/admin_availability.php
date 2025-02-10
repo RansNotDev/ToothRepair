@@ -67,6 +67,14 @@ include_once('includes/topbar.php');
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clinic Availability Management</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<!-- SweetAlert2 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<!-- SB Admin 2 Template -->
+<link href="css/sb-admin-2.min.css" rel="stylesheet">
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
   <style>
    
   </style>

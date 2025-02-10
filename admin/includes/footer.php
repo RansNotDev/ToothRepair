@@ -21,24 +21,18 @@
 
     <!-- Logout Modal-->
     <?php include_once('includes/logout-modal.php'); ?>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- full calendar -->
     <script src="../assets/Assetscalendar/moment/moment.min.js"></script>
     <script src="../assets/Assetscalendar/fullcalendar/main.js"></script>
     <script src="../assets/Assetscalendar/sweetalert2/sweetalert2.all.min.js"></script> 
 
-    <!-- Bootstrap core JavaScript-->
-    <script src="../plugins/jquery/jquery.min.js"></script>
-    <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <!-- Core plugin JavaScript-->
     <script src="../plugins/jquery-easing/jquery.easing.min.js"></script>
-     <!-- Page level plugins -->
-     <script src="../plugins/chart.js/Chart.min.js"></script>
+    
     <!-- Custom scripts for all pages-->
     <script src="./js/sb-admin-2.min.js"></script>
-    <!-- Page level custom scripts -->
-    <script src="js/demo/chart-area-demo.js"></script>
-    <script src="js/demo/chart-pie-demo.js"></script>
     
 <!-- Include jQuery, Bootstrap, and DataTables JS -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

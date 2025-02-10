@@ -19,8 +19,13 @@ while ($row = mysqli_fetch_assoc($result)) {
 // Fetch available dates from availability_tb
 $availabilityDates = [];
 $resultAvail = mysqli_query($conn, "SELECT available_date FROM availability_tb WHERE is_active = 1");
-while ($rowAvail = mysqli_fetch_assoc($resultAvail)) {
+while ($rowAvail = mysqli_fetch_assoc($resultAvail)) { // Changed $result to $resultAvail
     $availabilityDates[] = $rowAvail['available_date'];
+}
+
+// For debugging purposes, you can add this:
+if (empty($availabilityDates)) {
+    error_log('No available dates found in availability_tb');
 }
 
 // Update appointment counts query - exclude deleted status
@@ -35,7 +40,7 @@ while ($row = mysqli_fetch_assoc($result)) {
     $appointmentCounts[$row['appointment_date']] = $row['count'];
 }
 
-// Update main appointment fetch query
+// Modify the appointment fetch query to include cancelled status
 $sched_arr = [];
 $query = "SELECT 
     a.appointment_id AS id, 
@@ -65,7 +70,16 @@ if ($result) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<!-- SweetAlert2 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<!-- SB Admin 2 Template -->
+<link href="css/sb-admin-2.min.css" rel="stylesheet">
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+
 
     <style>
     #calendar-container {
@@ -132,6 +146,10 @@ if ($result) {
         background-color: #28a745;
         color: #fff;
     }
+    .badge-danger {
+        background-color: #dc3545;
+        color: #fff;
+    }
 </style>
 </head>
 <body>
@@ -194,11 +212,13 @@ if ($result) {
             timeZone: 'Asia/Manila',  // Set Philippine timezone
             events: scheds.map(sched => ({
                 id: sched.id,
-                title: `${sched.patient_name} (${sched.formatted_time})
-                    ${sched.status === "pending" ? "⏳" : "✓"}`,
+                title: `${sched.patient_name} (${sched.formatted_time}) 
+                    ${sched.status === "pending" ? "⏳" : sched.status === "cancelled" ? "❌" : "✓"}`,
                 start: `${sched.appointment_date}T${sched.appointment_time}`,
-                backgroundColor: sched.status === "pending" ? "#ffa500" : "#28a745",
-                borderColor: sched.status === "pending" ? "#ff8c00" : "#218838",
+                backgroundColor: sched.status === "pending" ? "#ffa500" : 
+                                sched.status === "cancelled" ? "#dc3545" : "#dc3545",
+                borderColor: sched.status === "pending" ? "#ff8c00" : 
+                            sched.status === "cancelled" ? "#c82333" : "#c82333",
                 textColor: '#fff',
                 extendedProps: {
                     status: sched.status,
@@ -252,14 +272,17 @@ if ($result) {
                             <tr>
                                 <th>Status</th>
                                 <td>
-                                    <span class="badge badge-${event.extendedProps.status === 'pending' ? 'warning' : 'success'}">
+                                    <span class="badge badge-${
+                                        event.extendedProps.status === 'pending' ? 'warning' : 
+                                        event.extendedProps.status === 'cancelled' ? 'danger' : 'success'
+                                    }">
                                         ${event.extendedProps.status}
                                     </span>
                                 </td>
                             </tr>
                         </table>
                         <div class="text-right mt-3">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
                         </div>
                     </div>
                 `;
@@ -277,6 +300,10 @@ if ($result) {
         $('#uniModal .modal-body').load(url, function() {
             $('#uniModal').modal('show');
         });
+    }
+
+    function closeModal() {
+        $('#uniModal').modal('hide');
     }
 </script>
 

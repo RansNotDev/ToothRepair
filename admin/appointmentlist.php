@@ -103,8 +103,111 @@ if (isset($_GET['date'])) {
     exit;
 }
 ?>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<!-- SweetAlert2 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<!-- SB Admin 2 Template -->
+<link href="css/sb-admin-2.min.css" rel="stylesheet">
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+
+<style>
+    /* General Responsive Styles */
+    .container-fluid {
+        padding: 15px;
+    }
+
+    /* Table Responsiveness */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    @media (max-width: 768px) {
+        .table thead {
+            display: none;
+        }
+
+        .table tr {
+            display: block;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+        }
+
+        .table td {
+            display: block;
+            text-align: left;
+            position: relative;
+            padding-left: 50%;
+        }
+
+        .table td:before {
+            content: attr(data-label);
+            position: absolute;
+            left: 10px;
+            width: 45%;
+            font-weight: bold;
+        }
+    }
+
+    /* Modal Responsiveness */
+    @media (max-width: 576px) {
+        .modal-dialog {
+            margin: 0.5rem;
+        }
+
+        .modal-content {
+            padding: 10px;
+        }
+
+        .form-group {
+    }
+
+    .badge {
+        padding: 8px 12px;
+        font-size: 0.9em;
+    }
+
+    .badge-warning {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .badge-info {
+        background-color: rgb(190, 148, 9);
+        color: #fff;
+    }
+
+    .badge-primary {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    .badge-success {
+        background-color: #28a745;
+        color: #fff;
+    }
+
+    .badge-danger {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    .badge-secondary {
+        background-color: #6c757d;
+        color: #fff;
+    }
+</style>
+</head>
+<body>
+    
+
+
 
 
 <div class="container-fluid">
@@ -1123,91 +1226,7 @@ if (isset($_GET['date'])) {
         });
     });
 </script>
-
-<style>
-    /* General Responsive Styles */
-    .container-fluid {
-        padding: 15px;
-    }
-
-    /* Table Responsiveness */
-    .table-responsive {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    @media (max-width: 768px) {
-        .table thead {
-            display: none;
-        }
-
-        .table tr {
-            display: block;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-        }
-
-        .table td {
-            display: block;
-            text-align: left;
-            position: relative;
-            padding-left: 50%;
-        }
-
-        .table td:before {
-            content: attr(data-label);
-            position: absolute;
-            left: 10px;
-            width: 45%;
-            font-weight: bold;
-        }
-    }
-
-    /* Modal Responsiveness */
-    @media (max-width: 576px) {
-        .modal-dialog {
-            margin: 0.5rem;
-        }
-
-        .modal-content {
-            padding: 10px;
-        }
-
-        .form-group {
-    }
-
-    .badge {
-        padding: 8px 12px;
-        font-size: 0.9em;
-    }
-
-    .badge-warning {
-        background-color: #ffc107;
-        color: #212529;
-    }
-
-    .badge-info {
-        background-color: rgb(190, 148, 9);
-        color: #fff;
-    }
-
-    .badge-primary {
-        background-color: #007bff;
-        color: #fff;
-    }
-
-    .badge-success {
-        background-color: #28a745;
-        color: #fff;
-    }
-
-    .badge-danger {
-        background-color: #dc3545;
-        color: #fff;
-    }
-
-    .badge-secondary {
-        background-color: #6c757d;
-        color: #fff;
-    }
-</style>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

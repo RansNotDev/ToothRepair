@@ -42,7 +42,38 @@ $status_query = "SELECT
 FROM appointments 
 GROUP BY status";
 $status_result = $conn->query($status_query);
+
+// Add after existing queries
+$today_appointments_query = "SELECT 
+    a.appointment_id,
+    u.fullname,
+    s.service_name,
+    TIME_FORMAT(a.appointment_time, '%h:%i %p') as formatted_time,
+    a.status
+FROM appointments a
+JOIN users u ON a.user_id = u.user_id
+JOIN services s ON a.service_id = s.service_id
+WHERE DATE(a.appointment_date) = CURDATE()
+ORDER BY a.appointment_time";
+$today_result = $conn->query($today_appointments_query);
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<!-- SweetAlert2 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<!-- SB Admin 2 Template -->
+<link href="css/sb-admin-2.min.css" rel="stylesheet">
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    
 
 <!-- Stats Cards -->
 <div class="row mb-4">
@@ -111,115 +142,176 @@ $status_result = $conn->query($status_query);
     </div>
 </div>
 
-<!-- Add Status Distribution Chart -->
+<!-- Today's Appointments & Analytics Row -->
 <div class="row">
-    <div class="col-xl-12 col-lg-12">
+    <!-- Today's Appointments -->
+    <div class="col-xl-6 col-lg-6">
         <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Appointment Status Distribution</h6>
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Today's Appointments</h6>
+                <a href="calendar.php" class="btn btn-sm btn-primary shadow-sm">View Calendar</a>
             </div>
             <div class="card-body">
-                <div class="chart-bar">
-                    <canvas id="appointmentStatusChart"></canvas>
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Patient</th>
+                                <th>Service</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php while($row = $today_result->fetch_assoc()): ?>
+                            <tr>
+                                <td><?= $row['formatted_time'] ?></td>
+                                <td><?= $row['fullname'] ?></td>
+                                <td><?= $row['service_name'] ?></td>
+                                <td>
+                                    <span class="badge badge-<?= 
+                                        $row['status'] == 'pending' ? 'warning' : 
+                                        ($row['status'] == 'completed' ? 'success' : 'danger') 
+                                    ?>">
+                                        <?= ucfirst($row['status']) ?>
+                                    </span>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                            <?php if($today_result->num_rows == 0): ?>
+                            <tr>
+                                <td colspan="4" class="text-center">No appointments scheduled for today</td>
+                            </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Appointments Chart -->
+    <div class="col-xl-6 col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Appointments Overview</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyChart"></canvas>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Analytics Row -->
 <div class="row">
-    <!-- Monthly Trends Chart -->
-    <div class="col-xl-8 col-lg-7">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Monthly Appointment Trends</h6>
-            </div>
-            <div class="card-body">
-                <div class="chart-area">
-                    <canvas id="appointmentTrends"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Services Distribution -->
-    <div class="col-xl-4 col-lg-5">
+    <!-- Popular Services Chart -->
+    <div class="col-xl-6 col-lg-6">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-primary">Popular Services</h6>
             </div>
             <div class="card-body">
-                <div class="chart-pie pt-4 pb-2">
-                    <canvas id="servicesPieChart"></canvas>
-                </div>
+                <canvas id="servicesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment Status Distribution -->
+    <div class="col-xl-6 col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Status Distribution</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart"></canvas>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-// Monthly Trends Chart
-const monthlyData = <?= json_encode(array_column($monthly_result->fetch_all(MYSQLI_ASSOC), 'total', 'month')) ?>;
-
-new Chart(document.getElementById("appointmentTrends"), {
-    type: 'line',
-    data: {
-        labels: Object.keys(monthlyData),
-        datasets: [{
-            label: 'Appointments',
-            data: Object.values(monthlyData),
-            lineTension: 0.3,
-            backgroundColor: "rgba(78, 115, 223, 0.05)",
-            borderColor: "rgba(78, 115, 223, 1)"
-        }]
-    }
-});
-
-// Services Pie Chart
-const servicesData = <?= json_encode(array_column($services_result->fetch_all(MYSQLI_ASSOC), 'total_bookings', 'service_name')) ?>;
-
-new Chart(document.getElementById("servicesPieChart"), {
-    type: 'doughnut',
-    data: {
-        labels: Object.keys(servicesData),
-        datasets: [{
-            data: Object.values(servicesData),
-            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b']
-        }]
-    }
-});
-
-// Add status distribution chart
-const statusData = <?= json_encode($status_result->fetch_all(MYSQLI_ASSOC)) ?>;
-
-new Chart(document.getElementById("appointmentStatusChart"), {
-    type: 'bar',
-    data: {
-        labels: statusData.map(item => item.status.toUpperCase()),
-        datasets: [{
-            label: 'Number of Appointments',
-            data: statusData.map(item => item.count),
-            backgroundColor: [
-                '#4e73df', // Booked - Blue
-                '#f6c23e', // Pending - Yellow
-                '#36b9cc', // Confirmed - Cyan
-                '#1cc88a', // Completed - Green
-                '#e74a3b'  // Cancelled - Red
-            ],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1
+document.addEventListener('DOMContentLoaded', function() {
+    // Monthly Appointments Chart
+    new Chart(document.getElementById('monthlyChart'), {
+        type: 'line',
+        data: {
+            labels: [<?php 
+                $labels = [];
+                $data = [];
+                mysqli_data_seek($monthly_result, 0);
+                while($row = $monthly_result->fetch_assoc()) {
+                    $labels[] = date('M Y', strtotime($row['month']));
+                    $data[] = $row['total'];
                 }
-            }
+                echo '"'.implode('","', $labels).'"';
+            ?>],
+            datasets: [{
+                label: 'Appointments',
+                data: [<?php echo implode(',', $data); ?>],
+                borderColor: '#4e73df',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
         }
-    }
+    });
+
+    // Popular Services Chart
+    new Chart(document.getElementById('servicesChart'), {
+        type: 'bar',
+        data: {
+            labels: [<?php 
+                $labels = [];
+                $data = [];
+                mysqli_data_seek($services_result, 0);
+                while($row = $services_result->fetch_assoc()) {
+                    $labels[] = $row['service_name'];
+                    $data[] = $row['total_bookings'];
+                }
+                echo '"'.implode('","', $labels).'"';
+            ?>],
+            datasets: [{
+                label: 'Bookings',
+                data: [<?php echo implode(',', $data); ?>],
+                backgroundColor: '#36b9cc'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Status Distribution Chart
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: [<?php 
+                $labels = [];
+                $data = [];
+                mysqli_data_seek($status_result, 0);
+                while($row = $status_result->fetch_assoc()) {
+                    $labels[] = ucfirst($row['status']);
+                    $data[] = $row['count'];
+                }
+                echo '"'.implode('","', $labels).'"';
+            ?>],
+            datasets: [{
+                data: [<?php echo implode(',', $data); ?>],
+                backgroundColor: ['#4e73df', '#1cc88a', '#f6c23e', '#e74a3b']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
 });
 </script>
 
+</body>
+</html>
 <?php include_once('includes/footer.php'); ?>

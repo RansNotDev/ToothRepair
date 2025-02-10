@@ -28,29 +28,51 @@ $logo = $settings['logo'] ?? 'uploads/default_logo.png';
 $cover = $settings['cover'] ?? 'uploads/default_cover.jpg';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Other form data
-    $max_daily = (int)$_POST['max_daily'];
-    $contact_number = $_POST['contact_number'];
-    $email = $_POST['email'];
-    $address = $_POST['address'];
+    // Validate and sanitize inputs
+    $max_daily = filter_input(INPUT_POST, 'max_daily', FILTER_VALIDATE_INT);
+    if ($max_daily === false || $max_daily < 1 || $max_daily > 50) {
+        $_SESSION['error'] = "Invalid maximum daily appointments value";
+        header("Location: settings.php");
+        exit();
+    }
+    $contact_number = filter_input(INPUT_POST, 'contact_number', FILTER_SANITIZE_STRING);
+    $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+    $address = filter_input(INPUT_POST, 'address', FILTER_SANITIZE_STRING);
     $about_content = $_POST['about_content'];
-
-    // Get holidays from the hidden input
     $holidays = isset($_POST['holidays']) ? $_POST['holidays'] : '[]';
-    $holidays = json_decode($holidays, true); // Decode JSON string to array
 
-    // File Upload Handling (unchanged)
+    // File Upload Handling with validation
     $uploadDir = "uploads/";
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
+
+    // Logo upload handling
     if (!empty($_FILES['logo']['tmp_name'])) {
-        $logoPath = $uploadDir . basename($_FILES['logo']['name']);
-        if (move_uploaded_file($_FILES['logo']['tmp_name'], $logoPath)) {
-            $logo = $logoPath;
+        $fileInfo = pathinfo($_FILES['logo']['name']);
+        $newLogoName = 'logo_' . time() . '.' . $fileInfo['extension'];
+        $logoPath = $uploadDir . $newLogoName;
+        
+        // Validate file type
+        $allowedTypes = ['jpg', 'jpeg', 'png'];
+        if (in_array(strtolower($fileInfo['extension']), $allowedTypes)) {
+            if (move_uploaded_file($_FILES['logo']['tmp_name'], $logoPath)) {
+                $logo = $logoPath;
+            }
         }
     }
+
+    // Cover photo upload handling
     if (!empty($_FILES['cover']['tmp_name'])) {
-        $coverPath = $uploadDir . basename($_FILES['cover']['name']);
-        if (move_uploaded_file($_FILES['cover']['tmp_name'], $coverPath)) {
-            $cover = $coverPath;
+        $fileInfo = pathinfo($_FILES['cover']['name']);
+        $newCoverName = 'cover_' . time() . '.' . $fileInfo['extension'];
+        $coverPath = $uploadDir . $newCoverName;
+        
+        // Validate file type
+        if (in_array(strtolower($fileInfo['extension']), $allowedTypes)) {
+            if (move_uploaded_file($_FILES['cover']['tmp_name'], $coverPath)) {
+                $cover = $coverPath;
+            }
         }
     }
 
@@ -74,7 +96,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $stmt = mysqli_prepare($conn, $updateQuery);
         $holidays_json = json_encode($holidays);
-        mysqli_stmt_bind_param($stmt, "isssssss", $max_daily, $contact_number, $email, $address, $about_content, $holidays_json, $logo, $cover);
+        if (!mysqli_stmt_bind_param($stmt, "isssssss", 
+            $max_daily, $contact_number, $email, $address, 
+            $about_content, $holidays_json, $logo, $cover)) {
+            $_SESSION['error'] = "Error binding parameters: " . mysqli_error($conn);
+            header("Location: settings.php");
+            exit();
+        }
+        
+        if (!mysqli_stmt_execute($stmt)) {
+            $_SESSION['error'] = "Error updating settings: " . mysqli_error($conn);
+        } else {
+            $_SESSION['success'] = "Settings updated successfully!";
+        }
     } else {
         // Insert new settings
         $insertQuery = "INSERT INTO clinic_settings (
@@ -103,9 +137,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // End output buffering and send output to the browser
 ob_end_flush();
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<!-- SweetAlert2 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<!-- SB Admin 2 Template -->
+<link href="css/sb-admin-2.min.css" rel="stylesheet">
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+
+
+
+</head>
+<body>
+    
 
 <div class="container-fluid">
     <h1 class="h3 mb-4 text-gray-800">Clinic Settings</h1>
+    
+    <?php if (isset($_SESSION['error'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?= $_SESSION['error']; ?>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <?php unset($_SESSION['error']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['success'])): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <?= $_SESSION['success']; ?>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
+    
     <form method="POST" enctype="multipart/form-data">
         <div class="card shadow mb-4">
             <div class="card-header py-3 bg-primary text-white">
@@ -133,38 +206,39 @@ ob_end_flush();
             </div>
             <div class="card-body">
                 <div class="form-group">
-                    <label>Max Patients Per Day</label>
-                    <input type="number" class="form-control" name="max_daily" value="<?= htmlspecialchars($max_daily) ?>" min="1" required>
+                    <label>Maximum Appointments Per Day</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" name="max_daily" 
+                               value="<?= htmlspecialchars($max_daily) ?>" 
+                               min="1" max="50" required>
+                        <div class="input-group-append">
+                            <span class="input-group-text">patients</span>
+                        </div>
+                    </div>
+                    <small class="form-text text-muted">Set the maximum number of appointments allowed per day</small>
                 </div>
-                <div class="card shadow mb-4">
-    <div class="card-header py-3 bg-primary text-white">
-        <h6 class="m-0 font-weight-bold">Holiday Settings</h6>
-    </div>
-    <div class="card-body">
-        <!-- Date Picker for Holidays -->
-        <div class="form-group">
-            <label>Select Holiday Date</label>
-            <input type="date" id="holidayDate" class="form-control">
-        </div>
 
-        <!-- Holiday Name Input (Hidden by Default) -->
-        <div class="form-group" id="holidayNameGroup" style="display: none;">
-            <label>Holiday Name</label>
-            <input type="text" id="holidayName" name="holidayName" class="form-control" placeholder="Enter holiday name">
-        </div>
-
-        <!-- Display Selected Holidays -->
-        <div class="form-group">
-            <label>Selected Holidays</label>
-            <ul id="selectedHolidaysList" class="list-group">
-                <!-- Dynamically populated by JavaScript -->
-            </ul>
-        </div>
-
-        <!-- Hidden Input to Store Holidays for Form Submission -->
-        <input type="hidden" id="holidays" name="holidays" value="<?= htmlspecialchars($holidays) ?>">
-    </div>
-</div>
+                <!-- Holiday Settings -->
+                <div class="form-group mt-4">
+                    <label>Holiday Management</label>
+                    <div class="input-group mb-3">
+                        <input type="date" id="holidayDate" class="form-control" 
+                               min="<?= date('Y-m-d') ?>">
+                        <input type="text" id="holidayName" class="form-control" 
+                               placeholder="Holiday Name">
+                        <div class="input-group-append">
+                            <button type="button" id="addHoliday" class="btn btn-primary">
+                                Add Holiday
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="holidayList" class="list-group mt-3">
+                        <!-- Holidays will be listed here -->
+                    </div>
+                    <input type="hidden" name="holidays" id="holidaysInput" 
+                           value="<?= htmlspecialchars($holidays) ?>">
+                </div>
             </div>
         </div>
 
@@ -182,19 +256,39 @@ ob_end_flush();
                 <h6 class="m-0 font-weight-bold">Clinic Media</h6>
             </div>
             <div class="card-body">
-                <div class="form-group">
-                    <label>Logo</label>
-                    <input type="file" class="form-control" name="logo">
-                    <?php if (!empty($logo)): ?>
-                        <img src="<?= htmlspecialchars($logo) ?>" alt="Clinic Logo" class="img-thumbnail mt-2" style="max-width: 150px;">
-                    <?php endif; ?>
-                </div>
-                <div class="form-group">
-                    <label>Cover Image</label>
-                    <input type="file" class="form-control" name="cover">
-                    <?php if (!empty($cover)): ?>
-                        <img src="<?= htmlspecialchars($cover) ?>" alt="Clinic Cover" class="img-thumbnail mt-2" style="max-width: 300px;">
-                    <?php endif; ?>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Clinic Logo</label>
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="logo" name="logo" 
+                                       accept="image/png, image/jpeg">
+                                <label class="custom-file-label" for="logo">Choose file</label>
+                            </div>
+                            <?php if (!empty($logo)): ?>
+                                <div class="mt-2">
+                                    <img src="<?= htmlspecialchars($logo) ?>" alt="Current Logo" 
+                                         class="img-thumbnail" style="max-height: 100px">
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Cover Photo</label>
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="cover" name="cover" 
+                                       accept="image/png, image/jpeg">
+                                <label class="custom-file-label" for="cover">Choose file</label>
+                            </div>
+                            <?php if (!empty($cover)): ?>
+                                <div class="mt-2">
+                                    <img src="<?= htmlspecialchars($cover) ?>" alt="Current Cover" 
+                                         class="img-thumbnail" style="max-height: 150px">
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -206,78 +300,117 @@ ob_end_flush();
 <?php include_once('includes/footer.php'); ?>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const holidayDateInput = document.getElementById('holidayDate');
-    const holidayNameGroup = document.getElementById('holidayNameGroup');
-    const holidayNameInput = document.getElementById('holidayName');
-    const selectedHolidaysList = document.getElementById('selectedHolidaysList');
-    const holidaysHiddenInput = document.getElementById('holidays');
-
-    // Array to store selected holidays
-    let selectedHolidays = [];
-
-    // Parse existing holidays from the hidden input
-    if (holidaysHiddenInput.value) {
-        selectedHolidays = JSON.parse(holidaysHiddenInput.value);
-        updateHolidaysList();
+document.addEventListener('DOMContentLoaded', function() {
+    const holidayDate = document.getElementById('holidayDate');
+    const holidayName = document.getElementById('holidayName');
+    const addHolidayBtn = document.getElementById('addHoliday');
+    const holidayList = document.getElementById('holidayList');
+    const holidaysInput = document.getElementById('holidaysInput');
+    
+    let holidays = [];
+    
+    // Load existing holidays
+    try {
+        holidays = JSON.parse(holidaysInput.value || '[]');
+        renderHolidays();
+    } catch (e) {
+        console.error('Error parsing holidays:', e);
+        holidays = [];
     }
-
-    // Show holiday name input when a date is selected
-    holidayDateInput.addEventListener('change', function () {
-        if (this.value) {
-            holidayNameGroup.style.display = 'block';
-        } else {
-            holidayNameGroup.style.display = 'none';
+    
+    // Add holiday
+    addHolidayBtn.addEventListener('click', function() {
+        if (!holidayDate.value || !holidayName.value) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Input',
+                text: 'Please enter both date and holiday name'
+            });
+            return;
         }
+        
+        const newHoliday = {
+            date: holidayDate.value,
+            name: holidayName.value
+        };
+        
+        // Check if date already exists
+        if (holidays.some(h => h.date === newHoliday.date)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Date Already Added',
+                text: 'This date is already marked as a holiday'
+            });
+            return;
+        }
+        
+        holidays.push(newHoliday);
+        holidayDate.value = '';
+        holidayName.value = '';
+        
+        renderHolidays();
     });
-
-    // Add holiday to the list when the user finishes typing the name
-    holidayNameInput.addEventListener('blur', function () {
-        const date = holidayDateInput.value;
-        const name = this.value.trim();
-
-        if (date && name) {
-            // Check if the date is already added
-            const exists = selectedHolidays.some(holiday => holiday.date === date);
-            if (!exists) {
-                // Add the holiday to the list
-                selectedHolidays.push({ date, name });
-                updateHolidaysList();
-
-                // Clear inputs
-                holidayDateInput.value = '';
-                holidayNameInput.value = '';
-                holidayNameGroup.style.display = 'none';
-            } else {
-                alert('This date is already added as a holiday.');
+    
+    // Update removeHoliday function
+    window.removeHoliday = function(index) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This holiday will be removed from the list",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                holidays.splice(index, 1);
+                renderHolidays();
+                Swal.fire(
+                    'Deleted!',
+                    'The holiday has been removed.',
+                    'success'
+                );
             }
-        }
-    });
-
-    // Update the displayed list of holidays and the hidden input
-    function updateHolidaysList() {
-        // Clear the list
-        selectedHolidaysList.innerHTML = '';
-
-        // Add each holiday to the list
-        selectedHolidays.forEach((holiday, index) => {
-            const listItem = document.createElement('li');
-            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-            listItem.innerHTML = `
-                ${holiday.date} - ${holiday.name}
-                <button type="button" class="btn btn-danger btn-sm" onclick="removeHoliday(${index})">Remove</button>
-            `;
-            selectedHolidaysList.appendChild(listItem);
         });
-
-        // Update the hidden input with the JSON string of holidays
-        holidaysHiddenInput.value = JSON.stringify(selectedHolidays);
-    }
-
-    // Function to remove a holiday from the list
-    window.removeHoliday = function (index) {
-        selectedHolidays.splice(index, 1);
-        updateHolidaysList();
     };
+    
+    function renderHolidays() {
+        // Sort holidays by date
+        holidays.sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        // Update hidden input
+        holidaysInput.value = JSON.stringify(holidays);
+        
+        // Render list
+        holidayList.innerHTML = holidays.map((holiday, index) => `
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>${formatDate(holiday.date)}</strong> - ${holiday.name}
+                </div>
+                <button type="button" class="btn btn-danger btn-sm" 
+                        onclick="removeHoliday(${index})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+    
+    function formatDate(dateStr) {
+        return new Date(dateStr).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+    
+    // File input label update
+    document.querySelectorAll('.custom-file-input').forEach(input => {
+        input.addEventListener('change', function() {
+            let fileName = this.files[0].name;
+            this.nextElementSibling.innerHTML = fileName;
+        });
+    });
 });
 </script>
+</body>
+</html>
