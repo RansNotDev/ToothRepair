@@ -18,8 +18,6 @@ while ($row = mysqli_fetch_assoc($result)) {
     $availability[$row['available_date']] = $row;
 }
 
-
-// Add status badge function
 function getStatusBadge($status)
 {
     return match (strtolower($status)) {
@@ -959,43 +957,35 @@ if (isset($_GET['date'])) {
     });
 
     $(document).ready(function() {
-        // Form submission handler
-        $('#addAppointmentModal form').on('submit', function(e) {
-            e.preventDefault();
-            
-            const form = $(this);
-            const submitBtn = form.find('button[type="submit"]');
-            
-            // Disable submit button
-            submitBtn.prop('disabled', true);
-            
-            $.ajax({
-                url: form.attr('action'),
-                type: 'POST',
-                data: form.serialize(),
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        // Show success message and reload page
-                        window.location.href = 'appointmentlist.php?success=add';
-                    } else {
-                        alert('Error: ' + (response.error || 'Failed to add appointment'));
-                    }
-                },
-                error: function(xhr) {
-                    console.error('Server error:', xhr.responseText);
-                    alert('Failed to add appointment. Please try again.');
-                },
-                complete: function() {
-                    // Re-enable submit button
-                    submitBtn.prop('disabled', false);
-                }
-            });
+    $('#addAppointmentModal form').on('submit', function(e) {
+        e.preventDefault();
+        
+        const form = $(this);
+        const submitBtn = form.find('button[type="submit"]');
+        
+        // Disable submit button
+        submitBtn.prop('disabled', true);
+        
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: form.serialize(),
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Hide modal first
+                    $('#addAppointmentModal').modal('hide');
+                    
+                    // Show success message using SweetAlert or standard alert
+                    alert('Appointment added successfully!');
+                    
+                    // Redirect to appointment list with success parameter
+                    window.location.href = 'appointmentlist.php?success=add';
+                } 
+            },
         });
-
-        // Set minimum date to today for appointment date
-        $('input[name="appointment_date"]').attr('min', new Date().toISOString().split('T')[0]);
     });
+});
 
     function updateTimeSlots(dateInput, timeSelect, originalTime = null) {
         const dateSelected = dateInput.val();
@@ -1069,7 +1059,6 @@ if (isset($_GET['date'])) {
                 $('#editService').val(data.service_id || '');
                 $('#editStatus').val(data.status || '');
     
-                // Update time slots while preserving original time
                 const timeSelect = $('#editTime');
                 updateTimeSlots($('#editDate'), timeSelect, data.appointment_time);
     
@@ -1092,11 +1081,9 @@ if (isset($_GET['date'])) {
         updateTimeSlots($(this), timeSelect, originalData?.appointment_time);
     });
 
-    // Update the date change handler for add appointment
     $(document).ready(function () {
         $('input[name="appointment_date"]').on('change', function () {
             const dateSelected = $(this).val();
-            // Fix: Change from '#time' to 'select[name="appointment_time"]'
             const timeSelect = $(this).closest('form').find('select[name="appointment_time"]');
 
             if (dateSelected) {
@@ -1114,8 +1101,8 @@ if (isset($_GET['date'])) {
                             response.available.forEach(time => {
                                 const isBooked = response.booked && response.booked.includes(time);
                                 if (!isBooked) {
-                                    // Fix: Add proper value format for the time options
-                                    const timeValue = time.replace(' ', ':00 '); // Add seconds to match required format
+                                
+                                    const timeValue = time.replace(' ', ':00 ');
                                     timeSelect.append(`<option value="${timeValue}">${time}</option>`);
                                 }
                             });

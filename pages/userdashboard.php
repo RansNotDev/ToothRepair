@@ -1,7 +1,6 @@
 <?php
 date_default_timezone_set('Asia/Manila');
 require("../database/db_connection.php"); // Add this line to include the database connection
-include_once("../includes/header.php");
 
 session_start();
 
@@ -86,183 +85,37 @@ function getStatusBadge($status) {
 }
 
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<div class="container-fluid py-4 bg-light min-vh-100">
-    <div class="row">
-        <div class="col-12">
-            <div class="dashboard-header mb-4 bg-primary p-4 rounded shadow-sm">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="mb-3 mb-md-0">
-                        <h1 class="h3 text-white fw-bold">Welcome Back, <?php echo htmlspecialchars($_SESSION['fullname'] ?? 'User'); ?></h1>
-                        <p class="text-white-50">Here's your appointment overview</p>
-                    </div>
-                   
-                </div>
-            </div>
-        </div>
-    </div>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <!--cdn online bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="../plugins/fullcalendar/main.css">
+    <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css"  type="text/css">
+    <link rel="stylesheet" href="../admin/css/sb-admin-2.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" >
 
-    <div class="row">
-        <!-- Appointment Status Card -->
-        <div class="col-lg-8 col-md-12 mb-4">
-            <div class="card border-0 shadow-sm rounded-lg">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="card-title text-primary mb-0">Current Appointment</h5>
-                        <?php if ($appointment): ?>
-                        <span class="badge bg-<?php echo getStatusBadge($appointment['status']); ?> px-3 py-2 rounded-pill">
-                            <?php echo htmlspecialchars(ucfirst($appointment['status'])); ?>
-                        </span>
-                        <?php endif; ?>
-                    </div>
+    <!-- Online cdn bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
-                    <?php if ($appointment && $appointment['status'] === 'cancelled'): ?>
-                        <div class="alert alert-warning">
-                            <h4>Appointment Cancelled</h4>
-                            <p>Your appointment scheduled for <?php echo date('M d, Y', strtotime($appointment['appointment_date'])); ?> 
-                               at <?php echo $appointment['appointment_time']; ?> was cancelled.</p>
-                            <a href="book-appointment.php" class="btn btn-primary mt-3">Book New Appointment</a>
-                        </div>
-                    <?php elseif ($appointment): ?>
-                        <div class="appointment-details">
-                            <div class="progress-tracker mb-4">
-                                <div class="progress" style="height: 4px;">
-                                    <div class="progress-bar bg-primary" role="progressbar" 
-                                         style="width: <?php echo getProgressBarWidth($appointment['status'] ?? 'Booked'); ?>"></div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-2">
-                                    <span class="badge <?php echo getStatusClass($appointment['status'] ?? 'Booked', 'Booked'); ?>">
-                                        Booked
-                                    </span>
-                                    <span class="badge <?php echo getStatusClass($appointment['status'] ?? 'Booked', 'Pending'); ?>">
-                                        Pending
-                                    </span>
-                                    <span class="badge <?php echo getStatusClass($appointment['status'] ?? 'Booked', 'Confirmed'); ?>">
-                                        Confirmed
-                                    </span>
-                                    <span class="badge <?php echo getStatusClass($appointment['status'] ?? 'Booked', 'Completed'); ?>">
-                                        Completed
-                                    </span>
-                                </div>
-                            </div>
 
-                            <div class="row g-4">
-                                <div class="col-md-4">
-                                    <div class="detail-card p-3 bg-light rounded">
-                                        <i class="fas fa-calendar-alt text-primary mb-2"></i>
-                                        <h6 class="text-muted">Date</h6>
-                                        <p class="mb-0 fw-bold"><?php echo date('M d, Y', strtotime($appointment['appointment_date'])); ?></p>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="detail-card p-3 bg-light rounded">
-                                        <i class="fas fa-clock text-primary mb-2"></i>
-                                        <h6 class="text-muted">Time</h6>
-                                        <p class="mb-0 fw-bold"><?php echo $appointment['appointment_time']; ?></p>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="detail-card p-3 bg-light rounded">
-                                        <i class="fas fa-tooth text-primary mb-2"></i>
-                                        <h6 class="text-muted">Service</h6>
-                                        <p class="mb-0 fw-bold"><?php echo htmlspecialchars($appointment['service_name']); ?></p>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div class="action-buttons mt-4 d-flex gap-3">
-                                <button class="btn btn-primary px-4 d-flex align-items-center gap-2">
-                                    <i class="fab fa-google"></i> Add to Calendar
-                                </button>
-                                <button onclick="confirmCancelAppointment()" class="btn btn-outline-danger px-4 d-flex align-items-center gap-2">
-                                    <i class="fas fa-times"></i> Cancel Appointment
-                                </button>
-                            </div>
-                        </div>
-                    <?php else: ?>
-                        <div class="text-center py-5">
-                            <img src="../assets/images/no-appointment.svg" alt="No Appointments" class="mb-3" style="width: 150px;">
-                            <h5>No Upcoming Appointments</h5>
-                            <p class="text-muted">Schedule your next visit now</p>
-                            <a href="book-appointment.php" class="btn btn-primary px-4">Book Appointment</a>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-
-        <?php if (count($appointments) > 1): ?>
-            <div class="col-lg-8 col-md-12 mb-4">
-                <div class="card border-0 shadow-sm rounded-lg">
-                    <div class="card-body p-4">
-                        <h5 class="card-title text-primary mb-4">Upcoming Appointments</h5>
-                        <?php 
-                        // Skip the first appointment as it's already shown
-                        array_shift($appointments);
-                        foreach ($appointments as $apt): 
-                        ?>
-                            <div class="upcoming-appointment mb-3 p-3 bg-light rounded">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-1"><?php echo htmlspecialchars($apt['service_name']); ?></h6>
-                                        <p class="mb-0 text-muted">
-                                            <i class="fas fa-calendar-alt me-2"></i>
-                                            <?php echo date('M d, Y', strtotime($apt['appointment_date'])); ?> at 
-                                            <?php echo $apt['appointment_time']; ?>
-                                        </p>
-                                    </div>
-                                    <div class="d-flex gap-2">
-                                        <span class="badge bg-<?php echo getStatusBadge($apt['status']); ?>">
-                                            <?php echo ucfirst($apt['status']); ?>
-                                        </span>
-                                        <button onclick="confirmCancelAppointment(<?php echo $apt['appointment_id']; ?>)" 
-                                                class="btn btn-sm btn-outline-danger">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            </div>
-        <?php endif; ?>
-
-        <!-- Quick Actions Card -->
-        <div class="col-lg-4 col-md-12 mb-4">
-            <div class="card border-0 shadow-sm rounded-lg">
-                <div class="card-body p-4">
-                    <h5 class="card-title text-primary mb-4">Quick Actions</h5>
-                    <div class="d-grid gap-3">
-                    <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                            <i class="fas fa-calendar-plus text-primary me-3"></i>
-                            <span>Home</span>
-                        </a>
-                        <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                            <i class="fas fa-calendar-plus text-primary me-3"></i>
-                            <span>Book New Appointment</span>
-                        </a>
-                        <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                            <i class="fas fa-history text-primary me-3"></i>
-                            <span>View History</span>
-                        </a>
-                        <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                            <i class="fas fa-user text-primary me-3"></i>
-                            <span>Update Profile</span>
-                        </a>
-                        <a href="logout.php" onclick="return confirmLogout();" class="btn btn-light text-start p-3 d-flex align-items-center">
-                            <i class="fas fa-sign-out-alt text-primary me-3"></i>
-                            <span>Logout</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-
+    <style>
+body {
+            background-color: #f8f9fc;
+        }
+        .card {
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
 .dashboard-header .btn-light {
     transition: all 0.3s;
     background: rgba(255,255,255,0.9);
@@ -355,7 +208,190 @@ function getStatusBadge($status) {
     padding: 0.25rem 0.5rem;
     font-size: 0.875rem;
 }
+.active {
+        background-color: #007bff !important;
+        color: white !important;
+    }
 </style>
+</head>
+<body>
+    
+
+<div class="container-fluid py-4 bg-light min-vh-100">
+    <div class="row">
+        <div class="col-12">
+            <div class="dashboard-header mb-4 bg-primary p-4 rounded shadow-sm">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="mb-3 mb-md-0">
+                        <h1 class="h3 text-white fw-bold">Welcome Back, <?php echo htmlspecialchars($_SESSION['fullname'] ?? 'User'); ?></h1>
+                        <p class="text-white-50">Here's your appointment overview</p>
+                    </div>
+                   
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Appointment Status Card -->
+        <div class="col-lg-8 col-md-12 mb-4">
+            <div class="card border-0 shadow-sm rounded-lg">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title text-primary mb-0">Current Appointment</h5>
+                        <?php if ($appointment): ?>
+                        <span class="badge bg-<?php echo getStatusBadge($appointment['status']); ?> px-3 py-2 rounded-pill">
+                            <?php echo htmlspecialchars(ucfirst($appointment['status'])); ?>
+                        </span>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if ($appointment && $appointment['status'] === 'cancelled'): ?>
+                        <div class="alert alert-warning">
+                            <h4>Appointment Cancelled</h4>
+                            <p>Your appointment scheduled for <?php echo date('M d, Y', strtotime($appointment['appointment_date'])); ?> 
+                               at <?php echo $appointment['appointment_time']; ?> was cancelled.</p>
+                            <a href="book-appointment.php" class="btn btn-primary mt-3">Book New Appointment</a>
+                        </div>
+                    <?php elseif ($appointment): ?>
+                        <div class="appointment-details">
+                            <div class="progress-tracker mb-4">
+                                <div class="progress" style="height: 4px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" 
+                                         style="width: <?php echo getProgressBarWidth($appointment['status'] ?? 'Booked'); ?>"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <span class="badge <?php echo getStatusClass($appointment['status'] ?? 'Booked', 'Booked'); ?>">
+                                        Booked
+                                    </span>
+                                    <span class="badge <?php echo getStatusClass($appointment['status'] ?? 'Booked', 'Pending'); ?>">
+                                        Pending
+                                    </span>
+                                    <span class="badge <?php echo getStatusClass($appointment['status'] ?? 'Booked', 'Confirmed'); ?>">
+                                        Confirmed
+                                    </span>
+                                    <span class="badge <?php echo getStatusClass($appointment['status'] ?? 'Booked', 'Completed'); ?>">
+                                        Completed
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <div class="detail-card p-3 bg-light rounded">
+                                        <i class="fas fa-calendar-alt text-primary mb-2"></i>
+                                        <h6 class="text-muted">Date</h6>
+                                        <p class="mb-0 fw-bold"><?php echo date('M d, Y', strtotime($appointment['appointment_date'])); ?></p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="detail-card p-3 bg-light rounded">
+                                        <i class="fas fa-clock text-primary mb-2"></i>
+                                        <h6 class="text-muted">Time</h6>
+                                        <p class="mb-0 fw-bold"><?php echo $appointment['appointment_time']; ?></p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="detail-card p-3 bg-light rounded">
+                                        <i class="fas fa-tooth text-primary mb-2"></i>
+                                        <h6 class="text-muted">Service</h6>
+                                        <p class="mb-0 fw-bold"><?php echo htmlspecialchars($appointment['service_name']); ?></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="action-buttons mt-4 d-flex gap-3">
+                                <button class="btn btn-primary px-4 d-flex align-items-center gap-2">
+                                    <i class=""></i> Add to Calendar
+                                </button>
+                                <button onclick="confirmCancelAppointment()" class="btn btn-outline-danger px-4 d-flex align-items-center gap-2">
+                                    <i class=""></i> Cancel Appointment
+                                </button>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="text-center py-5">
+                            <img src="../assets/images/no-appointment.svg" alt="No Appointments" class="mb-3" style="width: 150px;">
+                            <h5>No Upcoming Appointments</h5>
+                            <p class="text-muted">Schedule your next visit now</p>
+                            <a href="book-appointment.php" class="btn btn-primary px-4">Book Appointment</a>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <?php if (count($appointments) > 1): ?>
+            <div class="col-lg-8 col-md-12 mb-4">
+                <div class="card border-0 shadow-sm rounded-lg">
+                    <div class="card-body p-4">
+                        <h5 class="card-title text-primary mb-4">Upcoming Appointments</h5>
+                        <?php 
+                        // Skip the first appointment as it's already shown
+                        array_shift($appointments);
+                        foreach ($appointments as $apt): 
+                        ?>
+                            <div class="upcoming-appointment mb-3 p-3 bg-light rounded">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1"><?php echo htmlspecialchars($apt['service_name']); ?></h6>
+                                        <p class="mb-0 text-muted">
+                                            <i class="fas fa-calendar-alt me-2"></i>
+                                            <?php echo date('M d, Y', strtotime($apt['appointment_date'])); ?> at 
+                                            <?php echo $apt['appointment_time']; ?>
+                                        </p>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <span class="badge bg-<?php echo getStatusBadge($apt['status']); ?>">
+                                            <?php echo ucfirst($apt['status']); ?>
+                                        </span>
+                                        <button onclick="confirmCancelAppointment(<?php echo $apt['appointment_id']; ?>)" 
+                                                class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <!-- Quick Actions Card -->
+<div class="col-lg-4 col-md-12 mb-4">
+    <div class="card border-0 shadow-sm rounded-lg">
+        <div class="card-body p-4">
+            <h5 class="card-title text-primary mb-4">Quick Actions</h5>
+            <div class="d-grid gap-3">
+                <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                    <i class="text-primary me-3"></i>
+                    <span>Home</span>
+                </a>
+                <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                    <i class="text-primary me-3"></i>
+                    <span>Book New Appointment</span>
+                </a>
+                <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                    <i class="text-primary me-3"></i>
+                    <span>View History</span>
+                </a>
+                <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                    <i class="text-primary me-3"></i>
+                    <span>Update Profile</span>
+                </a>
+                <a href="logout.php" onclick="return confirmLogout();" class="btn btn-light text-start p-3 d-flex align-items-center">
+                    <i class="text-primary me-3"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+    </div>
+</div>
+
+
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
@@ -453,8 +489,7 @@ function confirmCancelAppointment() {
                             text: 'Your appointment has been cancelled successfully.',
                             confirmButtonText: 'OK'
                         }).then(() => {
-                            // Refresh the page to show updated status
-                            window.location.reload();
+                            location.reload();
                         });
                     } else {
                         Swal.fire('Error!', response.message || 'Could not cancel appointment.', 'error');
@@ -468,6 +503,19 @@ function confirmCancelAppointment() {
         }
     });
 }
-</script>
 
-<?php include_once("../includes/footer.php"); ?>
+document.addEventListener("DOMContentLoaded", function () {
+        let links = document.querySelectorAll(".card-body a");
+        let currentUrl = window.location.pathname.split("/").pop();
+
+        links.forEach(link => {
+            if (link.getAttribute("href") === currentUrl) {
+                link.classList.add("active");
+            }
+        });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../assets/Assetscalendar/fullcalendar/main.js"></script>
+</body>
+</html>

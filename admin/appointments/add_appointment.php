@@ -1,7 +1,23 @@
 <?php
 include_once('../../database/db_connection.php');
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
+
+require '../../vendor/phpmailer/phpmailer/src/Exception.php';
+require '../../vendor/phpmailer/phpmailer/src/PHPMailer.php';
+require '../../vendor/phpmailer/phpmailer/src/SMTP.php';
 
 header('Content-Type: application/json');
+
+function generateRandomPassword($length = 8) {
+    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    $password = '';
+    for ($i = 0; $i < $length; $i++) {
+        $password .= $chars[random_int(0, strlen($chars) - 1)];
+    }
+    return $password;
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     try {
@@ -54,7 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         // Create or update user
-        $default_password = password_hash('1234', PASSWORD_BCRYPT);
+        $plainPassword = generateRandomPassword();
+        $default_password = password_hash($plainPassword, PASSWORD_BCRYPT);
         $user_stmt = $conn->prepare(
             "INSERT INTO users (fullname, email, contact_number, address, password) 
              VALUES (?, ?, ?, ?, ?) 
@@ -97,17 +114,74 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Commit transaction
         $conn->commit();
 
+        // After successful commit, send email
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'toothrepairdentalclinic@gmail.com';
+        $mail->Password = 'evwt cpxf ywtl zytp';
+        $mail->SMTPSecure = 'ssl';
+        $mail->Port = 465;
+
+        $mail->setFrom('toothrepairdentalclinic@gmail.com', 'Tooth Repair Dental Clinic');
+        $mail->addAddress($_POST['email']);
+        $mail->isHTML(true);
+
+        // Get service name
+        $service_stmt = $conn->prepare("SELECT service_name FROM services WHERE service_id = ?");
+        $service_stmt->bind_param("i", $_POST['service_id']);
+        $service_stmt->execute();
+        $service_result = $service_stmt->get_result()->fetch_assoc();
+        $service_name = $service_result['service_name'];
+
+        $mail->Subject = 'Appointment Confirmation - Tooth Repair Dental Clinic';
+        
+        // Create email body
+        $emailBody = "
+        <h2>Appointment Confirmation</h2>
+        <p>Dear {$_POST['fullname']},</p>
+        <p>Your appointment has been successfully scheduled. Here are the details:</p>
+        <ul>
+            <li>Date: {$_POST['appointment_date']}</li>
+            <li>Time: {$_POST['appointment_time']}</li>
+            <li>Service: {$service_name}</li>
+        </ul>
+        <p>Your login credentials:</p>
+        <ul>
+            <li>Username: {$_POST['email']}</li>
+            <li>Password: {$plainPassword}</li>
+        </ul>
+        <p><strong>Important:</strong> Please change your password immediately upon first login for security purposes.</p>
+        <p>Thank you for choosing Tooth Repair Dental Clinic!</p>";
+
+        $mail->Body = $emailBody;
+        $mail->AltBody = strip_tags($emailBody);
+
+        $mail->send();
+
+        // Modified success response with redirect URL
         echo json_encode([
             'success' => true,
-            'message' => 'Appointment added successfully'
+            'message' => 'Appointment added successfully and confirmation email sent',
+            'redirect' => '../appointmentlist.php'
         ]);
+        exit; // Add this to prevent any additional output
 
     } catch (Exception $e) {
         // Rollback on error
         $conn->rollback();
+        
+        // Log the full error details
+        error_log("Appointment Error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+        
         echo json_encode([
             'success' => false,
-            'error' => $e->getMessage()
+            'error' => $e->getMessage(),
+            'details' => [
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]
         ]);
     }
 } else {
@@ -117,3 +191,53 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     ]);
 }
 ?>
+
+<script>
+// Replace your existing form submission handler
+$(document).ready(function() {
+    $('#addAppointmentModal form').on('submit', function(e) {
+        e.preventDefault();
+        
+        const form = $(this);
+        const submitBtn = form.find('button[type="submit"]');
+        
+        // Disable submit button
+        submitBtn.prop('disabled', true);
+        
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: form.serialize(),
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Hide modal first
+                    $('#addAppointmentModal').modal('hide');
+                    // Show success message
+                    alert('Appointment added successfully!');
+                    // Redirect to appointment list
+                    window.location.href = '../appointmentlist.php';
+                } else {
+                    // Show specific error message if available
+                    alert(response.error || 'Failed to add appointment');
+                }
+            },
+            error: function(xhr) {
+                // If the response is JSON, parse it
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    alert(response.error || 'Failed to add appointment');
+                } catch(e) {
+                    // If not JSON, show generic error
+                    alert('Failed to add appointment. Please try again.');
+                }
+                console.error('Server error:', xhr.responseText);
+            },
+            complete: function() {
+                // Re-enable submit button
+                submitBtn.prop('disabled', false);
+            }
+        });
+    });
+});
+</script>
