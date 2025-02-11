@@ -30,16 +30,26 @@ $cover = $settings['cover'] ?? 'uploads/default_cover.jpg';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validate and sanitize inputs
     $max_daily = filter_input(INPUT_POST, 'max_daily', FILTER_VALIDATE_INT);
-    if ($max_daily === false || $max_daily < 1 || $max_daily > 50) {
-        $_SESSION['error'] = "Invalid maximum daily appointments value";
+    if ($max_daily === false || $max_daily < 1) {
+        $_SESSION['error'] = "Maximum daily appointments must be at least 1";
         header("Location: settings.php");
         exit();
     }
+
+    // Remove the upper limit check to allow admin flexibility
     $contact_number = filter_input(INPUT_POST, 'contact_number', FILTER_SANITIZE_STRING);
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
     $address = filter_input(INPUT_POST, 'address', FILTER_SANITIZE_STRING);
     $about_content = $_POST['about_content'];
+    
+    // Improve holiday handling
     $holidays = isset($_POST['holidays']) ? $_POST['holidays'] : '[]';
+    $holidaysArray = json_decode($holidays, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        $_SESSION['error'] = "Invalid holiday data format";
+        header("Location: settings.php");
+        exit();
+    }
 
     // File Upload Handling with validation
     $uploadDir = "uploads/";
@@ -309,18 +319,30 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let holidays = [];
     
-    // Load existing holidays
+    // Load existing holidays with error handling
     try {
-        holidays = JSON.parse(holidaysInput.value || '[]');
+        const savedHolidays = holidaysInput.value.trim();
+        holidays = savedHolidays ? JSON.parse(savedHolidays) : [];
+        if (!Array.isArray(holidays)) {
+            throw new Error('Invalid holiday data structure');
+        }
         renderHolidays();
     } catch (e) {
         console.error('Error parsing holidays:', e);
         holidays = [];
+        Swal.fire({
+            icon: 'warning',
+            title: 'Holiday Data Reset',
+            text: 'There was an issue with the saved holiday data. The list has been reset.'
+        });
     }
     
-    // Add holiday
+    // Add holiday with validation
     addHolidayBtn.addEventListener('click', function() {
-        if (!holidayDate.value || !holidayName.value) {
+        const date = holidayDate.value;
+        const name = holidayName.value.trim();
+        
+        if (!date || !name) {
             Swal.fire({
                 icon: 'error',
                 title: 'Invalid Input',
@@ -328,14 +350,19 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             return;
         }
-        
-        const newHoliday = {
-            date: holidayDate.value,
-            name: holidayName.value
-        };
+
+        // Check if date is in the past
+        if (new Date(date) < new Date().setHours(0,0,0,0)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Date',
+                text: 'Cannot add holidays in the past'
+            });
+            return;
+        }
         
         // Check if date already exists
-        if (holidays.some(h => h.date === newHoliday.date)) {
+        if (holidays.some(h => h.date === date)) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Date Already Added',
@@ -344,29 +371,43 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        holidays.push(newHoliday);
+        holidays.push({
+            date: date,
+            name: name
+        });
+        
         holidayDate.value = '';
         holidayName.value = '';
         
         renderHolidays();
     });
     
-    // Update removeHoliday function
+    // Improved removeHoliday function
     window.removeHoliday = function(index) {
+        if (index < 0 || index >= holidays.length) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Invalid holiday index'
+            });
+            return;
+        }
+
+        const holiday = holidays[index];
         Swal.fire({
-            title: 'Are you sure?',
-            text: "This holiday will be removed from the list",
+            title: 'Remove Holiday?',
+            html: `Are you sure you want to remove:<br><strong>${formatDate(holiday.date)}</strong><br>${holiday.name}`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
+            confirmButtonText: 'Yes, remove it'
         }).then((result) => {
             if (result.isConfirmed) {
                 holidays.splice(index, 1);
                 renderHolidays();
                 Swal.fire(
-                    'Deleted!',
+                    'Removed!',
                     'The holiday has been removed.',
                     'success'
                 );
@@ -381,14 +422,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update hidden input
         holidaysInput.value = JSON.stringify(holidays);
         
-        // Render list
+        // Render list with empty state handling
+        if (holidays.length === 0) {
+            holidayList.innerHTML = '<div class="list-group-item text-muted">No holidays added</div>';
+            return;
+        }
+        
         holidayList.innerHTML = holidays.map((holiday, index) => `
             <div class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
-                    <strong>${formatDate(holiday.date)}</strong> - ${holiday.name}
+                    <strong>${formatDate(holiday.date)}</strong>
+                    <span class="ml-2">${holiday.name}</span>
                 </div>
                 <button type="button" class="btn btn-danger btn-sm" 
-                        onclick="removeHoliday(${index})">
+                        onclick="removeHoliday(${index})"
+                        title="Remove Holiday">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -396,20 +444,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function formatDate(dateStr) {
-        return new Date(dateStr).toLocaleDateString('en-US', {
+        const options = {
+            weekday: 'long',
             year: 'numeric',
             month: 'long',
             day: 'numeric'
-        });
+        };
+        return new Date(dateStr).toLocaleDateString('en-US', options);
     }
-    
-    // File input label update
-    document.querySelectorAll('.custom-file-input').forEach(input => {
-        input.addEventListener('change', function() {
-            let fileName = this.files[0].name;
-            this.nextElementSibling.innerHTML = fileName;
-        });
-    });
 });
 </script>
 </body>

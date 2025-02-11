@@ -419,34 +419,11 @@ if (isset($_GET['date'])) {
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Appointment Date</label>
-                                <input type="date" name="appointment_date" id="editDate" class="form-control">
+                                <input type="date" name="appointment_date" id="editDate" class="form-control" readonly>
                             </div>
                             <div class="form-group">
                                 <label>Appointment Time</label>
-                                <select class="form-control" id="editTime" name="appointment_time" required>
-                                    <option value="">Select Time</option>
-                                    <option value="07:30:00">7:30 AM</option>
-                                    <option value="08:00:00">8:00 AM</option>
-                                    <option value="08:30:00">8:30 AM</option>
-                                    <option value="09:00:00">9:00 AM</option>
-                                    <option value="09:30:00">9:30 AM</option>
-                                    <option value="10:00:00">10:00 AM</option>
-                                    <option value="10:30:00">10:30 AM</option>
-                                    <option value="11:00:00">11:00 AM</option>
-                                    <option value="11:30:00">11:30 AM</option>
-                                    <option value="12:00:00">12:00 PM</option>
-                                    <option value="12:30:00">12:30 PM</option>
-                                    <option value="13:00:00">1:00 PM</option>
-                                    <option value="13:30:00">1:30 PM</option>
-                                    <option value="14:00:00">2:00 PM</option>
-                                    <option value="14:30:00">2:30 PM</option>
-                                    <option value="15:00:00">3:00 PM</option>
-                                    <option value="15:30:00">3:30 PM</option>
-                                    <option value="16:00:00">4:00 PM</option>
-                                    <option value="16:30:00">4:30 PM</option>
-                                    <option value="17:00:00">5:00 PM</option>
-                                    <option value="17:30:00">5:30 PM</option>
-                                </select>
+                                <input type="text" class="form-control" id="editTime" name="appointment_time" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -581,6 +558,18 @@ if (isset($_GET['date'])) {
                     $('#editTime').val(data.appointment_time || '');
                     $('#editService').val(data.service_id || '');
                     $('#editStatus').val(data.status || '');
+
+                    // Format the time to be more readable
+                    const formattedTime = data.appointment_time ? 
+                        new Date('2000-01-01T' + data.appointment_time)
+                            .toLocaleTimeString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                            }) 
+                        : '';
+
+                    $('#editTime').val(formattedTime);
 
                     // Show modal
                     $('#editAppointmentModal').modal('show');
