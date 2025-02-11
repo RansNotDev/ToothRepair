@@ -106,21 +106,12 @@ if (!isset($_SESSION)) {
             <hr class="sidebar-divider">
 
             <div class="sidebar-heading">Settings</div>
+
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="false" aria-controls="collapsePages">
-                    <i class="fas fa-fw fa-cog"></i>
-                    <span>Configurations</span>
+                <a class="nav-link" href="admin_availability.php">
+                    <i class="fas fa-fw fa-chart-area"></i>
+                    <span>Set Available Date</span>
                 </a>
-                <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Custom Pages:</h6>
-                        <a class="collapse-item" href="settings.php">Settings</a>
-                        <a class="collapse-item" href="admin_availability.php"><i class="fas fa-fw fa-calendar-plus"></i> Set Available Dates</a>
-                         <a class="collapse-item" href="#"><i class="fas fa-fw fa-info-circle"></i> Set About</a>
-                <a class="collapse-item" href="#"><i class="fas fa-fw fa-plus-circle"></i> Add Services</a>
-                <a class="collapse-item" href="#"><i class="fas fa-fw fa-umbrella-beach"></i> Set Holidays</a>
-                    </div>
-                </div>
             </li>
 
             <hr class="sidebar-divider d-none d-md-block">
