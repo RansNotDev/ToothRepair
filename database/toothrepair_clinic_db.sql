@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 11, 2025 at 02:00 PM
+-- Generation Time: Feb 12, 2025 at 02:09 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -103,24 +103,16 @@ CREATE TABLE `availability_tb` (
 --
 
 INSERT INTO `availability_tb` (`id`, `available_date`, `time_start`, `time_end`, `created_at`, `is_active`) VALUES
-(153, '2025-02-11', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(154, '2025-02-12', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(155, '2025-02-13', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(156, '2025-02-14', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(157, '2025-02-15', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(158, '2025-02-16', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(159, '2025-02-17', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(160, '2025-02-18', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(161, '2025-02-19', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(162, '2025-02-20', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(163, '2025-02-21', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(164, '2025-02-22', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(165, '2025-02-23', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(166, '2025-02-24', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(167, '2025-02-25', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(168, '2025-02-26', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(169, '2025-02-27', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1),
-(170, '2025-02-28', '08:00:00', '16:00:00', '2025-02-11 02:02:53', 1);
+(182, '2025-02-12', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
+(183, '2025-02-13', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
+(184, '2025-02-14', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
+(185, '2025-02-15', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
+(186, '2025-02-16', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
+(187, '2025-02-17', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
+(188, '2025-02-18', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
+(189, '2025-02-19', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
+(190, '2025-02-24', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
+(191, '2025-02-25', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1);
 
 -- --------------------------------------------------------
 
@@ -134,10 +126,6 @@ CREATE TABLE `clinic_settings` (
   `contact_number` varchar(20) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   `address` text DEFAULT NULL,
-  `about_content` text DEFAULT NULL,
-  `services_content` text DEFAULT NULL,
-  `available_days` varchar(255) DEFAULT NULL,
-  `holidays` text DEFAULT NULL,
   `logo` varchar(255) DEFAULT NULL,
   `cover` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -146,8 +134,8 @@ CREATE TABLE `clinic_settings` (
 -- Dumping data for table `clinic_settings`
 --
 
-INSERT INTO `clinic_settings` (`setting_id`, `max_daily_appointments`, `contact_number`, `email`, `address`, `about_content`, `services_content`, `available_days`, `holidays`, `logo`, `cover`) VALUES
-(1, 21, '09635963243', 'admin@gmail.com', 'malasiqui', 'test content', NULL, NULL, '[{\"date\":\"2025-02-01\",\"name\":\"taena\"},{\"date\":\"2025-02-14\",\"name\":\"gawa gawa ng mga illuminate\"}]', 'uploads/default_logo.png', 'uploads/default_cover.jpg');
+INSERT INTO `clinic_settings` (`setting_id`, `max_daily_appointments`, `contact_number`, `email`, `address`, `logo`, `cover`) VALUES
+(1, 16, '09635963243', 'admin@gmail.com', 'malasiqui', 'uploads/default_logo.png', 'uploads/default_cover.jpg');
 
 -- --------------------------------------------------------
 
@@ -234,7 +222,8 @@ ALTER TABLE `appointment_deletions`
 --
 ALTER TABLE `availability_tb`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `available_date` (`available_date`);
+  ADD UNIQUE KEY `available_date` (`available_date`),
+  ADD UNIQUE KEY `idx_available_date` (`available_date`);
 
 --
 -- Indexes for table `clinic_settings`
@@ -281,7 +270,7 @@ ALTER TABLE `appointment_deletions`
 -- AUTO_INCREMENT for table `availability_tb`
 --
 ALTER TABLE `availability_tb`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=171;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=192;
 
 --
 -- AUTO_INCREMENT for table `clinic_settings`
