@@ -9,12 +9,7 @@ $settingsQuery = "SELECT max_daily_appointments FROM clinic_settings LIMIT 1";
 $result = mysqli_query($conn, $settingsQuery);
 $max_daily = ($result && $row = mysqli_fetch_assoc($result)) ? $row['max_daily_appointments'] : 20;
 
-// Get closure dates
-$closures = [];
-$result = mysqli_query($conn, "SELECT closure_date FROM closures");
-while ($row = mysqli_fetch_assoc($result)) {
-    $closures[] = $row['closure_date'];
-}
+
 
 // Fetch available dates from availability_tb
 $availabilityDates = [];
@@ -82,8 +77,11 @@ if ($result) {
 
 
     <style>
+        body {
+            overflow: hidden;
+        }
     #calendar-container {
-        height: 600px;
+        height: 500px;
         overflow-y: auto;
         border: 1px solid #ddd;
         padding: 10px;
@@ -153,16 +151,10 @@ if ($result) {
 </style>
 </head>
 <body>
-    
-
-
-
 <div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Appointment Calendar</h1>
+    <div class=" align-items-center justify-content-between">
+        <h1 class="h3 text-gray-800">Appointment Calendar</h1>
     </div>
-    <hr>
-
     <div class="container">
         <div class="card">
             <div class="card-body">
@@ -173,8 +165,6 @@ if ($result) {
         </div>
     </div>
 </div>
-
-
 <div id="uniModal" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -194,7 +184,6 @@ if ($result) {
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const maxDaily = <?php echo $max_daily; ?>;
-        const closures = <?php echo json_encode($closures); ?>;
         const appointmentCounts = <?php echo json_encode($appointmentCounts); ?>;
         const availabilityDates = <?php echo json_encode($availabilityDates); ?>; // New: available dates
 
@@ -231,8 +220,7 @@ if ($result) {
             dayCellContent: function(args) {
                 const dateStr = args.date.toISOString().split('T')[0];
                 const isPast = args.date < new Date().setHours(0,0,0,0);
-                // Check if day is open in availability_tb and not in closures
-                const isOpen = availabilityDates.includes(dateStr) && !closures.includes(dateStr);
+                const isOpen = availabilityDates.includes(dateStr);
                 
                 // Get appointment counts for the day
                 const count = appointmentCounts[dateStr] || 0;

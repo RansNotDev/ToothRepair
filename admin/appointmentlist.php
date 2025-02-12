@@ -524,6 +524,34 @@ if (isset($_GET['date'])) {
     </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteAppointmentModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Appointment</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="deleteAppointmentForm">
+                <div class="modal-body">
+                    <input type="hidden" id="deleteAppointmentId" name="id">
+                    <div class="form-group">
+                        <label for="deleteReason">Reason for Deletion</label>
+                        <textarea class="form-control" id="deleteReason" name="delete_reason" rows="3" required></textarea>
+                    </div>
+                    <p class="text-danger">Are you sure you want to delete this appointment?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete Appointment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     $(document).ready(function () {
         // Replace or update existing edit button handler
@@ -676,33 +704,43 @@ if (isset($_GET['date'])) {
         // Replace existing delete button handler
         $('.delete-btn').on('click', function () {
             const appointmentId = $(this).data('id');
-            const button = $(this);
+            $('#deleteAppointmentId').val(appointmentId);
+            $('#deleteAppointmentModal').modal('show');
+        });
 
-            if (!confirm('Are you sure you want to delete this appointment?')) {
-                return;
-            }
-
-            button.prop('disabled', true);
-
+        // Handle delete form submission
+        $('#deleteAppointmentForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const form = $(this);
+            const submitBtn = form.find('button[type="submit"]');
+            const appointmentId = $('#deleteAppointmentId').val();
+            const deleteReason = $('#deleteReason').val();
+            
+            submitBtn.prop('disabled', true);
+            
             $.ajax({
                 url: 'appointments/delete_appointment.php',
                 type: 'POST',
-                data: { id: appointmentId },
+                data: {
+                    id: appointmentId,
+                    delete_reason: deleteReason
+                },
                 dataType: 'json',
-                success: function (response) {
+                success: function(response) {
                     if (response.success) {
-                        // Reload page or remove row
+                        $('#deleteAppointmentModal').modal('hide');
                         window.location.href = 'appointmentlist.php?success=delete';
                     } else {
-                        alert('Error: ' + (response.error || 'Unknown error occurred'));
+                        alert('Error: ' + (response.error || 'Failed to delete appointment'));
                     }
                 },
-                error: function (xhr) {
+                error: function(xhr) {
                     console.error('Server error:', xhr.responseText);
                     alert('Failed to delete appointment. Please try again.');
                 },
-                complete: function () {
-                    button.prop('disabled', false);
+                complete: function() {
+                    submitBtn.prop('disabled', false);
                 }
             });
         });
@@ -1217,5 +1255,6 @@ if (isset($_GET['date'])) {
 </script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<?php require 'includes/footer.php'; ?>
 </body>
 </html>

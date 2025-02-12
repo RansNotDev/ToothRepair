@@ -18,12 +18,6 @@ if ($settingsResult && mysqli_num_rows($settingsResult) > 0) {
     $max_daily = mysqli_fetch_assoc($settingsResult)['max_daily_appointments'];
 }
 
-// Get closure dates
-$closures = [];
-$result = mysqli_query($conn, "SELECT closure_date FROM closures");
-while ($row = mysqli_fetch_assoc($result)) {
-    $closures[] = $row['closure_date'];
-}
 
 // Get available dates and times
 $availability = [];
@@ -295,13 +289,19 @@ while ($row = mysqli_fetch_assoc($result)) {
 document.addEventListener('DOMContentLoaded', function () {
     // Define PHP variables for JavaScript use
    
-    const closures = <?php echo json_encode($closures); ?>;
+   
     const bookedSlots = <?php echo json_encode($bookedSlots); ?>;
     const maxDaily = <?php echo $max_daily; ?>;
     const availability = <?php echo json_encode($availability); ?>;
     // Get calendar element
     const calendarEl = document.getElementById('calendar');
     
+    // Add this function before the calendar initialization
+    function checkDateAvailability(dateStr) {
+        // Check if the date exists in availability array
+        return availability.hasOwnProperty(dateStr);
+    }
+
     // Initialize calendar with defined variables
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function () {
         dateClick: function (info) {
             const dateStr = info.dateStr;
             const isPast = info.date < new Date().setHours(0, 0, 0, 0);
-            const isAvailable = availability[dateStr] && !closures.includes(dateStr);
+            const isAvailable = checkDateAvailability(dateStr);
 
             if (!isPast && isAvailable) {
                 const { time_start, time_end } = availability[dateStr];
@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function () {
             dayCellContent: function (arg) {
                 const dateStr = arg.date.toISOString().split('T')[0];
                 const isPast = arg.date < new Date().setHours(0, 0, 0, 0);
-                const isAvailable = availability[dateStr] && !closures.includes(dateStr);
+                const isAvailable = checkDateAvailability(dateStr); // Add this line
                 const bookedCount = bookedSlots[dateStr]?.length || 0;
                 const remaining = Math.max(maxDaily - bookedCount, 0);
 
@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', function () {
             dayCellClassNames: function (arg) {
                 const dateStr = arg.date.toISOString().split('T')[0];
                 const isPast = arg.date < new Date().setHours(0, 0, 0, 0);
-                const isAvailable = availability[dateStr] && !closures.includes(dateStr);
+                const isAvailable = checkDateAvailability(dateStr);
                 const bookedCount = bookedSlots[dateStr]?.length || 0;
                 const hasSlots = maxDaily - bookedCount > 0;
 

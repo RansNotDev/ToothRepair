@@ -73,199 +73,256 @@ $today_result = $conn->query($today_appointments_query);
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .content-wrapper {
-            height: calc(100vh - 4.375rem); /* Subtract header height */
-            overflow-y: auto;
-            padding: 1.2rem;
-            position: relative;
-            margin-left: 13rem; /* Adjust based on your sidebar width */
-        }
-
+        height: calc(100vh - 4.375rem);
+        overflow-y: auto;
+        padding: 1.2rem;
+        position: relative;  /* Change from absolute if it was */
+        margin-left: 13rem;
+        margin-top: 4.375rem; /* Add this to account for topbar height */
+        z-index: 0;  /* Changed from 1 to 0 */
+    }
         .content-wrapper::-webkit-scrollbar {
             width: 0.5rem;
         }
-
         .content-wrapper::-webkit-scrollbar-track {
             background: #f1f1f1;
         }
-
         .content-wrapper::-webkit-scrollbar-thumb {
             background: #888;
             border-radius: 0.25rem;
         }
-
         .content-wrapper::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
-
         #wrapper {
             overflow: hidden;
         }
         #accordionSidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            z-index: 1000;
-}
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 1000;
+    }
+
+    /* Target the correct navbar class from topbar.php */
+    #content-wrapper .navbar {
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: 0;
+        z-index: 1050;
+        padding: 0;
+    }
+
+    .navbar-nav {
+        z-index: 1051;
+    }
+
+    .dropdown-menu {
+        z-index: 1052;
+    }
+
+    /* Remove duplicate scrollbar styles and other redundant code */
+    .content-wrapper::-webkit-scrollbar {
+        width: 0.5rem;
+    }
+    .content-wrapper::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    .content-wrapper::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 0.25rem;
+    }
+    .content-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+    #wrapper {
+        overflow: hidden;
+    }
+    #accordionSidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 1000;
+    }
+
+    
     </style>
 </head>
 <body>
-<div class="content-wrapper">
-    <!-- Stats Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Appointments</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['total_appointments'] ?></div>
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <?php include_once('includes/sidebar.php'); ?>
+        
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+            <!-- Main Content -->
+            <div id="content">
+                <!-- Topbar -->
+                <?php include_once('includes/topbar.php'); ?>
+                
+                <!-- Begin Page Content -->
+                <div class="content-wrapper">
+                    <!-- Stats Cards -->
+                    <div class="row mb-4">
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Appointments</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['total_appointments'] ?></div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Completed</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['completed'] ?></div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-check fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['upcoming'] ?></div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-danger shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Cancelled</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['cancelled'] ?></div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-times fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Completed</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['completed'] ?></div>
+                    <!-- Today's Appointments & Analytics Row -->
+                    <div class="row">
+                        <!-- Today's Appointments -->
+                        <div class="col-xl-6 col-lg-6">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Today's Appointments</h6>
+                                    <a href="calendar.php" class="btn btn-sm btn-primary shadow-sm">View Calendar</a>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Time</th>
+                                                    <th>Patient</th>
+                                                    <th>Service</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php while($row = $today_result->fetch_assoc()): ?>
+                                                <tr>
+                                                    <td><?= $row['formatted_time'] ?></td>
+                                                    <td><?= $row['fullname'] ?></td>
+                                                    <td><?= $row['service_name'] ?></td>
+                                                    <td>
+                                                        <span class="badge badge-<?= 
+                                                            $row['status'] == 'pending' ? 'warning' : 
+                                                            ($row['status'] == 'completed' ? 'success' : 'danger') 
+                                                        ?>">
+                                                            <?= ucfirst($row['status']) ?>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                <?php endwhile; ?>
+                                                <?php if($today_result->num_rows == 0): ?>
+                                                <tr>
+                                                    <td colspan="4" class="text-center">No appointments scheduled for today</td>
+                                                </tr>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check fa-2x text-gray-300"></i>
+
+                        <!-- Monthly Appointments Chart -->
+                        <div class="col-xl-6 col-lg-6">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Appointments Overview</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="monthlyChart"></canvas>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['upcoming'] ?></div>
+                    <!-- Analytics Row -->
+                    <div class="row">
+                        <!-- Popular Services Chart -->
+                        <div class="col-xl-6 col-lg-6">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Popular Services</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="servicesChart"></canvas>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Cancelled</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['cancelled'] ?></div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-times fa-2x text-gray-300"></i>
+                        <!-- Appointment Status Distribution -->
+                        <div class="col-xl-6 col-lg-6">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Status Distribution</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="statusChart"></canvas>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Today's Appointments & Analytics Row -->
-    <div class="row">
-        <!-- Today's Appointments -->
-        <div class="col-xl-6 col-lg-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Today's Appointments</h6>
-                    <a href="calendar.php" class="btn btn-sm btn-primary shadow-sm">View Calendar</a>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" width="100%">
-                            <thead>
-                                <tr>
-                                    <th>Time</th>
-                                    <th>Patient</th>
-                                    <th>Service</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php while($row = $today_result->fetch_assoc()): ?>
-                                <tr>
-                                    <td><?= $row['formatted_time'] ?></td>
-                                    <td><?= $row['fullname'] ?></td>
-                                    <td><?= $row['service_name'] ?></td>
-                                    <td>
-                                        <span class="badge badge-<?= 
-                                            $row['status'] == 'pending' ? 'warning' : 
-                                            ($row['status'] == 'completed' ? 'success' : 'danger') 
-                                        ?>">
-                                            <?= ucfirst($row['status']) ?>
-                                        </span>
-                                    </td>
-                                </tr>
-                                <?php endwhile; ?>
-                                <?php if($today_result->num_rows == 0): ?>
-                                <tr>
-                                    <td colspan="4" class="text-center">No appointments scheduled for today</td>
-                                </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Monthly Appointments Chart -->
-        <div class="col-xl-6 col-lg-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Appointments Overview</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="monthlyChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Analytics Row -->
-    <div class="row">
-        <!-- Popular Services Chart -->
-        <div class="col-xl-6 col-lg-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Popular Services</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="servicesChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Appointment Status Distribution -->
-        <div class="col-xl-6 col-lg-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Status Distribution</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="statusChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

@@ -31,9 +31,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         try {
             $conn->begin_transaction();
-            $conn->query("DELETE FROM availability_tb");
             
-            $stmt = $conn->prepare("INSERT INTO availability_tb (available_date, time_start, time_end) VALUES (?, ?, ?)");
+            // Instead of deleting all records, we'll only insert new ones
+            $stmt = $conn->prepare("INSERT INTO availability_tb (available_date, time_start, time_end) 
+                                  VALUES (?, ?, ?) 
+                                  ON DUPLICATE KEY UPDATE time_start = VALUES(time_start), time_end = VALUES(time_end)");
             
             foreach ($dates as $date) {
                 if (DateTime::createFromFormat('Y-m-d', $date)) {
@@ -76,7 +78,9 @@ include_once('includes/topbar.php');
 <!-- DataTables -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
   <style>
-   
+   body {
+    overflow: hidden;
+  }
   </style>
 </head>
 <body class="bg-gray-100">
@@ -117,9 +121,33 @@ include_once('includes/topbar.php');
                 <div id="calendar" class="grid grid-cols-7 gap-2 mb-4"></div>
 
                 <div class="text-center">
-                  <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
+                  <button type="submit" id="saveAvailability" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
                     Save Availability
                   </button>
+                </div>
+              </div>
+
+              <!-- Max Appointments Modal -->
+              <div id="maxAppointmentsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center">
+                <div class="bg-white p-8 rounded-lg shadow-xl w-96">
+                  <h3 class="text-xl font-bold mb-4">Set Maximum Daily Appointments</h3>
+                  <div class="mb-4">
+                    <label for="maxAppointments" class="block text-sm font-medium text-gray-700 mb-2">
+                      Number of Slots Available Per Day
+                    </label>
+                    <input type="number" id="maxAppointments" name="max_appointments" min="1" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                  </div>
+                  <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancelModal" 
+                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                      Cancel
+                    </button>
+                    <button type="button" id="confirmMaxAppointments" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                      Confirm
+                    </button>
+                  </div>
                 </div>
               </div>
             </form>
@@ -302,6 +330,98 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial render
     fetchAvailability(availability => renderCalendar(currentDate, availability));
+
+    // Add this inside your existing DOMContentLoaded event listener
+
+    const form = document.querySelector('form');
+    const modal = document.getElementById('maxAppointmentsModal');
+    const saveBtn = document.getElementById('saveAvailability');
+    const confirmBtn = document.getElementById('confirmMaxAppointments');
+    const cancelBtn = document.getElementById('cancelModal');
+    
+    // Prevent form from submitting directly
+    form.onsubmit = (e) => e.preventDefault();
+
+    // Show modal when save button is clicked
+    saveBtn.addEventListener('click', () => {
+        // Validate if any dates are selected
+        const selectedDates = document.querySelectorAll('input[name="available_dates[]"]:checked');
+        if (selectedDates.length === 0) {
+            alert('Please select at least one date');
+            return;
+        }
+        
+        // Validate time inputs
+        const timeStart = document.getElementById('time_start').value;
+        const timeEnd = document.getElementById('time_end').value;
+        if (!timeStart || !timeEnd) {
+            alert('Please set both start and end times');
+            return;
+        }
+
+        modal.classList.remove('hidden');
+    });
+
+    // Hide modal when cancel is clicked
+    cancelBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+
+    // Handle form submission with max appointments
+    confirmBtn.addEventListener('click', () => {
+        const maxAppointments = document.getElementById('maxAppointments').value;
+        
+        if (!maxAppointments || maxAppointments < 1) {
+            alert('Please enter a valid number of maximum appointments');
+            return;
+        }
+
+        // Get only the newly selected dates
+        const selectedDates = Array.from(document.querySelectorAll('input[name="available_dates[]"]:checked'))
+            .map(checkbox => checkbox.value);
+
+        // Create FormData from the existing form
+        const formData = new FormData();
+        formData.append('max_appointments', maxAppointments);
+        
+        // Add only the newly selected dates
+        selectedDates.forEach(date => {
+            formData.append('available_dates[]', date);
+        });
+        
+        formData.append('time_start', document.getElementById('time_start').value);
+        formData.append('time_end', document.getElementById('time_end').value);
+
+        // Send the data to the server
+        fetch('save_availability.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                modal.classList.add('hidden');
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Availability and maximum appointments have been saved.',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                throw new Error(data.error || 'Failed to save');
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                title: 'Error!',
+                text: error.message,
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        });
+    });
 });
   </script>
 </body>
