@@ -144,8 +144,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="row">
         <div class="col-12">
             <div class="dashboard-header mb-4 bg-primary p-4 rounded shadow-sm">
-                <h1 class="h3 text-white fw-bold">Welcome Back, <?php echo htmlspecialchars($_SESSION['fullname'] ?? 'User'); ?>!</h1>
-                <p class="text-white-50">Here's your profile settings</p>
+                <h1 class="h3 text-white fw-bold">Welcome Back, <?php echo htmlspecialchars($_SESSION['fullname'] ?? 'User'); ?></h1>
+                <p class="text-white">Here's your profile settings</p>
             </div>
         </div>
     </div>
@@ -174,6 +174,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center">
                             <i class="fas fa-history text-primary"></i>
                             <span>View History</span>
+                        </a>
+                        <a href="user_feedback.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-comment-dots text-primary"></i>
+                            <span>Feed Back</span>
                         </a>
                         <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center">
                             <i class="fas fa-user text-primary"></i>

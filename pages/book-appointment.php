@@ -83,16 +83,15 @@ $services_result = $conn->query($services_query);
     </style>
 </head>
 <body>
-<div class="container-fluid py-4 bg-light">
-<div class="row">
+<div class="container-fluid py-4 bg-light min-vh-100">
+    <div class="row">
         <div class="col-12">
-            <div class="dashboard-header mb-4 bg-primary bg-gradient text-white p-3 rounded shadow-sm">
+            <div class="dashboard-header mb-4 bg-primary bg-gradient p-4 rounded shadow-sm">
                 <div class="d-flex justify-content-between align-items-start">
                     <div class="mb-3 mb-md-0">
                         <h1 class="h3 text-white fw-bold">Welcome Back, <?php echo htmlspecialchars($_SESSION['fullname'] ?? 'User'); ?></h1>
-                        <p class="text-white-50">Here's your appointment overview</p>
+                        <p class="text-white">Here's your appointment overview</p>
                     </div>
-                   
                 </div>
             </div>
         </div>
@@ -116,6 +115,10 @@ $services_result = $conn->query($services_query);
                         <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center">
                             <i class="fas fa-history text-primary"></i>
                             <span>View History</span>
+                        </a>
+                        <a href="user_feedback.php" class="btn btn-light text-start p-3 d-flex align-items-center">
+                            <i class="fas fa-comment-dots text-primary"></i>
+                            <span>Feed Back</span>
                         </a>
                         <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center">
                             <i class="fas fa-user text-primary"></i>

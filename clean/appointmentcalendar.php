@@ -8,8 +8,7 @@ function generateRandomPassword($length = 8) {
     return $password;
 }
 
-include_once('database/db_connection.php');
-include_once('includes/header.php');
+include_once('../database/db_connection.php');
 
 // Get clinic settings
 $max_daily = 20;
@@ -43,196 +42,168 @@ while ($row = mysqli_fetch_assoc($result)) {
     $bookedSlots[$row['appointment_date']][] = $row['appointment_time'];
 }
 ?>
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Tooth Repair Clinic - Dashboard</title>
-    <link href="assets/Assetscalendar/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-  
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Contact | Tooth Repair Dental Clinic</title>
+
+        <!-- CSS FILES -->        
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+
+        <link href="css/bootstrap-icons.css" rel="stylesheet">
+        <link href="css/calendar-styles.css" rel="stylesheet">
+        <link href="css/tooplate-clean-work.css" rel="stylesheet">
+        <link href="css/custom-colors.css" rel="stylesheet"> <!-- Add this line -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="admin/css/sb-admin-2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-<body>
-<style>
-    /* Calendar Container Styles */
-    #calendar-container {
-        padding: 20px;
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
 
-    /* Calendar Day Cell Styles */
-    .fc-daygrid-day {
-        transition: all 0.3s ease;
-    }
+    <style>
+    
 
-    .has-slots {
-        background-color: #ebf4ff !important;
-        border: 2px solid #4299e1 !important;
-    }
-
-    .fc-day-disabled {
-        background-color: #f7fafc;
-        opacity: 0.7;
-    }
-
-    .fc-daygrid-day-frame {
-        min-height: 130px !important;
-        display: flex !important;
-        flex-direction: column !important;
-        padding: 8px !important;
-        border-radius: 6px;
-    }
-
-    .fc-daygrid-day-number {
-        font-size: 1.5rem !important;
-        font-weight: 600 !important;
-        color: #2d3748;
-        margin: 5px 0 10px 0 !important;
-        width: 100% !important;
-        text-align: center !important;
-    }
-
-    /* Slot Info Styles */
-    .slot-info {
-        color: #4a5568;
-        text-align: center !important;
-        width: 100% !important;
-        padding: 6px !important;
-        font-size: 0.9rem !important;
-        border-top: 1px solid #e2e8f0;
-        margin-top: auto !important;
-        font-weight: 500;
-    }
-
-    .has-slots .slot-info {
-        color: #2b6cb0;
-        font-weight: 600;
-    }
-
-    /* Time Slot Styles */
-    .time-slot {
-        margin: 6px;
-        padding: 10px 15px;
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .time-slot.available {
-        background-color: #ebf8ff;
-        border-color: #63b3ed;
-        color: #2c5282;
-    }
-
-    .time-slot.available:hover {
-        background-color: #bee3f8;
-        transform: translateY(-1px);
-    }
-
-    .time-slot.booked {
-        background-color: #fff5f5;
-        border-color: #fc8181;
-        cursor: not-allowed;
-    }
-
-    .time-slot.selected {
-        background-color: #4299e1 !important;
-        color: white !important;
-        border-color: #2b6cb0;
-    }
-
-    /* Modal Styles */
-    .modal-content {
-        border-radius: 10px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    }
-
-    .modal-header {
-        border-top-left-radius: 10px;
-        border-top-right-radius: 10px;
-        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-    }
-
-    /* Form Controls */
-    .form-control {
-        border-radius: 6px;
-        border: 1px solid #e2e8f0;
-        padding: 10px 15px;
-    }
-
-    .form-control:focus {
-        border-color: #4299e1;
-        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
-    }
-
-    /* Button Styles */
-    .btn-primary {
-        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-        border: none;
-        border-radius: 6px;
-        padding: 12px 25px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
-    }
-
-    .btn-primary:disabled {
-        cursor: not-allowed;
-        opacity: 0.7;
-    }
-
-    /* Calendar Header */
-    .fc .fc-toolbar-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #2d3748;
-    }
-
-    .fc .fc-button-primary {
-        background-color: #4e73df;
-        border-color: #4e73df;
-        border-radius: 6px;
-    }
-
-    .fc .fc-button-primary:hover {
-        background-color: #224abe;
-        border-color: #224abe;
-    }
 </style>
+    </head>
+    <body>
+        <header class="site-header bg-primary">
+            <div class="container">
+                <div class="row">
+                    
+                    <div class="col-lg-12 col-12 d-flex flex-wrap">
+                        <p class="d-flex me-4 mb-0">
+                            <i class="bi-emoji-smile-fill"></i>
+                            Tooth Repair Dental Clinic
+                        </p>
 
-<div class="container-fluid">
-    <div class="bg-primary text-white p-3 mb-4">
-        <div class="container">
-            
-            <div class="d-sm-flex align-items-center justify-content-between">
-                <h1 class="h3 mb-0">Appointment Calendar</h1>
-            </div>
-        </div>
-    </div>
-    <div class="container">
-        <div class="card ">
-            <div class="card-body ">
-                <div id="calendar-container">
-                    <div id="calendar"></div>
+                        <p class="d-flex d-lg-block d-md-block d-none me-4 mb-0">
+                            <i class="bi-clock-fill me-2"></i>
+                            <strong class="me-2">Mon - Fri</strong> 8:00 AM - 4:00 PM
+                        </p>
+
+                        <p class="site-header-icon-wrap text-white d-flex mb-0 ms-auto">
+                            <i class="site-header-icon bi-whatsapp me-2"></i>
+
+                            <a href="tel:+639123456789" class="text-white">
+                                +63 912 345 6789
+                            </a>
+                        </p>
+                    </div>
+
                 </div>
             </div>
-        </div>
-    </div>
-</div>
+        </header>
 
-<!-- Appointment Modal -->
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand" href="index.php">
+                    <img src="images/bubbles.png" class="logo img-fluid" alt="">
+
+                    <span class="ms-2">Tooth Repair Dental Clinic</span>
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+
+        <!-- Navigation Items -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.php">Home</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="about.php">About Us</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="services.php">Our Services</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link active" href="appointmentcalendar.php">Book An Appointment</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="contact.php">Contact</a>
+                        </li>
+
+                        <li class="nav-item ms-3">
+                            <a class="nav-link custom-btn custom-border-btn custom-btn-bg-white btn text-white" href="#">Get started</a>
+                        </li>
+                    </ul>
+                </div>
+    </div>
+</nav>
+
+        <main>
+
+            <section class="banner-section d-flex justify-content-center align-items-end">
+                <div class="section-overlay"></div>
+
+                <div class="container">
+                    <div class="row">
+
+    
+
+                        <div class="col-lg-7 col-12">
+                            <h1 class="text-white mb-lg-0">Appointment Calendar</h1>
+                        </div>
+
+                        <div class="col-lg-4 col-12 d-flex justify-content-lg-end align-items-center ms-auto">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb justify-content-center">
+                                    <li class="breadcrumb-item"><a href="index.php">Home</a></li>
+
+                                    <li class="breadcrumb-item active" aria-current="page">Appointment Calendar</li>
+                                </ol>
+                            </nav>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+        
+            <section class="contact-section section-padding">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        
+            <div class="col-lg-10 col-12">
+                <div class="section-title text-center mb-5">
+                    <h2>Book Your Appointment</h2>
+                    <p class="text-muted">Select your preferred date and time</p>
+                </div>
+<!--
+                <div class="calendar-legend text-center mt-4">
+                    <div class="d-inline-flex align-items-center mx-3">
+                        <div class="legend-indicator has-slots mr-2"></div>
+                        <span>Available Slots</span>
+                    </div>
+                    <div class="d-inline-flex align-items-center mx-3">
+                        <div class="legend-indicator fc-day-disabled mr-2"></div>
+                        <span>Not Available</span>
+                    </div>
+                </div>
+-->
+                <div class="calendar-wrapper bg-white rounded-lg shadow-sm p-4">
+                    <div id="calendar"></div>
+                </div>
+                 
+            </div>
+    </div>
+
+
+                            <!-- Appointment Modal -->
 <div class="modal fade" id="appointmentModal" tabindex="-1" role="dialog" aria-labelledby="appointmentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
@@ -364,12 +335,257 @@ while ($row = mysqli_fetch_assoc($result)) {
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+
+                            
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            
+        </main>
+
+        
+        <section class="partners-section">
+    <div class="container">
+        <div class="row justify-content-center align-items-center">
+            <div class="col-lg-12 col-12">
+                <h4 class="partners-section-title bg-white shadow-lg">Trusted Partners in Dental Care</h4>
+            </div>
+
+            <div class="col-lg-2 col-md-4 col-6">
+                <img src="images/partners/colgate.png" class="partners-image img-fluid" alt="Colgate">
+            </div>
+
+            <div class="col-lg-2 col-md-4 col-6">
+                <img src="images/partners/oral-b.png" class="partners-image img-fluid" alt="Oral-B">
+            </div>
+
+            <div class="col-lg-2 col-md-4 col-6">
+                <img src="images/partners/sensodyne.png" class="partners-image img-fluid" alt="Sensodyne">
+            </div>
+
+            <div class="col-lg-2 col-md-4 col-6">
+                <img src="images/partners/philips-sonicare.png" class="partners-image img-fluid" alt="Philips Sonicare">
+            </div>
+
+            <div class="col-lg-2 col-md-4 col-6">
+                <img src="images/partners/3m-dental.png" class="partners-image img-fluid" alt="3M Dental">
+            </div>
+        </div>
+    </div>
+</section>
+
+        </main>
+
+        <footer class="site-footer">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-lg-12 col-12 d-flex align-items-center mb-4 pb-2">
+                        <div>
+                            <img src="images/bubbles.png" class="logo img-fluid" alt="">
+                        </div>
+
+                        <ul class="footer-menu d-flex flex-wrap ms-5">
+                            <li class="footer-menu-item"><a href="#" class="footer-menu-link">About Us</a></li>
+
+                            <li class="footer-menu-item"><a href="#" class="footer-menu-link">Blog</a></li>
+
+                            <li class="footer-menu-item"><a href="#" class="footer-menu-link">Reviews</a></li>
+
+                            <li class="footer-menu-item"><a href="#" class="footer-menu-link">Contact</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-5 col-12 mb-4 mb-lg-0">
+                        <h5 class="site-footer-title mb-3">Our Services</h5>
+
+                        <ul class="footer-menu">
+                            <li class="footer-menu-item">
+                                <a href="#" class="footer-menu-link">
+                                    <i class="bi-chevron-double-right footer-menu-link-icon me-2"></i>
+                                    Tooth Extraction
+                                </a>
+                            </li>
+
+                            <li class="footer-menu-item">
+                                <a href="#" class="footer-menu-link">
+                                    <i class="bi-chevron-double-right footer-menu-link-icon me-2"></i>
+                                    Tooth Filling
+                                </a>
+                            </li>
+
+                            <li class="footer-menu-item">
+                                <a href="#" class="footer-menu-link">
+                                    <i class="bi-chevron-double-right footer-menu-link-icon me-2"></i>
+                                    Dental Braces
+                                </a>
+                            </li>
+
+                            <li class="footer-menu-item">
+                                <a href="#" class="footer-menu-link">
+                                    <i class="bi-chevron-double-right footer-menu-link-icon me-2"></i>
+                                    Dental Crowns
+                                </a>
+                            </li>
+
+                            <li class="footer-menu-item">
+                                <a href="#" class="footer-menu-link">
+                                    <i class="bi-chevron
+                                    -double-right footer-menu-link-icon me-2"></i>
+                                    Gum Treatment
+                                </a>
+                            </li>
+
+                            <li class="footer-menu-item">
+                                <a href="#" class="footer-menu-link">
+                                    <i class="bi-chevron
+                                    -double-right footer-menu-link-icon me-2"></i>
+                                    Teeth Whitening
+                                </a>
+                            </li>
+
+                            <li class="footer-menu-item">
+                                <a href="#" class="footer-menu-link">
+                                    <i class="bi-chevron
+                                    -double-right footer-menu-link-icon me-2"></i>
+                                    Dental Implants
+                                </a>
+                            </li>
+
+                            <li class="footer-menu-item">
+                                <a href="#" class="footer-menu-link">
+                                    <i class="bi-chevron
+                                    -double-right footer-menu-link-icon me-2"></i>
+                                    Root Canal
+                                </a>
+                            </li>
+
+                            <li class="footer-menu-item">
+                                <a href="#" class="footer-menu-link">
+                                    <i class="bi-chevron
+                                    -double-right footer-menu-link-icon me-2"></i>
+                                    Dental Veneers
+                                </a>
+                            </li>
+
+                            <li class="footer-menu-item">
+                                <a href="#" class="footer-menu-link">
+                                    <i class="bi-chevron
+                                    -double-right footer-menu-link-icon me-2"></i>
+                                    Dental Bridges
+                                </a>
+                            </li>
+
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-0 mb-md-0">
+                        <h5 class="site-footer-title mb-3">Clinic Location</h5>
+
+                        <p class="text-white d-flex mt-3 mb-2">
+                            <i class="bi-geo-alt-fill me-2"></i>
+                            Poblacion, Malasiqui, Philippines
+                        </p>
+
+                        <p class="text-white d-flex mb-2">
+                            <i class="bi-telephone-fill me-2"></i>
+
+                            <a href="tel: 110-220-9800" class="site-footer-link">
+                                09123456789
+                            </a>
+                        </p>
+
+                        <p class="text-white d-flex">
+                            <i class="bi-envelope-fill me-2"></i>
+
+                            <a href="mailto:info@company.com" class="site-footer-link">
+                                Toothrepairclinic@gmail.com
+                            </a>
+                        </p>
+
+                        <ul class="social-icon mt-4">
+                            <li class="social-icon-item">
+                                <a href="#" class="social-icon-link button button--skoll">
+                                    <span></span>
+                                    <span class="bi-twitter"></span>
+                                </a>
+                            </li>
+
+                            <li class="social-icon-item">
+                                <a href="#" class="social-icon-link button button--skoll">
+                                    <span></span>
+                                    <span class="bi-facebook"></span>
+                                </a>
+                            </li>
+
+                            <li class="social-icon-item">
+                                <a href="#" class="social-icon-link button button--skoll">
+                                    <span></span>
+                                    <span class="bi-instagram"></span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 col-6 mt-3 mt-lg-0 mt-md-0">
+                        <div class="featured-block">
+                            <h5 class="text- mb-3">Service Hours</h5>
+
+                            <strong class="d-block text-white mb-1">Mon - Fri</strong>
+
+                            <p class="text-white mb-3">8:00 AM - 5:30 PM</p>
+
+                            <strong class="d-block text-white mb-1">Sat</strong>
+
+                            <p class="text-white mb-0">6:00 AM - 2:30 PM</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="site-footer-bottom">
+                <div class="container">
+                    <div class="row">
+
+                        <div class="col-lg-6 col-12">
+                            <p class="copyright-text mb-0">Copyright © <?php echo date("Y") ?> Tooth Repair Dental Clinic</p>
+                        </div>
+                        
+                        <div class="col-lg-6 col-12 text-end">
+                            <p class="copyright-text mb-0">
+                            // Designed by <a href="#" target="_parent">Not Just Rans</a> //</p>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.15/index.global.min.js"></script>
 
 
 <script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    const navbar = document.querySelector('.navbar');
+    
+    window.addEventListener('scroll', function() {
+        if (window.scrollY > 50) {
+            navbar.classList.add('shadow');
+            navbar.style.padding = '0.5rem 0';
+        } else {
+            navbar.classList.remove('shadow');
+            navbar.style.padding = '1rem 0';
+        }
+    });
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     // Define PHP variables for JavaScript use
    
@@ -611,4 +827,18 @@ $(document).ready(function() {
     });
 });
 </script>
-<?php include_once('includes/footer.php'); ?>
+<?php include_once('../includes/footer.php'); ?>
+
+        <!-- JAVASCRIPT FILES -->
+        <script src="js/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="js/jquery.backstretch.min.js"></script>
+        <script src="js/counter.js"></script>
+        <script src="js/countdown.js"></script>
+        <script src="js/init.js"></script>
+        <script src="js/modernizr.js"></script>
+        <script src="js/animated-headline.js"></script>
+        <script src="js/custom.js"></script>
+
+    </body>
+</html>
