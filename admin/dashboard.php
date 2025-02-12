@@ -72,6 +72,9 @@ $today_result = $conn->query($today_appointments_query);
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        body {
+            overflow: hidden;
+        }
         .content-wrapper {
         height: calc(100vh - 4.375rem);
         overflow-y: auto;

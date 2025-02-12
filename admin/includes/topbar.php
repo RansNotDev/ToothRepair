@@ -107,8 +107,21 @@ if (!$new_users_result || !$today_appt_result || !$new_appt_result) {
         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span class="mr-2 d-none d-lg-inline text-gray-600 small">
-                <?= isset($_SESSION['admin_name']) ? htmlspecialchars($_SESSION['admin_name']) : 'Admin' ?>
-            </span>
+    <?php 
+    if (isset($_SESSION['admin_id'])) {
+        $admin_id = $_SESSION['admin_id'];
+        $query = "SELECT name FROM admins WHERE admin_id = ?";
+        $stmt = mysqli_prepare($conn, $query);
+        mysqli_stmt_bind_param($stmt, "i", $admin_id);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        
+        echo ($row = mysqli_fetch_assoc($result)) ? htmlspecialchars($row['name']) : 'Admin';
+    } else {
+        echo 'Admin';
+    }
+    ?>
+</span>
             <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
         </a>
         <!-- Dropdown - User Information -->
