@@ -110,12 +110,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="../assets/css/loginpage.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
         .container {
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            position: relative;
+            z-index: 1;
         }
 
         .card {
@@ -125,6 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 400px;
+            z-index: 2;
         }
 
         .card h3 {
@@ -176,7 +190,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         button {
             width: 100%;
             padding: 12px;
-            background: #4a90e2;
+            background: #2575fc;
             color: white;
             border: none;
             border-radius: 5px;
@@ -186,7 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         button:hover {
-            background: #357abd;
+            background: #6a11cb;
         }
 
         .back-to-login {
@@ -195,7 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .back-to-login a {
-            color: #4a90e2;
+            color: #2575fc;
             text-decoration: none;
             font-size: 0.9rem;
         }
@@ -203,11 +217,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .back-to-login a:hover {
             text-decoration: underline;
         }
+
+        .hero-image {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .text-white {
+            color: white;
+        }
+
+        .animate__animated {
+            animation-duration: 1s;
+            animation-fill-mode: both;
+        }
+
+        .animate__fadeInLeft {
+            animation-name: fadeInLeft;
+        }
+
+        .animate__fadeInRight {
+            animation-name: fadeInRight;
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translate3d(-100%, 0, 0);
+            }
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translate3d(100%, 0, 0);
+            }
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .reset-instructions {
+            font-size: 1.2rem;
+            text-align: center;
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="card">
+        <div class="col">
+            <img src="../img/resetpassword.png" alt="Reset Password Image" class="hero-image animate__animated animate__fadeInLeft">
+        </div>
+        <div class="card animate__animated animate__fadeInRight">
+            <p class="reset-instructions animate__animated animate__fadeInRight">Enter your email to reset your password</p>
             <h3>Reset Password</h3>
             <form method="POST">
                 <div class="form-outline">

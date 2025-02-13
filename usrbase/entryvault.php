@@ -69,20 +69,83 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 
+    <style>
+        body {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            font-family: 'Nunito', sans-serif;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .col {
+            flex: 1;
+            padding: 20px;
+        }
+        .hero-image {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+        }
+        .form-outline {
+            margin-bottom: 15px;
+        }
+        .form-outline input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .form-outline label {
+            display: block;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+        .forgot-password {
+            margin-top: 10px;
+        }
+        .forgot-password a {
+            color: #2575fc;
+            text-decoration: none;
+        }
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+        button {
+            background: #2575fc;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #6a11cb;
+        }
+    </style>
 </head>
 
 <body>
     <div class="container">
         <!-- Left Content -->
         <div class="col">
-            <h1>Welcome Back</h1>
-            <img src="../img/loginpage.png" alt="Login Image" class="hero-image">
-            <p>Log in to your account to see your appointment details</p>
+            <h1 class="animate__animated animate__fadeInLeft text-white">Welcome Back</h1>
+            <img src="../img/loginpage.png" alt="Login Image" class="hero-image animate__animated animate__fadeInLeft">
+            <p class="animate__animated animate__fadeInLeft text-white">Log in to your account to see your appointment details</p>
         </div>
 
         <!-- Login Form -->
         <div class="col">
-            <div class="card">
+            <div class="card animate__animated animate__fadeInRight">
                 <h3>Login</h3>
                 <form method="POST" action="">
                     <div class="form-outline">
@@ -93,10 +156,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="password" id="password" name="password" required />
                         <label for="password">Password</label>
                     </div>
-                    <button type="submit">Login</button>
+                    <button href="./index.php">Back To Website</button> |
+                    <button type="submit">Login</button> 
                     <br>
                     <div class="forgot-password">
                         <a href="forgot_password.php">Forgot Password?</a>
+                        
                     </div>
                 </form>
             </div>
