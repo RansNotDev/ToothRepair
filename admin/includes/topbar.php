@@ -42,7 +42,7 @@ if (!$new_users_result || !$today_appt_result || !$new_appt_result) {
 <ul class="navbar-nav ml-auto">
     <!-- Nav Item - Alerts -->
     <li class="nav-item dropdown no-arrow mx-1">
-        <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
+        <a class="nav-link dropdown-toggle" href="appointmentlist.php" id="alertsDropdown" role="button"
             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <i class="fas fa-bell fa-fw"></i>
             <!-- Counter - Alerts -->
@@ -71,7 +71,7 @@ if (!$new_users_result || !$today_appt_result || !$new_appt_result) {
             <?php endif; ?>
 
             <?php if ($new_appointments > 0): ?>
-            <a class="dropdown-item d-flex align-items-center" href="appointments.php">
+            <a class="dropdown-item d-flex align-items-center" href="appointmentlist.php">
                 <div class="mr-3">
                     <div class="icon-circle bg-success">
                         <i class="fas fa-calendar-check text-white"></i>

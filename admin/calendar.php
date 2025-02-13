@@ -80,75 +80,154 @@ if ($result) {
         body {
             overflow: hidden;
         }
-    #calendar-container {
-        height: 500px;
-        overflow-y: auto;
-        border: 1px solid #ddd;
-        padding: 10px;
-        background: #f8f9fc;
-    }
+        
+        #calendar-container {
+            height: 500px;
+            overflow-y: auto;
+            border-radius: 12px;
+            padding: 20px;
+            background: #ffffff;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+        }
 
-    .fc-event {
-        cursor: pointer;
-        margin: 2px 0;
-        padding: 2px 4px;
-        border-radius: 3px;
-    }
+        /* Calendar Header Styling */
+        .fc-toolbar-title {
+            font-size: 1.5rem !important;
+            font-weight: 600 !important;
+            color: #2c3e50;
+        }
 
-    .fc-event:hover {
-        background-color: #4e73df !important;
-        color: white !important;
-        opacity: 0.9;
-    }
+        .fc-button {
+            background-color: #4e73df !important;
+            border-color: #4e73df !important;
+            border-radius: 6px !important;
+            padding: 8px 16px !important;
+            transition: all 0.3s ease !important;
+        }
 
-    .slot-info {
-        color: #4a5568;
-        text-align: center;
-        width: 100%;
-        padding: 5px;
-        font-size: 0.9rem;
-        margin-top: 5px;
-    }
+        .fc-button:hover {
+            background-color: #375abd !important;
+            box-shadow: 0 2px 8px rgba(78, 115, 223, 0.3) !important;
+        }
 
-    .fc-daygrid-day-frame {
-        min-height: 100px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
+        .fc-button-active {
+            background-color: #375abd !important;
+            box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125) !important;
+        }
 
-    .fc-day-past .slot-info {
-        display: none;
-    }
+        /* Calendar Grid Styling */
+        .fc-daygrid-day {
+            transition: all 0.2s ease;
+        }
 
-    .text-warning {
-        color: #ffa500 !important;
-    }
+        .fc-daygrid-day:hover {
+            background-color: #f8f9ff !important;
+        }
 
-    .fc-daygrid-day-number {
-        font-size: 1.2rem;
-        font-weight: bold;
-        margin: 5px 0;
-    }
+        .fc-daygrid-day-frame {
+            min-height: 120px;
+            padding: 8px !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-    .badge {
-        padding: 0.5em 1em;
-        font-size: 0.875em;
-        text-transform: capitalize;
-    }
-    .badge-warning {
-        background-color: #ffa500;
-        color: #fff;
-    }
-    .badge-success {
-        background-color: #28a745;
-        color: #fff;
-    }
-    .badge-danger {
-        background-color: #dc3545;
-        color: #fff;
-    }
-</style>
+        .fc-daygrid-day-number {
+            font-size: 1.1rem !important;
+            font-weight: 600 !important;
+            color: #2c3e50;
+            padding: 5px !important;
+            margin: 2px 0 !important;
+        }
+
+        /* Event Styling */
+        .fc-event {
+            border: none !important;
+            border-radius: 6px !important;
+            padding: 4px 8px !important;
+            margin: 2px 0 !important;
+            font-size: 0.85rem !important;
+            transition: all 0.3s ease;
+        }
+
+        .fc-event:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Slot Info Styling */
+        .slot-info {
+            color: #636e72;
+            text-align: center;
+            width: 100%;
+            padding: 6px;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .fc-day-today {
+            background-color: #f8f9ff !important;
+        }
+
+        .fc-day-today .slot-info {
+            background-color: #e3e8ff;
+            color: #4e73df;
+            font-weight: 500;
+        }
+
+        /* Badge Styling */
+        .badge {
+            padding: 0.5em 1.2em;
+            font-size: 0.875em;
+            font-weight: 500;
+            text-transform: capitalize;
+            border-radius: 20px;
+        }
+
+        .badge-warning {
+            background-color: #ffa500;
+            color: #fff;
+        }
+
+        .badge-success {
+            background-color: #2ecc71;
+            color: #fff;
+        }
+
+        .badge-danger {
+            background-color: #e74c3c;
+            color: #fff;
+        }
+
+        /* Modal Styling */
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            background-color: #4e73df;
+            color: white;
+            border-radius: 12px 12px 0 0;
+            padding: 1rem 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 600;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            background-color: #f8f9fc;
+        }
+    </style>
 </head>
 <body>
 <div class="container-fluid">

@@ -1,0 +1,11 @@
+Options +FollowSymLinks
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+</IfModule>
+
+<Files *>
+    Options -Indexes
+    Require all granted
+</Files>

@@ -7,6 +7,8 @@ use PHPMailer\PHPMailer\SMTP;
 require '../../vendor/phpmailer/phpmailer/src/Exception.php';
 require '../../vendor/phpmailer/phpmailer/src/PHPMailer.php';
 require '../../vendor/phpmailer/phpmailer/src/SMTP.php';
+require_once('../includes/send_email.php');
+require_once('../includes/email_helper.php');
 
 header('Content-Type: application/json');
 
@@ -109,64 +111,44 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $appointment_time,
             $_POST['status']
         );
-        $stmt->execute();
+
+        // After successful appointment creation
+        if ($stmt->execute()) {
+            // Get service name for email
+            $service_query = "SELECT service_name FROM services WHERE service_id = ?";
+            $stmt = $conn->prepare($service_query);
+            $stmt->bind_param("i", $_POST['service_id']);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $service = $result->fetch_assoc();
+
+            // Prepare appointment details for email
+            $appointmentData = [
+                'fullname' => $_POST['fullname'],
+                'email' => $_POST['email'],
+                'appointment_date' => $appointment_date,
+                'appointment_time' => $appointment_time,
+                'service_name' => $service['service_name'],
+                'status' => $_POST['status']
+            ];
+
+            // Send email notification
+            $emailSent = sendAppointmentEmail($_POST['email'], $appointmentData, 'new');
+            
+            $response = [
+                'success' => true,
+                'message' => 'Appointment created successfully'
+            ];
+            if (!$emailSent) {
+                $response['emailError'] = 'Appointment created but email notification failed';
+            }
+            echo json_encode($response);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Failed to create appointment']);
+        }
 
         // Commit transaction
         $conn->commit();
-
-        // After successful commit, send email
-        $mail = new PHPMailer(true);
-        $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
-        $mail->SMTPAuth = true;
-        $mail->Username = 'toothrepairdentalclinic@gmail.com';
-        $mail->Password = 'evwt cpxf ywtl zytp';
-        $mail->SMTPSecure = 'ssl';
-        $mail->Port = 465;
-
-        $mail->setFrom('toothrepairdentalclinic@gmail.com', 'Tooth Repair Dental Clinic');
-        $mail->addAddress($_POST['email']);
-        $mail->isHTML(true);
-
-        // Get service name
-        $service_stmt = $conn->prepare("SELECT service_name FROM services WHERE service_id = ?");
-        $service_stmt->bind_param("i", $_POST['service_id']);
-        $service_stmt->execute();
-        $service_result = $service_stmt->get_result()->fetch_assoc();
-        $service_name = $service_result['service_name'];
-
-        $mail->Subject = 'Appointment Confirmation - Tooth Repair Dental Clinic';
-        
-        // Create email body
-        $emailBody = "
-        <h2>Appointment Confirmation</h2>
-        <p>Dear {$_POST['fullname']},</p>
-        <p>Your appointment has been successfully scheduled. Here are the details:</p>
-        <ul>
-            <li>Date: {$_POST['appointment_date']}</li>
-            <li>Time: {$_POST['appointment_time']}</li>
-            <li>Service: {$service_name}</li>
-        </ul>
-        <p>Your login credentials:</p>
-        <ul>
-            <li>Username: {$_POST['email']}</li>
-            <li>Password: {$plainPassword}</li>
-        </ul>
-        <p><strong>Important:</strong> Please change your password immediately upon first login for security purposes.</p>
-        <p>Thank you for choosing Tooth Repair Dental Clinic!</p>";
-
-        $mail->Body = $emailBody;
-        $mail->AltBody = strip_tags($emailBody);
-
-        $mail->send();
-
-        // Modified success response with redirect URL
-        echo json_encode([
-            'success' => true,
-            'message' => 'Appointment added successfully and confirmation email sent',
-            'redirect' => '../appointmentlist.php'
-        ]);
-        exit; // Add this to prevent any additional output
 
     } catch (Exception $e) {
         // Rollback on error

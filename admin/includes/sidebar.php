@@ -110,6 +110,13 @@
                 </a>
             </li>
 
+            <!-- add edit update Services of the clinic here  -->
+            <li class="nav-item">
+                <a class="nav-link" href="services.php">
+                    <i class="fas fa-fw fa-chart-area"></i>
+                    <span>Services</span>
+                </a>
+
             <hr class="sidebar-divider d-none d-md-block">
 
             <div class="text-center d-none d-md-inline">
