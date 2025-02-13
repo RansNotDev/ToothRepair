@@ -88,6 +88,13 @@ h1 {
 .hero-section {
     background: linear-gradient(to right, #f0f4f8, #d9e2ec);
 }
+.hero-text {
+  color: #ffffff;
+  font-size: var(--h1-font-size);
+  font-weight: var(--font-weight-bold);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  font-weight: var(--font-weight-medium);
+}
 
 .custom-btn,
 .button {
@@ -119,7 +126,29 @@ h1 {
 }
 
 .services-icon-wrap {
-    background-color: var(--primary-color) !important;
+    background: linear-gradient(135deg, var(--primary-color), #4e73df);
+    border-radius: 0 0 10px 10px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    padding: 10px 20px;
+}
+
+.services-icon-wrap p {
+    color: #ffffff !important;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.services-icon-wrap i {
+    color: #ffffff !important;
+}
+
+/* Ensure text remains white on hover */
+.services-image-wrap:hover .services-icon-wrap p,
+.services-image-wrap:hover .services-icon-wrap i {
+    color: #ffffff !important;
 }
 
 .reviews-icons .bi-star-fill {
@@ -654,6 +683,31 @@ h1 {
     color: var(--white-color);
   }
   
+.custom-block {
+    background: linear-gradient(135deg, var(--primary-color), #4e73df);
+    border-radius: 12px;
+    padding: 30px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    max-width: 320px;
+}
+
+.custom-block h6,
+.custom-block p,
+.custom-block a,
+.custom-block i {
+    color: #ffffff !important;
+}
+
+.custom-block a:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+    text-decoration: none;
+}
+
+.custom-icon {
+    font-size: 1.2rem;
+}
   
   /*---------------------------------------
     CUSTOM ICON COLOR               
@@ -927,9 +981,13 @@ h1 {
     font-size: var(--copyright-font-size);
     font-weight: var(--font-weight-medium);
 }
+.site-header p{
+  color: var(--white-color);
+}
 
 .site-header .social-icon {
     text-align: right;
+    color: var(--white-color);
 }
 
 .site-header .social-icon-link {
@@ -943,6 +1001,18 @@ h1 {
 .site-header-icon {
     display: inline-block;
     color: var(--white-color);
+}
+
+.header-contact-link {
+    color: var(--white-color);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+    transition: opacity 0.3s ease;
+}
+
+.header-contact-link:hover {
+    color: var(--white-color);
+    opacity: 0.8;
 }
 
 /*---------------------------------------
@@ -1609,7 +1679,7 @@ h1 {
   /* Custom border button */
   .custom-border-btn {
     border-color: var(--primary-color) !important;
-    color: var(--primary-color) !important;
+    color: var (--primary-color) !important;
   }
   
   .custom-border-btn:hover {
@@ -2178,13 +2248,29 @@ h1 {
 }
 
 .services-icon-wrap {
-    background: linear-gradient(135deg, var(--primary-color), #8a2be2);
+    background: linear-gradient(135deg, var(--primary-color), #4e73df);
     border-radius: 0 0 10px 10px;
     position: absolute;
     bottom: 0;
     right: 0;
     left: 0;
     padding: 10px 20px;
+}
+
+.services-icon-wrap p {
+    color: #ffffff !important;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.services-icon-wrap i {
+    color: #ffffff !important;
+}
+
+/* Ensure text remains white on hover */
+.services-image-wrap:hover .services-icon-wrap p,
+.services-image-wrap:hover .services-icon-wrap i {
+    color: #ffffff !important;
 }
 
 .services-title-link {
@@ -2410,4 +2496,46 @@ copyright-text a:hover {
 
 .social-link:hover i {
     transform: scale(1.2);
+}
+
+.wave-separator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+    transform: rotate(180deg);
+    filter: drop-shadow(0 -2px 2px rgba(0, 0, 0, 0.1));
+}
+
+.wave-separator path {
+    fill: #ffffff;
+    transition: all 0.3s ease;
+}
+
+.wave-separator path:hover {
+    fill: var(--primary-color);
+    opacity: 0.1;
+}
+
+@media (max-width: 768px) {
+    .wave-separator {
+        height: 50px;
+    }
+}
+
+.backstretch {
+    opacity: 0.9;
+}
+
+.backstretch:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.2), rgba(78, 115, 223, 0.2));
+    z-index: 1;
 }

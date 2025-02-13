@@ -1,3 +1,6 @@
+<!-- Add these lines in the head section of your document -->
+<link href="css/components/navigation.css" rel="stylesheet">
+
 <nav class="navbar navbar-expand-lg">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="index.php">
@@ -33,3 +36,6 @@
         </div>
     </div>
 </nav>
+
+<!-- Add this before closing body tag -->
+<script src="js/navigation.js"></script>

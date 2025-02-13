@@ -45,7 +45,7 @@ while ($row = $result->fetch_assoc()) {
                 <div class="row">
                     <div class="col-lg-7 col-12 text-center mx-auto">
                         <h1 class="cd-headline rotate-1 text-dark mb-4 pb-2">
-                            <span class="text-white">Let’s Brighten Your</span>
+                            <span class="hero-text">Let's Brighten Your</span>
                             <span class="cd-words-wrapper">
                                 <b class="is-visible">Smile</b>
                                 <b>Confidence</b>
@@ -83,7 +83,7 @@ while ($row = $result->fetch_assoc()) {
                         <p>We prioritize modern dental techniques and patient-centered care to ensure a safe and effective treatment for everyone. Please <a href="mailto:toothrepairdentalclinic@gmail.com">contact us</a> for more information or to book an appointment. Thank you.</p>
                     </div>
                     <div class="col-lg-6 col-12 custom-block-wrap">
-                        <img src="images/male-wearing-apron-female-white-t-shirt-smiling-broadly-being-glad-clean.png" class="img-fluid" alt="Dental Care Team">
+                        <img src="img/dentist_teeth.png" class="img-fluid" alt="Dental Care Team">
                         <div class="custom-block d-flex flex-column">
                             <h6 class="text-white mb-3">Need an Appointment? <br> Call us now:</h6>
                             <p class="d-flex mb-0">
@@ -174,10 +174,10 @@ while ($row = $result->fetch_assoc()) {
 
     <?php include 'sitefooter.php'; ?>
 
-    <!-- JAVASCRIPT FILES -->
+    <!-- JAVASCRIPT FILES <script src="js/jquery.backstretch.min.js"></script>-->
     <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
-    <script src="js/jquery.backstretch.min.js"></script>
+    <script src="js/custom.js"></script>
     <script src="js/counter.js"></script>
     <script src="js/countdown.js"></script>
     <script src="js/init.js"></script>

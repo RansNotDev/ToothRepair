@@ -19,9 +19,10 @@
         <link href="css/bootstrap.min.css" rel="stylesheet">
 
         <link href="css/bootstrap-icons.css" rel="stylesheet">
-
-        <link href="css/tooplate-clean-work.css" rel="stylesheet">
-        <link href="css/custom-colors.css" rel="stylesheet"> <!-- Add this line -->
+        
+        <link href="css/landing_page.css" rel="stylesheet">
+        <link href="css/components/contact.css" rel="stylesheet">
+ <!-- Add this line -->
 
     </head>
     
@@ -59,58 +60,58 @@
             <section class="contact-section section-padding">
                 <div class="container">
                     <div class="row justify-content-center">
-                        <div class="col-lg-8 col-12 mx-auto">
+                        <div class="col-lg-10 col-12 mx-auto">
                             <h2 class="text-center mb-5">Get in Touch</h2>
 
-                            <div class="contact-info bg-white shadow-lg p-4">
-                                <h3 class="mb-4 text-center">Contact Information</h3>
+                            <div class="contact-card">
+                                <div class="contact-info-wrapper">
+                                    <div class="row g-4">
+                                        <div class="col-lg-4 col-md-6 col-12">
+                                            <div class="info-box">
+                                                <div class="icon-wrapper">
+                                                    <i class="bi-geo-alt-fill"></i>
+                                                </div>
+                                                <h5>Visit Us</h5>
+                                                <p>Ground Floor, Navarro Building<br>Poblacion, Malasiqui<br>Pangasinan, Philippines</p>
+                                            </div>
+                                        </div>
 
-                                <div class="row">
-                                    <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-0">
-                                        <div class="d-flex flex-column align-items-center">
-                                            <i class="bi-geo-alt-fill custom-icon mb-3 fs-3 text-primary"></i>
-                                            <h5 class="text-center">Our Location</h5>
-                                            <p class="text-center mb-0">Poblacion, Malasiqui, Philippines</p>
+                                        <div class="col-lg-4 col-md-6 col-12">
+                                            <div class="info-box">
+                                                <div class="icon-wrapper">
+                                                    <i class="bi-telephone-fill"></i>
+                                                </div>
+                                                <h5>Call Us</h5>
+                                                <a href="tel:+639123456789" class="contact-link">+63 912 345 6789</a>
+                                                <a href="tel:+639123456789" class="contact-link">+63 912 345 6789</a>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-lg-4 col-md-6 col-12">
+                                            <div class="info-box">
+                                                <div class="icon-wrapper">
+                                                    <i class="bi-envelope-fill"></i>
+                                                </div>
+                                                <h5>Email Us</h5>
+                                                <a href="mailto:toothrepairclinic@gmail.com" class="contact-link">toothrepairclinic@gmail.com</a>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-0">
-                                        <div class="d-flex flex-column align-items-center">
-                                            <i class="bi-telephone-fill custom-icon mb-3 fs-3 text-primary"></i>
-                                            <h5 class="text-center">Phone Number</h5>
-                                            <p class="mb-0">
-                                                <a href="tel:+639123456789" class="text-dark">
-                                                    +63 912 345 6789
-                                                </a>
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-lg-4 col-md-6 col-12">
-                                        <div class="d-flex flex-column align-items-center">
-                                            <i class="bi-envelope-fill custom-icon mb-3 fs-3 text-primary"></i>
-                                            <h5 class="text-center">Email</h5>
-                                            <p class="mb-0">
-                                                <a href="mailto:toothrepairclinic@gmail.com" class="text-dark">
-                                                    toothrepairclinic@gmail.com
-                                                </a>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <hr class="my-5">
-
-                                <div class="row">
-                                    <div class="col-12">
-                                        <h5 class="text-center mb-4">Business Hours</h5>
-                                        <div class="d-flex justify-content-center align-items-center">
-                                            <div class="text-center">
-                                                <p class="mb-2"><strong>Monday - Friday</strong></p>
-                                                <p class="mb-4">8:00 AM - 4:00 PM</p>
-                                                
-                                                <p class="mb-2"><strong>Saturday</strong></p>
-                                                <p class="mb-0">6:00 AM - 2:30 PM</p>
+                                    <div class="hours-section mt-5">
+                                        <h4 class="text-center mb-4">Business Hours</h4>
+                                        <div class="hours-grid">
+                                            <div class="hours-box">
+                                                <span class="day">Monday - Friday</span>
+                                                <span class="time">8:00 AM - 4:00 PM</span>
+                                            </div>
+                                            <div class="hours-box">
+                                                <span class="day">Saturday</span>
+                                                <span class="time">6:00 AM - 2:30 PM</span>
+                                            </div>
+                                            <div class="hours-box">
+                                                <span class="day">Sunday</span>
+                                                <span class="time">Closed</span>
                                             </div>
                                         </div>
                                     </div>
@@ -122,8 +123,6 @@
             </section>
         
         </main>
-
-        <?php include 'sitefooter.php'; ?>
 
         <!-- JAVASCRIPT FILES -->
         <script src="js/jquery.min.js"></script>

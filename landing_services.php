@@ -31,9 +31,7 @@
         <link href="css/bootstrap.min.css" rel="stylesheet">
 
         <link href="css/bootstrap-icons.css" rel="stylesheet">
-
-        <link href="css/tooplate-clean-work.css" rel="stylesheet">
-        <link href="css/custom-colors.css" rel="stylesheet">
+        <link href="css/landing_page.css" rel="stylesheet">
 
     </head>
     
@@ -50,7 +48,7 @@
                     <div class="row">
 
                         <div class="col-lg-7 col-12">
-                            <h1 class="text-white mb-lg-0">Services Listing</h1>
+                            <h1 class="mb-lg-0">Services Listing</h1>
                         </div>
 
                         <div class="col-lg-4 col-12 d-flex justify-content-lg-end align-items-center ms-auto">

@@ -18,9 +18,8 @@
         <link href="css/bootstrap.min.css" rel="stylesheet">
 
         <link href="css/bootstrap-icons.css" rel="stylesheet">
-
-        <link href="css/tooplate-clean-work.css" rel="stylesheet">
-        <link href="css/custom-colors.css" rel="stylesheet">
+        <link href="css/landing_page.css" rel="stylesheet">
+        <link rel="stylesheet" href="css/components/about.css">
 
     </head>
     
@@ -57,21 +56,43 @@
 
             <section class="section-padding">
                 <div class="container">
-                    <div class="row">
-
+                    <div class="row align-items-center">
                         <div class="col-lg-6 col-12">
-                            <img src="images/cleaning-concept-with-man-showing-business-card.jpg" class="featured-image img-fluid">
+                            <div class="about-image-wrap">
+                                <img src="img/dentist_person.jpg" 
+                                     class="featured-image img-fluid" 
+                                     alt="Dental Professional at Tooth Repair Dental Clinic"
+                                     loading="lazy">
+                            </div>
                         </div>
 
                         <div class="col-lg-6 col-12">
                             <div class="featured-block">
-                                <h2 class="mb-4">Professional Dental Care Since 2018</h2>
+                                <h2 class="mb-4 text-primary">Professional Dental Care Since 2015</h2>
 
-                                <p>Tooth Repair is a modern dental clinic committed to providing high-quality dental care services. Our team of experienced professionals ensures the best treatment for all your dental needs.</p>
+                                <p class="mb-3">Welcome to Tooth Repair Dental Clinic, your trusted partner in dental health. We are committed to providing exceptional dental care services with a focus on patient comfort and satisfaction.</p>
 
-                                <a class="custom-btn btn button button--atlas mt-3 bg-primary" href="contact.php">
+                                <ul class="list-unstyled mb-4">
+                                    <li class="d-flex align-items-center mb-3">
+                                        <i class="bi-check-circle-fill text-primary me-2"></i>
+                                        <span>Modern Dental Equipment</span>
+                                    </li>
+                                    <li class="d-flex align-items-center mb-3">
+                                        <i class="bi-check-circle-fill text-primary me-2"></i>
+                                        <span>Experienced Dental Professionals</span>
+                                    </li>
+                                    <li class="d-flex align-items-center mb-3">
+                                        <i class="bi-check-circle-fill text-primary me-2"></i>
+                                        <span>Comfortable and Relaxing Environment</span>
+                                    </li>
+                                    <li class="d-flex align-items-center">
+                                        <i class="bi-check-circle-fill text-primary me-2"></i>
+                                        <span>Comprehensive Dental Services</span>
+                                    </li>
+                                </ul>
+
+                                <a class="custom-btn btn button button--atlas mt-3" href="contact.php">
                                     <span>Get in touch</span>
-    
                                     <div class="marquee" aria-hidden="true">
                                         <div class="marquee__inner">
                                             <span>Get in touch</span>
@@ -83,7 +104,6 @@
                                 </a>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </section>

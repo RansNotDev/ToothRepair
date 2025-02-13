@@ -62,119 +62,17 @@ while ($row = mysqli_fetch_assoc($result)) {
         rel="stylesheet">
 
     <link href="css/bootstrap-icons.css" rel="stylesheet">
-    <link href="css/calendar-styles.css" rel="stylesheet">
-    <link href="css/tooplate-clean-work.css" rel="stylesheet">
+    
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-
-    <style>
-        .site-header .navbar-nav {
-            margin-left: auto;
-            gap: 1rem;
-        }
-
-        .site-header .nav-link {
-            color: white !important;
-            padding: 0.5rem 1rem;
-            transition: opacity 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .site-header .nav-link:hover {
-            opacity: 0.8;
-        }
-
-        .site-header p {
-            font-size: 1.2rem !important;
-            font-weight: 700 !important;
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .site-header .bi-emoji-smile-fill {
-            font-size: 1.75rem;
-        }
-
-        .custom-btn {
-            background-color: rgba(222, 228, 233, 0.44);
-            color: #0d6efd !important;
-            /* Bootstrap primary color */
-            border: 2px solid #ffffff;
-            border-radius: 25px;
-            padding: 8px 20px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-
-
-        .button {
-            color: black;
-        }
-
-        .custom-border-btn {
-            border: 2px solid white;
-        }
-
-        .custom-btn:hover {
-            background-color: #0d6efd;
-            color: #ffffff !important;
-            border-color: #ffffff;
-        }
-    </style>
+    <link href="css/landing_page.css" rel="stylesheet">
+    <link href="css/components/appointment.css" rel="stylesheet">
 
 </head>
 
 <body>
     <main>
-        <header class="site-header bg-primary">
-            <div class="container">
-                <div class="row">
-
-                    <div class="col-lg-12 col-12">
-                        <div class="row">
-                            <div class="col-lg-12 col-12 d-flex justify-content-between align-items-center">
-                                <p class="mb-0">
-                                    <i class="bi-emoji-smile-fill fs-4"></i>
-                                    <span class="fw-bold fs-4">Tooth Repair Dental Clinic</span>
-                                </p>
-
-                                <ul class="navbar-nav ms-auto d-flex flex-row gap-3 align-items-center">
-                                    <li class="nav-item">
-                                        <a class="nav-link text-white" href="index.php">Home</a>
-                                    </li>
-
-                                    <li class="nav-item">
-                                        <a class="nav-link text-white" href="about.php">About Us</a>
-                                    </li>
-
-                                    <li class="nav-item">
-                                        <a class="nav-link text-white" href="landing_services.php">Our Services</a>
-                                    </li>
-
-                                    <li class="nav-item active">
-                                        <a class="nav-link text-white" href="appointmentcalendar.php">Book An
-                                            Appointment</a>
-                                    </li>
-
-                                    <li class="nav-item">
-                                        <a class="nav-link text-white" href="contact.php">Contact</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link custom-btn" href="entryvault.php">Get started</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-
-
-                    </div>
-
-                </div>
-            </div>
-        </header>
-
-
+        <?php include 'headerlanding.php'; ?>
+        <?php include 'navigation.php'; ?>
 
         <section class="contact-section py-5">
             <div class="container">
@@ -209,11 +107,11 @@ while ($row = mysqli_fetch_assoc($result)) {
                     aria-labelledby="appointmentModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-xl" role="document">
                         <div class="modal-content">
-                            <div class="modal-header bg-primary text-white">
+                            <div class="modal-header">
                                 <h5 class="modal-title" id="appointmentModalLabel">
-                                    <i class="fas fa-calendar-plus mr-2"></i>Book an Appointment
+                                    <i class="fas fa-calendar-plus me-2"></i>Book an Appointment
                                 </h5>
-                                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
@@ -258,15 +156,20 @@ while ($row = mysqli_fetch_assoc($result)) {
                                                 readonly required>
                                         </div>
                                         <div class="form-group">
-                                            <label for="time">Appointment Time</label>
+                                            <label for="time">
+                                                <i class="fas fa-clock text-primary me-2"></i>Appointment Time
+                                            </label>
                                             <select class="form-control" id="time" name="appointment_time" required>
-                                                <option value="">Select Time</option>
+                                                <option value="" selected disabled>Select your preferred time</option>
                                             </select>
                                         </div>
+
                                         <div class="form-group">
-                                            <label for="service">Select Service</label>
+                                            <label for="service">
+                                                <i class="fas fa-tooth text-primary me-2"></i>Select Service
+                                            </label>
                                             <select class="form-control" id="service" name="service" required>
-                                                <option value="" disabled selected>Select a service</option>
+                                                <option value="" disabled selected>Choose your dental service</option>
                                                 <?php
                                                 $services = mysqli_query($conn, "SELECT * FROM services");
                                                 if ($services) {
@@ -354,7 +257,7 @@ while ($row = mysqli_fetch_assoc($result)) {
         </section>
     </main>
 
-    </main>
+   
 
     <?php include 'sitefooter.php'; ?>
 
@@ -427,8 +330,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                 },
                 headerToolbar: {
                     left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth'
+                    center: 'title'
                 },
                 dayCellContent: function (arg) {
                     const dateStr = arg.date.toISOString().split('T')[0];
@@ -634,7 +536,7 @@ while ($row = mysqli_fetch_assoc($result)) {
     <script src="js/modernizr.js"></script>
     <script src="js/animated-headline.js"></script>
     <script src="js/custom.js"></script>
-
+    <script src="js/appointment.js"></script>
 </body>
 
 </html>

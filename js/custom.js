@@ -1,5 +1,4 @@
-
-  (function ($) {
+(function ($) {
   
   "use strict";
 
@@ -35,5 +34,17 @@
     });
     
   })(window.jQuery);
+
+$(document).ready(function() {
+    // Background slideshow
+    $.backstretch([
+        "images/slideshow/slide1.jpg",
+        "images/slideshow/slide2.jpg",
+        "images/slideshow/slide3.jpg"
+    ], {
+        duration: 5000,
+        fade: 1000
+    });
+});
 
 
