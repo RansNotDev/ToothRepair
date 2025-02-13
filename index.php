@@ -45,7 +45,7 @@ while ($row = $result->fetch_assoc()) {
                 <div class="row">
                     <div class="col-lg-7 col-12 text-center mx-auto">
                         <h1 class="cd-headline rotate-1 text-dark mb-4 pb-2">
-                            <span>Let’s Brighten Your</span>
+                            <span class="text-white">Let’s Brighten Your</span>
                             <span class="cd-words-wrapper">
                                 <b class="is-visible">Smile</b>
                                 <b>Confidence</b>
@@ -78,14 +78,14 @@ while ($row = $result->fetch_assoc()) {
             <div class="container">
                 <div class="row justify-content-lg-center align-items-center">
                     <div class="col-lg-6 col-12">
-                        <h2 class="mb-4">Trusted &amp; Professional Dental Care</h2>
+                        <h2 class="mb-4 text-primary">Trusted &amp; Professional Dental Care</h2>
                         <p><a href="#">Tooth Repair Dental Clinic</a> is committed to providing high-quality and affordable dental care in Malasiqui, Pangasinan. Our clinic offers a comfortable and professional environment to enhance patient experience.</p>
                         <p>We prioritize modern dental techniques and patient-centered care to ensure a safe and effective treatment for everyone. Please <a href="mailto:toothrepairdentalclinic@gmail.com">contact us</a> for more information or to book an appointment. Thank you.</p>
                     </div>
                     <div class="col-lg-6 col-12 custom-block-wrap">
                         <img src="images/male-wearing-apron-female-white-t-shirt-smiling-broadly-being-glad-clean.png" class="img-fluid" alt="Dental Care Team">
                         <div class="custom-block d-flex flex-column">
-                            <h6 class="text-dark mb-3">Need an Appointment? <br> Call us now:</h6>
+                            <h6 class="text-white mb-3">Need an Appointment? <br> Call us now:</h6>
                             <p class="d-flex mb-0">
                                 <i class="bi-telephone-fill custom-icon me-2"></i>
                                 <a href="tel:+639123456789">+63 981-261-4001</a>
@@ -100,7 +100,7 @@ while ($row = $result->fetch_assoc()) {
             <div class="container">
                 <div class="row">
                     <div class="col-lg-12 col-12">
-                        <h2 class="mb-4">Our Services</h2>
+                        <h2 class="mb-4 text-primary">Our Services</h2>
                     </div>
                     <?php foreach ($services as $service): ?>
                         <div class="col-lg-6 col-12">

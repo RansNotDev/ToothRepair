@@ -78,25 +78,25 @@
                             </a>
                         </p>
 
-                        <ul class="social-icon mt-4">
-                            <li class="social-icon-item">
-                                <a href="#" class="social-icon-link button button--skoll">
-                                    <span></span>
-                                    <span class="bi-twitter"></span>
+                        <ul class="social-icons-list mt-4 d-flex gap-3">
+                            <li>
+                                <a href="#" class="social-link facebook" aria-label="Facebook">
+                                    <i class="bi-facebook"></i>
                                 </a>
                             </li>
-
-                            <li class="social-icon-item">
-                                <a href="#" class="social-icon-link button button--skoll">
-                                    <span></span>
-                                    <span class="bi-facebook"></span>
+                            <li>
+                                <a href="#" class="social-link instagram" aria-label="Instagram">
+                                    <i class="bi-instagram"></i>
                                 </a>
                             </li>
-
-                            <li class="social-icon-item">
-                                <a href="#" class="social-icon-link button button--skoll">
-                                    <span></span>
-                                    <span class="bi-instagram"></span>
+                            <li>
+                                <a href="#" class="social-link tiktok" aria-label="TikTok">
+                                    <i class="bi-tiktok"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="social-link linkedin" aria-label="LinkedIn">
+                                    <i class="bi-linkedin"></i>
                                 </a>
                             </li>
                         </ul>
