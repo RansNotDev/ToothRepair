@@ -131,6 +131,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         button:hover {
             background: #6a11cb;
         }
+        .btn-primary {
+            background: #2575fc;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: #6a11cb;
+        }
     </style>
 </head>
 
@@ -156,8 +167,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="password" id="password" name="password" required />
                         <label for="password">Password</label>
                     </div>
-                    <button href="./index.php">Back To Website</button> |
-                    <button type="submit">Login</button> 
+                    <div class="d-flex justify-content-between mt-3">
+                        <a href="../index.php" class="btn btn-primary" style="flex: 1; margin-right: 10px;">Back To Website</a>
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">Login</button>
+                    </div>
                     <br>
                     <div class="forgot-password">
                         <a href="forgot_password.php">Forgot Password?</a>

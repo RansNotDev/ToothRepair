@@ -259,7 +259,7 @@ h1 {
 }
 
 .banner-section .section-overlay {
-    background-color: rgba(90, 103, 216, 0.85) !important;
+    background-color: rgba(90, 103, 216, 0.616) !important;
 }
 
 .breadcrumb-item a {
@@ -747,12 +747,6 @@ h1 {
     padding: 15px 25px;
   }
   
-  .navbar-expand-lg .navbar-nav .nav-link.custom-btn {
-    margin-top: 8px;
-    margin-right: 0;
-    padding: 12px 25px;
-  }
-  
   .custom-btn:hover {
     background: var(--custom-btn-bg-hover-color);
     color: var(--white-color);
@@ -761,206 +755,44 @@ h1 {
   .custom-border-btn {
     background: transparent;
     border: 2px solid var(--custom-btn-bg-color);
-    color: var(--custom-btn-bg-color);
+    color: var (--custom-btn-bg-color);
   }
-  
-  .navbar-expand-lg .navbar-nav .nav-link.custom-btn:hover,
-  .custom-border-btn:hover {
-    background: var(--custom-btn-bg-hover-color);
-    border-color: transparent;
-    color: var(--white-color);
-  }
+ 
   
   .custom-btn-bg-white {
     border-color: var(--white-color);
     color: var(--white-color);
   }
-  
-/*---------------------------------------
-  NAVIGATION              
------------------------------------------*/
-.navbar {
-    background: transparent;
-    position: absolute;
-    top: 49px;
-    right: 0;
-    left: 0;
-    z-index: 9;
-    padding-top: 20px;
-    padding-bottom: 20px;
-  }
-  
-  .navbar-brand,
-  .navbar-brand:hover {
-    color: var(--white-color);
-    font-size: var(--h6-font-size);
-    font-weight: var(--font-weight-light);
-  }
-  
-  .logo {
-    background-color: var(--white-color);
-    border-radius: var(--border-radius-large);
-    width: 80px;
-    height: 80px;
-    padding: 15px;
-  }
-  
-  .navbar-expand-lg .navbar-nav .nav-link {
-    margin: 20px;
-    padding: 0;
-  }
-  
-  .navbar-nav .nav-link {
-    display: inline-block;
-    color: var(--white-color);
-    font-size: var(--p-font-size);
-    font-weight: var(--font-weight-medium);
-    position: relative;
-    padding-top: 15px;
-    padding-bottom: 15px;
-  }
-  
-  .navbar-nav .nav-link.active, 
-  .navbar-nav .nav-link:hover {
-    background: transparent;
-    color: var(--primary-color);
-  }
-  
-  .dropdown-menu {
+ 
+
+/* Dropdown styles */
+.dropdown-menu {
     background: var(--white-color);
-    box-shadow: 0 1rem 3rem rgba(0,0,0,.175);
-    border: 0;
-    display: inherit;
-    opacity: 0;
-    min-width: 9rem;
-    margin-top: 20px;
-    padding: 13px 0 10px 0;
-    transition: all 0.3s;
-    pointer-events: none;
-  }
-  
-  .dropdown-menu::before {
-    content: "";
-    width: 0;
-    height: 0;
-    border-left: 20px solid transparent;
-    border-right: 20px solid transparent;
-    border-bottom: 15px solid var(--white-color);
-    position: absolute;
-    top: -10px;
-    left: 10px;
-  }
-  
-  .dropdown-item {
-    display: inline-block;
-    color: var(--p-bg-color);
-    font-size: var(--menu-font-size);
-    font-weight: var(--font-weight-medium);
-    position: relative;
-    padding-top: 0;
-    padding-bottom: 7px;
-  }
-  
-  .dropdown-item.active, 
-  .dropdown-item:active,
-  .dropdown-item:focus, 
-  .dropdown-item:hover {
-    background: transparent;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 8px 0;
+    margin-top: 10px;
+}
+
+.dropdown-item {
+    color: var(--dark-color);
+    font-size: 15px;
+    padding: 8px 20px;
+    transition: all 0.3s ease;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: rgba(13, 110, 253, 0.1);
     color: var(--primary-color);
-  }
-  
-  .dropdown-toggle::after {
-    content: "\f282";
-    display: inline-block;
-    font-family: bootstrap-icons !important;
-    font-size: var(--copyright-font-size);
-    font-style: normal;
-    font-weight: normal !important;
-    font-variant: normal;
-    text-transform: none;
-    line-height: 1;
-    vertical-align: -.125em;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    position: relative;
-    left: 2px;
-    border: 0;
-  }
-  
-  @media screen and (min-width: 992px) {
-    .dropdown:hover .dropdown-menu {
-      opacity: 1;
-      margin-top: 0;
-      pointer-events: auto;
-    }
-  }
-  
-  .navbar-toggler {
-    border: 0;
-    padding: 0;
-    cursor: pointer;
-    margin: 0;
-    width: 30px;
-    height: 35px;
-    outline: none;
-  }
-  
-  .navbar-toggler:focus {
-    outline: none;
-    box-shadow: none;
-  }
-  
-  .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
-    background: transparent;
-  }
-  
-  .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon:before,
-  .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon:after {
-    transition: top 300ms 50ms ease, -webkit-transform 300ms 350ms ease;
-    transition: top 300ms 50ms ease, transform 300ms 350ms ease;
-    transition: top 300ms 50ms ease, transform 300ms 350ms ease, -webkit-transform 300ms 350ms ease;
-    top: 0;
-  }
-  
-  .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon:before {
-    transform: rotate(45deg);
-  }
-  
-  .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon:after {
-    transform: rotate(-45deg);
-  }
-  
-  .navbar-toggler .navbar-toggler-icon {
-    background: var(--dark-color);
-    transition: background 10ms 300ms ease;
-    display: block;
-    width: 30px;
-    height: 2px;
-    position: relative;
-  }
-  
-  .navbar-toggler .navbar-toggler-icon:before,
-  .navbar-toggler .navbar-toggler-icon:after {
-    transition: top 300ms 350ms ease, -webkit-transform 300ms 50ms ease;
-    transition: top 300ms 350ms ease, transform 300ms 50ms ease;
-    transition: top 300ms 350ms ease, transform 300ms 50ms ease, -webkit-transform 300ms 50ms ease;
-    position: absolute;
-    right: 0;
-    left: 0;
-    background: var(--dark-color);
-    width: 30px;
-    height: 2px;
-    content: '';
-  }
-  
-  .navbar-toggler .navbar-toggler-icon::before {
-    top: -8px;
-  }
-  
-  .navbar-toggler .navbar-toggler-icon::after {
-    top: 8px;
-  }
-  
+}
+
+.dropdown-item.active {
+    background-color: var(--primary-color);
+    color: var(--white-color);
+}
+
 /*---------------------------------------
   SITE HEADER              
 -----------------------------------------*/
@@ -1015,6 +847,62 @@ h1 {
     opacity: 0.8;
 }
 
+.site-header p,
+.site-header strong,
+.site-header i {
+    color: #ffffff !important;
+}
+
+.site-header-icon-wrap,
+.header-contact-link {
+    color: #ffffff !important;
+}
+
+.header-contact-link:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Replace existing header styles with these */
+.top-info-header {
+    background: rgba(87, 85, 240, 0.342);
+    position: relative;
+    z-index: 22;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.top-info-header p,
+.top-info-header p a,
+.top-info-header .top-header-icon {
+    color: white;
+    font-size: var(--copyright-font-size);
+    font-weight: var(--font-weight-medium);
+}
+
+.top-header-icon-wrap {
+    text-align: right;
+    color: white;
+}
+
+.top-header-icon {
+    display: inline-block;
+    color: white;
+}
+
+.top-contact-link {
+    color: white;
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+    transition: opacity 0.3s ease;
+}
+
+.top-contact-link:hover {
+    color: white;
+    opacity: 0.8;
+}
+
 /*---------------------------------------
     HERO        
   -----------------------------------------*/
@@ -1058,7 +946,7 @@ h1 {
     BANNER        
   -----------------------------------------*/
   .banner-section {
-    background-image: url('../images/high-angle-woman-cleaning-floors.jpg');
+    background-image: url('../images/slideshow/slide1.jpg');
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
@@ -1717,7 +1605,7 @@ h1 {
   
   /* Review stars */
   .reviews-icons .bi-star-fill {
-    color: var(--primary-color) !important;
+    color: var (--primary-color) !important;
   }
   
   /* Footer links hover */
@@ -1892,7 +1780,7 @@ h1 {
   }
   
   .contact-section .custom-icon {
-      color: var(--primary-color);
+      color: var (--primary-color);
   }
   
   .contact-section a {
@@ -1953,7 +1841,7 @@ h1 {
   
   /* Services page specific styles */
   .banner-section .section-overlay {
-      background-color: rgba(13, 110, 253, 0.85) !important;
+      background-color: rgba(13, 109, 253, 0.719) !important;
   }
   
   .services-section .section-bg {
@@ -2037,44 +1925,6 @@ h1 {
       padding-bottom: 80px;
     }
   
-    .navbar {
-      background-color: var(--white-color);
-      padding-top: 5px;
-      padding-bottom: 5px;
-    }
-  
-    .navbar-brand,
-    .navbar-brand:hover {
-      color: var(--primary-color);
-    }
-  
-    .navbar-nav .nav-link {
-      color: var(--p-color);
-    }
-  
-    .navbar-expand-lg .navbar-nav {
-      padding-bottom: 30px;
-    }
-  
-    .navbar-expand-lg .navbar-nav .nav-link {
-      margin: 8px 20px;
-    }
-  
-    .navbar-expand-lg .navbar-nav .nav-link.custom-btn {
-      background-color: var(--custom-btn-bg-color);
-      color: var(--white-color);
-      margin-left: 0;
-    }
-  
-    .navbar-nav .dropdown-menu {
-      position: relative;
-      left: 20px;
-      opacity: 1;
-      pointer-events: auto;
-      max-width: 100px;
-      margin-top: 10px;
-      margin-bottom: 15px;
-    }
   
     .custom-block-wrap .custom-block {
       right: 12px;
@@ -2144,87 +1994,7 @@ h1 {
     }
   }
 
-/* Navbar Logo Styles */
-.navbar-logo {
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
-}
 
-.navbar-brand {
-    font-size: var(--p-font-size);
-    color: var(--dark-color);
-    font-weight: var(--font-weight-medium);
-}
-
-.navbar-brand:hover {
-    color: var(--primary-color);
-}
-
-/* Navbar Styles */
-.navbar {
-    overflow: hidden;
-    padding: 15px 0;
-    background: rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-
-.navbar-logo {
-    width: 50px;
-    height: 50px;
-    object-fit: contain;
-}
-
-.brand-text {
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--white-color);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.navbar-nav {
-    gap: 10px;
-}
-
-.nav-link {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--white-color) !important;
-    transition: color 0.3s ease;
-}
-
-.nav-link:hover {
-    color: var(--primary-color) !important;
-    opacity: 0.8;
-}
-
-/* Mobile Responsive */
-@media (max-width: 991px) {
-    .navbar-collapse {
-        background: rgba(0, 0, 0, 0.8);
-        padding: 20px;
-        border-radius: 10px;
-        margin-top: 15px;
-    }
-    
-    .brand-text {
-        font-size: 20px;
-    }
-    
-    .navbar-nav {
-        gap: 5px;
-    }
-
-    .navbar-toggler {
-        border-color: var(--white-color);
-    }
-
-    .navbar-toggler-icon {
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-    }
-}
 
 /* Services Section Styles */
 .services-thumb {

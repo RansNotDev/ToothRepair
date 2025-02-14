@@ -21,16 +21,16 @@
                     <a class="nav-link px-3" href="about.php">About Us</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link px-3" href="landing_services.php">Our Services</a>
+                    <a class="nav-link px-3" href="landing_services.php">Services</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link px-3" href="appointmentcalendar.php">Book An Appointment</a>
+                    <a class="nav-link px-3" href="appointmentcalendar.php">Book an Appointment</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link px-3" href="contact.php">Contact</a>
                 </li>
-                <li class="nav-item ms-3">
-                    <a class="nav-link custom-btn custom-border-btn custom-btn-bg-white btn" href="usrbase/entryvault.php">Get started</a>
+                <li class="nav-item ms-2">
+                    <a class="nav-link custom-btn custom-border-btn custom-btn-bg-white btn" href="usrbase/entryvault.php">Login</a>
                 </li>
             </ul>
         </div>

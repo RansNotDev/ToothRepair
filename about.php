@@ -178,7 +178,7 @@
         <script src="js/init.js"></script>
         <script src="js/modernizr.js"></script>
         <script src="js/animated-headline.js"></script>
-        <script src="js/custom.js"></script>
+  
 
     </body>
 </html>

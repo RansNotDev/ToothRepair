@@ -106,78 +106,246 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             color: #ffd700;
             transition: all 0.2s ease;
         }
-        .sticky-top {
-            position: sticky;
-            top: 20px;
-            z-index: 1000;
+        body 
+{
+    background-color: #f8f9fc;
+}
+        .card {
+            transition: none !important;
         }
-        .quick-actions .btn {
-            transition: all 0.3s ease;
+        .card:hover {
+            transform: none !important;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
         }
-        .quick-actions .btn:hover {
-            transform: translateX(5px);
-        }
-        .active {
-            background-color: #007bff !important;
-            color: white !important;
-        }
-        .form-control:focus {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        }
-        .btn {
-            transition: all 0.3s ease;
-        }
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
+.dashboard-header .btn-light {
+    transition: all 0.3s;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    padding: 0.5rem 1rem;
+}
+
+.dashboard-header .btn-light:hover {
+    background: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+    .dashboard-header .d-flex {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    
+    .dashboard-header .btn-light {
+        margin-bottom: 0.5rem;
+    }
+    .quick-actions-card {
+        margin-top: 1rem;
+    }
+}
+.detail-card {
+    transition: transform 0.2s;
+}
+
+.detail-card:hover {
+    transform: translateY(-5px);
+}
+
+.action-buttons .btn {
+    transition: all 0.3s;
+}
+
+.action-buttons .btn:hover {
+    transform: translateY(-2px);
+}
+
+.progress-tracker .badge {
+    font-size: 0.8rem;
+}
+
+.header-action-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    transition: all 0.3s;
+    text-align: left;
+    padding: 0.5rem 1rem;
+    width: 100%;
+    border-radius: 0.5rem;
+}
+
+.header-action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    transform: translateX(5px);
+}
+
+.upcoming-appointment {
+    transition: transform 0.2s;
+    border-left: 4px solid #4e73df;
+}
+
+.upcoming-appointment:hover {
+    transform: translateX(5px);
+}
+
+.badge {
+    padding: 0.5em 0.75em;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+.active {
+        background-color:rgb(51, 94, 139) !important;
+        color: white !important;
+    }
+.sticky-top {
+    position: sticky;
+    top: 20px;
+    z-index: 1000;
+}
+
+@media (max-width: 991px) {
+    .sticky-top {
+        position: relative;
+        top: 0;
+    }
+}
+
+.quick-actions .btn {
+    transition: all 0.3s ease;
+}
+
+.quick-actions .btn:hover {
+    transform: translateX(5px);
+    background-color: #f8f9fa;
+}
+
+.btn i {
+    width: 20px;
+    text-align: center;
+}
+
+.bg-gradient-dark {
+    background: linear-gradient(135deg, #1a2b43 0%, #2c4a6c 50%, #1a2b43 100%);
+    position: relative;
+}
+
+.dashboard-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1));
+    pointer-events: none;
+}
+
+/* Optional: Add a subtle glow effect to the logo */
+.dashboard-header img {
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
+    transition: filter 0.3s ease;
+}
+
+.dashboard-header img:hover {
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
+}
+
+.dashboard-header {
+    position: relative;
+}
+
+.dashboard-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.05);
+    pointer-events: none;
+}
+.quick-action-btn {
+    transition: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin-bottom: 5px;
+    position: relative;
+}
+
+.quick-action-btn:hover {
+    background-color: #f8f9fa !important;
+    transform: none !important;
+}
+
+.quick-action-btn.active {
+    background-color: rgb(51, 94, 139) !important;
+    color: white !important;
+}
+
+.quick-action-btn.active i {
+    color: white !important;
+}
+
+.position-sticky {
+    position: sticky !important;
+    top: 20px !important;
+    z-index: 1000;
+}
     </style>
 </head>
 <body>
-<div class="container-fluid py-4 bg-light">
+<div class="container-fluid px-0">
     <div class="row">
-        <div class="col-12">
-            <div class="dashboard-header mb-4 bg-primary bg-gradient text-white p-3 rounded shadow-sm">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="mb-3 mb-md-0">
+        <div class="col-12 mx-0 px-0">
+            <div class="dashboard-header bg-gradient-dark p-4 rounded-0 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center">
+                    <!-- Left side - Logo and Title -->
+                    <div class="d-flex align-items-center">
+                        <img src="../images/logo/cliniclogo.png" alt="Tooth Repair Logo" class="mr-3" style="height: 80px; width: auto;">
+                        <h2 class="h4 text-white mb-0">Tooth Repair Dental Clinic</h2>
+                    </div>
+                    <!-- Right side - Welcome message -->
+                    <div class="text-right">
                         <h1 class="h3 text-white fw-bold">Welcome Back, <?php echo htmlspecialchars($_SESSION['fullname'] ?? 'User'); ?></h1>
-                        <p class="text-white">We value your feedback</p>
+                        <p class="text-white mb-0">Here's your feedback overview</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
     <div class="row">
         <!-- Quick Actions Card - Left Column -->
-        <div class="col-lg-4 col-md-12 mb-4">
-            <div class="card border-0 shadow-sm rounded-lg sticky-top">
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm rounded-lg position-sticky" style="top: 20px;">
                 <div class="card-body p-4">
-                    <h5 class="card-title text-primary mb-4">Quick Actions</h5>
+                
                     <div class="d-grid gap-3">
-                        <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                            <i class="fas fa-home text-primary"></i>
+                        <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
+                            <i class="fas fa-home text-primary me-3"></i>
                             <span>Home</span>
                         </a>
-                        <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                            <i class="fas fa-calendar-plus text-primary"></i>
+                        <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
+                            <i class="fas fa-calendar-plus text-primary me-3"></i>
                             <span>Book New Appointment</span>
                         </a>
-                        <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                            <i class="fas fa-history text-primary"></i>
+                        <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
+                            <i class="fas fa-history text-primary me-3"></i>
                             <span>View History</span>
                         </a>
-                        <a href="user_feedback.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                            <i class="fas fa-comment-dots text-primary"></i>
+                        <a href="user_feedback.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
+                            <i class="fas fa-comment-dots text-primary me-3"></i>
                             <span>Feed Back</span>
                         </a>
-                        <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center">
-                            <i class="fas fa-user text-primary"></i>
+                        <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
+                            <i class="fas fa-user text-primary me-3"></i>
                             <span>Update Profile</span>
                         </a>
-                        <a href="logout.php" onclick="return confirmLogout();" class="btn btn-light text-start p-3 d-flex align-items-center">
-                            <i class="fas fa-sign-out-alt text-primary"></i>
+                        <a href="logout.php" onclick="return confirmLogout();" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
+                            <i class="fas fa-sign-out-alt text-primary me-3"></i>
                             <span>Logout</span>
                         </a>
                     </div>
@@ -251,6 +419,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+document.addEventListener("DOMContentLoaded", function () {
+    let links = document.querySelectorAll(".quick-action-btn");
+    let currentUrl = window.location.pathname.split("/").pop();
+
+    links.forEach(link => {
+        if (link.getAttribute("href") === currentUrl) {
+            link.classList.add("active");
+            link.querySelector("i").classList.remove("text-primary");
+        }
+    });
+});
+
+function confirmLogout() {
+    return confirm("Are you sure you want to logout?");
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     let links = document.querySelectorAll(".card-body a");
     let currentUrl = window.location.pathname.split("/").pop();

@@ -1,0 +1,50 @@
+.top-clinic-header {
+    background: rgba(7, 3, 241, 0.651);
+    position: relative;
+    z-index: 1030;
+    padding: 12px 0;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.top-clinic-header p,
+.top-clinic-header strong,
+.top-clinic-header i {
+    color: #ffffff;
+}
+
+.clinic-hours {
+    display: flex;
+    align-items: center;
+}
+
+.clinic-contact-wrap {
+    display: flex;
+    align-items: center;
+}
+
+.clinic-contact-icon {
+    color: #ffffff;
+}
+
+.clinic-phone-link {
+    color: #ffffff;
+    text-decoration: none;
+    transition: opacity 0.3s ease;
+}
+
+.clinic-phone-link:hover {
+    color: #ffffff;
+    opacity: 0.8;
+}
+
+/* Media Queries */
+@media (max-width: 991px) {
+    .clinic-hours {
+        font-size: 14px;
+    }
+    
+    .clinic-phone-link {
+        font-size: 14px;
+    }
+}

@@ -48,7 +48,7 @@
                     <div class="row">
 
                         <div class="col-lg-7 col-12">
-                            <h1 class="mb-lg-0">Services Listing</h1>
+                            <h1 class="mb-lg-0" style="color: white;">Services Listing</h1>
                         </div>
 
                         <div class="col-lg-4 col-12 d-flex justify-content-lg-end align-items-center ms-auto">
@@ -70,7 +70,7 @@
                 <div class="container">
                     <div class="row">
                         <div class="col-lg-12 col-12">
-                            <h2 class="mb-4">Our Services</h2>
+                            <h2 class="mb-4" style="color: #0d6efd;">Our Services</h2>
                         </div>
 
                         <?php foreach ($services as $service): ?>
@@ -170,7 +170,6 @@
         <script src="js/init.js"></script>
         <script src="js/modernizr.js"></script>
         <script src="js/animated-headline.js"></script>
-        <script src="js/custom.js"></script>
 
     </body>
 </html>
