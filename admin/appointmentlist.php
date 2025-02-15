@@ -10,9 +10,9 @@ $result = mysqli_query(
     $conn,
     "SELECT available_date, 
             TIME_FORMAT(time_start, '%H:%i') as time_start, 
-            TIME_FORMAT(time_end, '%H:%i') as time_end 
-     FROM availability_tb 
-     WHERE is_active = 1"
+            TIME_FORMAT(time_end, '%H:%i') as time_end,
+            max_daily_appointments 
+     FROM availability_tb"
 );
 while ($row = mysqli_fetch_assoc($result)) {
     $availability[$row['available_date']] = $row;
@@ -71,6 +71,7 @@ if (isset($_GET['date'])) {
     if (isset($availability[$date])) {
         $start_time = strtotime($availability[$date]['time_start']);
         $end_time = strtotime($availability[$date]['time_end']);
+        $max_daily_appointments = $availability[$date]['max_daily_appointments'];
 
         $time_slots = array();
 
@@ -93,9 +94,27 @@ if (isset($_GET['date'])) {
             $booked_slots[] = $row['booked_time'];
         }
 
+        // Get count of existing appointments for this date
+        $stmt = $conn->prepare("SELECT COUNT(*) as count 
+                               FROM appointments 
+                               WHERE appointment_date = ? 
+                               AND status IN ('confirmed', 'pending')");
+        $stmt->bind_param("s", $date);
+        $stmt->execute();
+        $count_result = $stmt->get_result();
+        $count_row = $count_result->fetch_assoc();
+        $current_appointments = $count_row['count'];
+
+        // Check if we've reached the maximum appointments for this date
+        if ($current_appointments >= $max_daily_appointments) {
+            echo json_encode(['error' => 'Maximum appointments reached for this date']);
+            exit;
+        }
+
         echo json_encode([
             'available' => $time_slots,
-            'booked' => $booked_slots
+            'booked' => $booked_slots,
+            'remaining_slots' => $max_daily_appointments - $current_appointments
         ]);
     } else {
         echo json_encode(['error' => 'No availability found for selected date']);

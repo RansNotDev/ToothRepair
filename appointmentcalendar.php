@@ -11,22 +11,14 @@ function generateRandomPassword($length = 8)
 
 include_once('database/db_connection.php');
 
-// Get clinic settings
-$max_daily = 20;
-$settingsResult = mysqli_query($conn, "SELECT max_daily_appointments FROM clinic_settings LIMIT 1");
-if ($settingsResult && mysqli_num_rows($settingsResult) > 0) {
-    $max_daily = mysqli_fetch_assoc($settingsResult)['max_daily_appointments'];
-}
-
-
-// Get available dates and times
+// Get available dates and times with max_daily_appointments
 $availability = [];
 $result = mysqli_query(
     $conn,
-    "SELECT available_date, time_start, time_end 
-     FROM availability_tb 
-     WHERE is_active = 1"
+    "SELECT available_date, time_start, time_end, max_daily_appointments 
+     FROM availability_tb"
 );
+
 while ($row = mysqli_fetch_assoc($result)) {
     $availability[$row['available_date']] = $row;
 }
@@ -80,8 +72,8 @@ while ($row = mysqli_fetch_assoc($result)) {
 
                     <div class="col-lg-10 col-12">
                         <div class="section-title text-center mb-5">
-                            <h2 class="text-primary">Book Your Appointment</h2>
-                            <p class="text-muted">Select your preferred date and time</p>
+                            <h2 class="text-light">Book Your Appointment</h2>
+                            <p class="text-light">Select your preferred date and time</p>
                         </div>
                         <!--
                 <div class="calendar-legend text-center mt-4">
@@ -287,16 +279,14 @@ while ($row = mysqli_fetch_assoc($result)) {
 
 
             const bookedSlots = <?php echo json_encode($bookedSlots); ?>;
-            const maxDaily = <?php echo $max_daily; ?>;
             const availability = <?php echo json_encode($availability); ?>;
-            // Get calendar element
-            const calendarEl = document.getElementById('calendar');
 
-            // Add this function before the calendar initialization
             function checkDateAvailability(dateStr) {
-                // Check if the date exists in availability array
                 return availability.hasOwnProperty(dateStr);
             }
+
+            // Get calendar element
+            const calendarEl = document.getElementById('calendar');
 
             // Initialize calendar with defined variables
             const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -309,11 +299,11 @@ while ($row = mysqli_fetch_assoc($result)) {
                     const isAvailable = checkDateAvailability(dateStr);
 
                     if (!isPast && isAvailable) {
-                        const { time_start, time_end } = availability[dateStr];
+                        const { time_start, time_end, max_daily_appointments } = availability[dateStr];
                         const slots = generateTimeSlots(time_start, time_end);
                         const booked = bookedSlots[dateStr] || [];
                         const bookedCount = booked.length;
-                        const remaining = Math.max(maxDaily - bookedCount, 0);
+                        const remaining = Math.max(max_daily_appointments - bookedCount, 0);
 
                         $('#date').val(dateStr);
                         const timeSelect = $('#time');
@@ -335,8 +325,9 @@ while ($row = mysqli_fetch_assoc($result)) {
                 dayCellContent: function (arg) {
                     const dateStr = arg.date.toISOString().split('T')[0];
                     const isPast = arg.date < new Date().setHours(0, 0, 0, 0);
-                    const isAvailable = checkDateAvailability(dateStr); // Add this line
+                    const isAvailable = checkDateAvailability(dateStr);
                     const bookedCount = bookedSlots[dateStr]?.length || 0;
+                    const maxDaily = availability[dateStr]?.max_daily_appointments || 0;
                     const remaining = Math.max(maxDaily - bookedCount, 0);
 
                     let slotInfo = '';
@@ -360,6 +351,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                     const isPast = arg.date < new Date().setHours(0, 0, 0, 0);
                     const isAvailable = checkDateAvailability(dateStr);
                     const bookedCount = bookedSlots[dateStr]?.length || 0;
+                    const maxDaily = availability[dateStr]?.max_daily_appointments || 0;
                     const hasSlots = maxDaily - bookedCount > 0;
 
                     let classes = [];

@@ -70,6 +70,11 @@
     opacity: 0.8;
 }
 
+.section-title h2,
+.section-title p {
+    color: #ffffff !important;
+}
+
 /* Modal Styling */
 .modal-content {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);

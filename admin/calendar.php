@@ -4,21 +4,26 @@ include_once('includes/header.php');
 include_once('includes/sidebar.php');
 include_once('includes/topbar.php');
 
-// Get current settings
+// Remove or comment out the old clinic_settings query
+/*
 $settingsQuery = "SELECT max_daily_appointments FROM clinic_settings LIMIT 1";
 $result = mysqli_query($conn, $settingsQuery);
 $max_daily = ($result && $row = mysqli_fetch_assoc($result)) ? $row['max_daily_appointments'] : 20;
+*/
 
-
-
-// Fetch available dates from availability_tb
-$availabilityDates = [];
-$resultAvail = mysqli_query($conn, "SELECT available_date FROM availability_tb WHERE is_active = 1");
-while ($rowAvail = mysqli_fetch_assoc($resultAvail)) { // Changed $result to $resultAvail
-    $availabilityDates[] = $rowAvail['available_date'];
+// Fetch available dates and their max_daily_appointments from availability_tb
+$availabilityData = [];
+$maxAppointments = [];
+$resultAvail = mysqli_query($conn, "SELECT available_date, max_daily_appointments FROM availability_tb");
+while ($rowAvail = mysqli_fetch_assoc($resultAvail)) {
+    $availabilityData[] = $rowAvail['available_date'];
+    $maxAppointments[$rowAvail['available_date']] = $rowAvail['max_daily_appointments'];
 }
 
-// For debugging purposes, you can add this:
+// Remove duplicate query and use the data we already fetched
+$availabilityDates = $availabilityData; // We already have this data
+
+// For debugging purposes
 if (empty($availabilityDates)) {
     error_log('No available dates found in availability_tb');
 }
@@ -262,9 +267,10 @@ if ($result) {
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const maxDaily = <?php echo $max_daily; ?>;
+        // Replace the old maxDaily constant with maxAppointments object
+        const maxAppointments = <?php echo json_encode($maxAppointments); ?>;
         const appointmentCounts = <?php echo json_encode($appointmentCounts); ?>;
-        const availabilityDates = <?php echo json_encode($availabilityDates); ?>; // New: available dates
+        const availabilityDates = <?php echo json_encode($availabilityData); ?>;
 
         const calendarEl = document.getElementById('calendar');
         const scheds = <?php echo json_encode($sched_arr); ?>;
@@ -301,7 +307,8 @@ if ($result) {
                 const isPast = args.date < new Date().setHours(0,0,0,0);
                 const isOpen = availabilityDates.includes(dateStr);
                 
-                // Get appointment counts for the day
+                // Get max appointments for this specific date
+                const maxDaily = maxAppointments[dateStr] || 0;
                 const count = appointmentCounts[dateStr] || 0;
                 const available = isOpen ? Math.max(maxDaily - count, 0) : 0;
 

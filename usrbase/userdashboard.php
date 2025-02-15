@@ -222,7 +222,7 @@ body
 }
 
 .bg-gradient-dark {
-    background: linear-gradient(135deg, #1a2b43 0%, #2c4a6c 50%, #1a2b43 100%);
+    background: rgb(152, 193, 233);
     position: relative;
 }
 
@@ -275,7 +275,7 @@ body
 }
 
 .quick-action-btn.active {
-    background-color: rgb(51, 94, 139) !important;
+    background-color: rgba(98, 160, 223, 0.9) !important;
     color: white !important;
 }
 
@@ -310,12 +310,12 @@ body
                 <!-- Left side - Logo and Title -->
                 <div class="d-flex align-items-center">
                     <img src="../images/logo/cliniclogo.png" alt="Tooth Repair Logo" class="mr-3" style="height: 80px; width: auto;">
-                    <h2 class="h4 text-white mb-0">Tooth Repair Dental Clinic</h2>
+                    <h2 class="h4 text-primary mb-0">Tooth Repair Dental Clinic</h2>
                 </div>
                 <!-- Right side - Welcome message -->
                 <div class="text-right">
-                    <h1 class="h3 text-white fw-bold">Welcome Back, <?php echo htmlspecialchars($_SESSION['fullname'] ?? 'User'); ?></h1>
-                    <p class="text-white mb-0">Here's your appointment overview</p>
+                    <h1 class="h3 text-primary fw-bold">Welcome Back, <?php echo htmlspecialchars($_SESSION['fullname'] ?? 'User'); ?></h1>
+                    <p class="text-primary mb-0">Here's your appointment overview</p>
                 </div>
             </div>
         </div>

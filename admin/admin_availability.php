@@ -32,20 +32,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         try {
             $conn->begin_transaction();
             
-            // Instead of deleting all records, we'll only insert new ones
-            $stmt = $conn->prepare("INSERT INTO availability_tb (available_date, time_start, time_end) 
-                                  VALUES (?, ?, ?) 
-                                  ON DUPLICATE KEY UPDATE time_start = VALUES(time_start), time_end = VALUES(time_end)");
+            // Only update time_start and time_end, preserve existing max_daily_appointments
+            $stmt = $conn->prepare("UPDATE availability_tb 
+                                  SET time_start = ?, time_end = ?
+                                  WHERE available_date = ?");
             
             foreach ($dates as $date) {
                 if (DateTime::createFromFormat('Y-m-d', $date)) {
-                    $stmt->bind_param("sss", $date, $timeStart, $timeEnd);
+                    $stmt->bind_param("sss", $timeStart, $timeEnd, $date);
                     $stmt->execute();
                 }
             }
             
             $conn->commit();
-            header("Location: admin_availability.php?success=1");
+            echo json_encode(['success' => true]);
             exit();
             
         } catch (Exception $e) {
@@ -77,10 +77,72 @@ include_once('includes/topbar.php');
 <link href="css/sb-admin-2.min.css" rel="stylesheet">
 <!-- DataTables -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <style>
-   body {
-    overflow: hidden;
-  }
+    body {
+        overflow-y: auto !important;
+    }
+    #calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        padding: 16px;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    .calendar-day {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        cursor: pointer;
+        min-height: 60px;
+        position: relative;
+    }
+    .past-date {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background-color: #f3f4f6;
+    }
+    .calendar-day input[type="checkbox"] {
+        margin-right: 8px;
+    }
+    .calendar-day span {
+        text-align: center;
+    }
+    .day-header {
+        font-weight: bold;
+        text-align: center;
+        padding: 8px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+    }
+    .max-appointments-indicator {
+        position: absolute;
+        bottom: 2px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.75rem;
+        color: #666;
+    }
+    .calendar-day:not(.past-date):not(.empty):hover {
+        background-color: #f3f4f6;
+        cursor: pointer;
+    }
+
+    .calendar-day input[type="checkbox"] {
+        z-index: 2;
+        position: relative;
+    }
+
+    .calendar-day.past-date {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
   </style>
 </head>
 <body class="bg-gray-100">
@@ -112,44 +174,23 @@ include_once('includes/topbar.php');
                   <button type="button" id="prevMonth" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                     Previous
                   </button>
-                  <h3 id="currentMonth" class="text-xl font-bold self-center"></h3>
+                  <div class="flex items-center gap-4">
+                    <h3 id="currentMonth" class="text-xl font-bold self-center"></h3>
+                    <label class="flex items-center space-x-2">
+                      <input type="checkbox" id="selectAll" class="form-checkbox h-5 w-5 text-blue-600">
+                      <span class="text-gray-700">Select All</span>
+                    </label>
+                  </div>
                   <button type="button" id="nextMonth" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                     Next
                   </button>
                 </div>
 
+
                 <div id="calendar" class="grid grid-cols-7 gap-2 mb-4"></div>
 
-                <div class="text-center">
-                  <button type="submit" id="saveAvailability" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
-                    Save Availability
-                  </button>
-                </div>
               </div>
 
-              <!-- Max Appointments Modal -->
-              <div id="maxAppointmentsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center">
-                <div class="bg-white p-8 rounded-lg shadow-xl w-96">
-                  <h3 class="text-xl font-bold mb-4">Set Maximum Daily Appointments</h3>
-                  <div class="mb-4">
-                    <label for="maxAppointments" class="block text-sm font-medium text-gray-700 mb-2">
-                      Number of Slots Available Per Day
-                    </label>
-                    <input type="number" id="maxAppointments" name="max_appointments" min="1" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
-                  </div>
-                  <div class="flex justify-end space-x-4">
-                    <button type="button" id="cancelModal" 
-                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
-                      Cancel
-                    </button>
-                    <button type="button" id="confirmMaxAppointments" 
-                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                      Confirm
-                    </button>
-                  </div>
-                </div>
-              </div>
             </form>
           </div>
         </div>
@@ -170,8 +211,25 @@ document.addEventListener('DOMContentLoaded', function() {
     function fetchAvailability(callback) {
         fetch('fetch-availability.php')
             .then(response => response.json())
-            .then(data => callback(data))
-            .catch(error => console.error('Error:', error));
+            .then(data => {
+                if (Array.isArray(data)) {
+                    const availabilityMap = new Map();
+                    data.forEach(item => {
+                        availabilityMap.set(item.date, {
+                            timeStart: item.timeStart,
+                            timeEnd: item.timeEnd,
+                            max_daily_appointments: item.max_daily_appointments
+                        });
+                    });
+                    callback(availabilityMap);
+                } else if (data.error) {
+                    console.error('Error:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch Error:', error);
+                callback(new Map());
+            });
     }
 
     function updateAvailability(date, isChecked) {
@@ -182,13 +240,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isChecked) {
             const timeStart = document.getElementById('time_start').value;
             const timeEnd = document.getElementById('time_end').value;
+            const maxDailyAppointments = document.getElementById('max_daily_appointments').value || 8;
             
             if (!timeStart || !timeEnd) {
                 alert('Please set start and end times first');
-                return false;
+                return Promise.resolve(false);
             }
+            
             formData.append('timeStart', timeStart);
             formData.append('timeEnd', timeEnd);
+            formData.append('max_daily_appointments', maxDailyAppointments);
         }
 
         return fetch('update-availability.php', {
@@ -198,35 +259,78 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Refresh calendar data instead of page reload
-                fetchAvailability(availability => renderCalendar(currentDate, availability));
                 return true;
             }
-            return false;
+            throw new Error(data.error || 'Failed to update availability');
         })
-        .catch(() => false);
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Error!',
+                text: error.message,
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+            return false;
+        });
     }
 
-    // Add time input handlers
     function toggleCheckboxes() {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
         const timeStart = document.getElementById('time_start').value;
         const timeEnd = document.getElementById('time_end').value;
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]:not(:checked)');
+        const hasValidTimes = timeStart && timeEnd;
         
         checkboxes.forEach(checkbox => {
             const dateObj = new Date(checkbox.value);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             
-            // Disable unchecked boxes if no time set or date is in past
-            checkbox.disabled = (!timeStart || !timeEnd || dateObj < today);
+            // Only disable if it's a past date
+            const isPastDate = dateObj < today;
+            checkbox.disabled = isPastDate;
+            
+            // Add visual indication if times are not set
+            if (!hasValidTimes) {
+                checkbox.parentElement.style.opacity = '0.7';
+            } else {
+                checkbox.parentElement.style.opacity = '1';
+            }
         });
     }
+
+    // Handle select all functionality
+    document.getElementById('selectAll').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]:not(#selectAll)');
+        const timeStart = document.getElementById('time_start').value;
+        const timeEnd = document.getElementById('time_end').value;
+        
+        if (!timeStart || !timeEnd) {
+            this.checked = false;
+            Swal.fire({
+                title: 'Warning',
+                text: 'Please set start and end times first',
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        checkboxes.forEach(checkbox => {
+            if (!checkbox.disabled) {
+                checkbox.checked = this.checked;
+                const event = new Event('change');
+                checkbox.dispatchEvent(event);
+            }
+        });
+    });
+
+
 
     document.getElementById('time_start').addEventListener('change', toggleCheckboxes);
     document.getElementById('time_end').addEventListener('change', toggleCheckboxes);
 
-    function renderCalendar(date, availability) {
+    function renderCalendar(date, availabilityMap) {
         const year = date.getFullYear();
         const month = date.getMonth();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -237,87 +341,263 @@ document.addEventListener('DOMContentLoaded', function() {
         calendarEl.innerHTML = '';
         currentMonthEl.textContent = `${monthNames[month]} ${year}`;
 
-        // Create day headers
         ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
             const dayEl = document.createElement('div');
-            dayEl.className = 'font-bold text-center text-gray-600';
+            dayEl.className = 'day-header';
             dayEl.textContent = day;
             calendarEl.appendChild(dayEl);
         });
 
-        // Add empty cells for days before the first of the month
         for (let i = 0; i < firstDayOfMonth; i++) {
-            calendarEl.appendChild(document.createElement('div'));
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'calendar-day empty';
+            calendarEl.appendChild(emptyCell);
         }
-
-        // Create date cells
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
 
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const dateObj = new Date(year, month, day);
             const dayEl = document.createElement('div');
-            const label = document.createElement('label');
-            const checkbox = document.createElement('input');
-            const dayNumber = document.createElement('span');
+            dayEl.className = 'calendar-day';
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const isPastDate = dateObj < today;
+            
+            if (isPastDate) {
+                dayEl.classList.add('past-date');
+            }
 
-            // Configure checkbox
+            const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.name = 'available_dates[]';
             checkbox.value = dateStr;
             checkbox.className = 'mr-2';
-
-            // Configure day number display
-            dayNumber.className = 'inline-block w-8 h-8 leading-8';
+            checkbox.disabled = isPastDate;
+            
+            const dayNumber = document.createElement('span');
             dayNumber.textContent = day;
 
-            // Check if date is available
-            if (availability.includes(dateStr)) {
+            const dateInfo = availabilityMap.get(dateStr);
+            if (dateInfo) {
                 checkbox.checked = true;
-            }
-
-            // Handle past dates
-            if (dateObj < today) {
-                dayEl.classList.add('past-date');
-                checkbox.disabled = true;
-            }
-
-            // Add click handler for visual feedback
-            label.addEventListener('click', function(e) {
-                if (!checkbox.disabled) {
-                    // Remove toggling of 'bg-blue-500', 'text-white', 'rounded-full'
+                if (dateInfo.max_daily_appointments) {
+                    const maxApptsIndicator = document.createElement('div');
+                    maxApptsIndicator.className = 'max-appointments-indicator';
+                    maxApptsIndicator.textContent = `Max: ${dateInfo.max_daily_appointments}`;
+                    dayEl.appendChild(maxApptsIndicator);
                 }
-            });
+            }
+
+            if (!isPastDate) {
+                dayEl.addEventListener('click', (e) => {
+                    if (e.target !== checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                        const event = new Event('change');
+                        checkbox.dispatchEvent(event);
+                    }
+                });
+            }
 
             checkbox.addEventListener('change', function(e) {
-                if (this.checked && (!timeStart.value || !timeEnd.value)) {
-                    e.preventDefault();
+                e.stopPropagation();
+                const isChecked = this.checked;
+                const timeStart = document.getElementById('time_start').value;
+                const timeEnd = document.getElementById('time_end').value;
+                const dateStr = this.value;
+                const checkbox = this;
+                
+                if (isChecked && (!timeStart || !timeEnd)) {
                     this.checked = false;
-                    alert('Please set start and end times first');
+                    Swal.fire({
+                        title: 'Warning',
+                        text: 'Please set start and end times first',
+                        icon: 'warning',
+                        confirmButtonText: 'OK'
+                    });
                     return;
                 }
-
-                if (this.checked) {
-                    // Remove dayNumber.classList.add('bg-blue-500', 'text-white', 'rounded-full');
+                
+                if (isChecked) {
+                    let maxAppts = 8; // Default value
+                    
+                    const saveAvailability = (maxAppointments) => {
+                        const formData = new FormData();
+                        formData.append('date', dateStr);
+                        formData.append('checked', 'true');
+                        formData.append('timeStart', timeStart);
+                        formData.append('timeEnd', timeEnd);
+                        formData.append('max_daily_appointments', maxAppointments);
+                        
+                        return fetch('update-availability.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                // Update UI
+                                let existingIndicator = checkbox.parentElement.querySelector('.max-appointments-indicator');
+                                if (!existingIndicator) {
+                                    existingIndicator = document.createElement('div');
+                                    existingIndicator.className = 'max-appointments-indicator';
+                                    checkbox.parentElement.appendChild(existingIndicator);
+                                }
+                                existingIndicator.textContent = `Max: ${maxAppointments}`;
+                                
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: 'Availability has been saved.',
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                });
+                            } else {
+                                throw new Error(data.error || 'Failed to save availability');
+                            }
+                        })
+                        .catch(error => {
+                            checkbox.checked = false;
+                            console.error('Error:', error);
+                            Swal.fire({
+                                title: 'Error!',
+                                text: error.message,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        });
+                    };
+                    
+                    Swal.fire({
+                        title: 'Set Maximum Appointments',
+                        html: `
+                            <div id="maxAppointmentsContainer">
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Maximum appointments for ${dateStr}
+                                    </label>
+                                    <input type="number" 
+                                           id="single_date_max_appointments" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                           min="1"
+                                           value="8">
+                                </div>
+                            </div>
+                        `,
+                        showConfirmButton: true,
+                        showCancelButton: true,
+                        confirmButtonText: 'Save',
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const maxInput = document.getElementById('single_date_max_appointments');
+                            maxAppts = parseInt(maxInput.value) || 8;
+                            if (maxAppts < 1) {
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: 'Please enter a valid number',
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                });
+                                checkbox.checked = false;
+                                return;
+                            }
+                            saveAvailability(maxAppts);
+                        } else {
+                            checkbox.checked = false;
+                        }
+                    });
                 } else {
-                    // Remove dayNumber.classList.remove('bg-blue-500', 'text-white', 'rounded-full');
+                    // Handle unchecking - remove availability
+                    const formData = new FormData();
+                    formData.append('date', dateStr);
+                    formData.append('checked', 'false');
+                    
+                    fetch('update-availability.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const indicator = checkbox.parentElement.querySelector('.max-appointments-indicator');
+                            if (indicator) {
+                                indicator.remove();
+                            }
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Availability has been removed.',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            });
+                        } else {
+                            throw new Error(data.error || 'Failed to remove availability');
+                        }
+                    })
+                    .catch(error => {
+                        checkbox.checked = true;
+                        Swal.fire({
+                            title: 'Error!',
+                            text: error.message,
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    });
                 }
-                updateAvailability(dateStr, this.checked);
             });
 
-            label.className = 'calendar-day';
-            label.appendChild(checkbox);
-            label.appendChild(dayNumber);
-            dayEl.appendChild(label);
+            dayEl.appendChild(checkbox);
+            dayEl.appendChild(dayNumber);
             calendarEl.appendChild(dayEl);
         }
 
-        // Call toggleCheckboxes after rendering
         toggleCheckboxes();
     }
 
-    // Month navigation
+    function updateDateAvailability(formData, checkbox) {
+        fetch('update-availability.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const isChecked = formData.get('checked') === 'true';
+                const existingIndicator = checkbox.parentElement.querySelector('.max-appointments-indicator');
+                
+                if (isChecked) {
+                    if (existingIndicator) {
+                        existingIndicator.textContent = `Max: ${formData.get('max_daily_appointments')}`;
+                    } else {
+                        const maxApptsIndicator = document.createElement('div');
+                        maxApptsIndicator.className = 'max-appointments-indicator';
+                        maxApptsIndicator.textContent = `Max: ${formData.get('max_daily_appointments')}`;
+                        checkbox.parentElement.appendChild(maxApptsIndicator);
+                    }
+                } else if (existingIndicator) {
+                    existingIndicator.remove();
+                }
+            } else {
+                checkbox.checked = !checkbox.checked;
+                throw new Error(data.error || 'Failed to update availability');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            checkbox.checked = !checkbox.checked;
+            Swal.fire({
+                title: 'Error!',
+                text: error.message,
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        });
+    }
+
     prevMonthBtn.addEventListener('click', () => {
         currentDate.setMonth(currentDate.getMonth() - 1);
         fetchAvailability(availability => renderCalendar(currentDate, availability));
@@ -328,100 +608,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetchAvailability(availability => renderCalendar(currentDate, availability));
     });
 
-    // Initial render
     fetchAvailability(availability => renderCalendar(currentDate, availability));
-
-    // Add this inside your existing DOMContentLoaded event listener
-
-    const form = document.querySelector('form');
-    const modal = document.getElementById('maxAppointmentsModal');
-    const saveBtn = document.getElementById('saveAvailability');
-    const confirmBtn = document.getElementById('confirmMaxAppointments');
-    const cancelBtn = document.getElementById('cancelModal');
-    
-    // Prevent form from submitting directly
-    form.onsubmit = (e) => e.preventDefault();
-
-    // Show modal when save button is clicked
-    saveBtn.addEventListener('click', () => {
-        // Validate if any dates are selected
-        const selectedDates = document.querySelectorAll('input[name="available_dates[]"]:checked');
-        if (selectedDates.length === 0) {
-            alert('Please select at least one date');
-            return;
-        }
-        
-        // Validate time inputs
-        const timeStart = document.getElementById('time_start').value;
-        const timeEnd = document.getElementById('time_end').value;
-        if (!timeStart || !timeEnd) {
-            alert('Please set both start and end times');
-            return;
-        }
-
-        modal.classList.remove('hidden');
-    });
-
-    // Hide modal when cancel is clicked
-    cancelBtn.addEventListener('click', () => {
-        modal.classList.add('hidden');
-    });
-
-    // Handle form submission with max appointments
-    confirmBtn.addEventListener('click', () => {
-        const maxAppointments = document.getElementById('maxAppointments').value;
-        
-        if (!maxAppointments || maxAppointments < 1) {
-            alert('Please enter a valid number of maximum appointments');
-            return;
-        }
-
-        // Get only the newly selected dates
-        const selectedDates = Array.from(document.querySelectorAll('input[name="available_dates[]"]:checked'))
-            .map(checkbox => checkbox.value);
-
-        // Create FormData from the existing form
-        const formData = new FormData();
-        formData.append('max_appointments', maxAppointments);
-        
-        // Add only the newly selected dates
-        selectedDates.forEach(date => {
-            formData.append('available_dates[]', date);
-        });
-        
-        formData.append('time_start', document.getElementById('time_start').value);
-        formData.append('time_end', document.getElementById('time_end').value);
-
-        // Send the data to the server
-        fetch('save_availability.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                modal.classList.add('hidden');
-                Swal.fire({
-                    title: 'Success!',
-                    text: 'Availability and maximum appointments have been saved.',
-                    icon: 'success',
-                    confirmButtonText: 'OK'
-                }).then(() => {
-                    window.location.reload();
-                });
-            } else {
-                throw new Error(data.error || 'Failed to save');
-            }
-        })
-        .catch(error => {
-            Swal.fire({
-                title: 'Error!',
-                text: error.message,
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        });
-    });
 });
   </script>
 </body>

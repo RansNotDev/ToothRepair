@@ -40,7 +40,7 @@
                     <div class="row">
 
                         <div class="col-lg-7 col-12">
-                            <h1 class="text-white mb-lg-0">Contact</h1>
+                            <h1 class="text-light mb-lg-0">Contact</h1>
                         </div>
 
                         <div class="col-lg-4 col-12 d-flex justify-content-lg-end align-items-center ms-auto">

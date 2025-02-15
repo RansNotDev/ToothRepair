@@ -46,7 +46,7 @@ try {
 
     // Check if timeslot is available in availability_tb
     $check_availability = "SELECT COUNT(*) as available FROM availability_tb 
-                         WHERE available_date = ? AND is_active = 1";
+                         WHERE available_date = ? AND available = 1";
     $stmt = $conn->prepare($check_availability);
     $stmt->bind_param("s", $appointment_date);
     $stmt->execute();

@@ -5,7 +5,7 @@ if (isset($_GET['date'])) {
     $date = mysqli_real_escape_string($conn, $_GET['date']);
     
     $query = "SELECT time_start, time_end FROM availability_tb 
-              WHERE available_date = '$date' AND is_active = 1";
+              WHERE available_date = '$date' LIMIT 1";
     $result = mysqli_query($conn, $query);
     
     if ($row = mysqli_fetch_assoc($result)) {

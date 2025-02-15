@@ -11,12 +11,25 @@ if (!isset($_SESSION['user_id'])) {
 $availability = [];
 $result = mysqli_query(
     $conn,
-    "SELECT available_date, time_start, time_end 
+    "SELECT available_date, TIME_FORMAT(time_start, '%H:%i') as time_start, 
+            TIME_FORMAT(time_end, '%H:%i') as time_end, max_daily_appointments 
      FROM availability_tb 
-     WHERE is_active = 1"
+     WHERE available_date >= CURDATE() 
+     ORDER BY available_date ASC"
 );
-while ($row = mysqli_fetch_assoc($result)) {
-    $availability[$row['available_date']] = $row;
+
+if (!$result) {
+    // Handle query error
+    error_log("Query Error: " . mysqli_error($conn));
+    $error_message = "Error fetching available dates";
+} else {
+    while ($row = mysqli_fetch_assoc($result)) {
+        $availability[$row['available_date']] = [
+            'time_start' => $row['time_start'],
+            'time_end' => $row['time_end'],
+            'max_daily_appointments' => $row['max_daily_appointments']
+        ];
+    }
 }
 
 // Fetch available services
@@ -162,7 +175,7 @@ $services_result = $conn->query($services_query);
 }
 
 .bg-gradient-dark {
-    background: linear-gradient(135deg, #1a2b43 0%, #2c4a6c 50%, #1a2b43 100%);
+    background: rgb(152, 193, 233);
     position: relative;
 }
 
@@ -215,7 +228,7 @@ $services_result = $conn->query($services_query);
 }
 
 .quick-action-btn.active {
-    background-color: rgb(51, 94, 139) !important;
+    background-color: rgba(98, 160, 223, 0.9) !important;
     color: white !important;
 }
 
@@ -239,12 +252,12 @@ $services_result = $conn->query($services_query);
                     <!-- Left side - Logo and Title -->
                     <div class="d-flex align-items-center">
                         <img src="../images/logo/cliniclogo.png" alt="Tooth Repair Logo" class="mr-3" style="height: 80px; width: auto;">
-                        <h2 class="h4 text-white mb-0">Tooth Repair Dental Clinic</h2>
+                        <h2 class="h4 text-primary mb-0">Tooth Repair Dental Clinic</h2>
                     </div>
                     <!-- Right side - Welcome message -->
                     <div class="text-right">
-                        <h1 class="h3 text-white fw-bold">Welcome Back, <?php echo htmlspecialchars($_SESSION['fullname'] ?? 'User'); ?></h1>
-                        <p class="text-white mb-0">Here's your appointment overview</p>
+                        <h1 class="h3 text-primary fw-bold">Welcome Back, <?php echo htmlspecialchars($_SESSION['fullname'] ?? 'User'); ?></h1>
+                        <p class="text-primary mb-0">Here's your appointment overview</p>
                     </div>
                 </div>
             </div>
@@ -307,7 +320,9 @@ $services_result = $conn->query($services_query);
                         </div>
                         <div class="mb-3">
                             <label>Preferred Date</label>
-                            <input type="date" class="form-control" name="appointment_date" required>
+                            <input type="date" class="form-control" name="appointment_date" 
+                                   min="<?php echo date('Y-m-d'); ?>" 
+                                   required>
                         </div>
                         <div class="form-group">
                                 <label for="time">Preferred Time</label>
@@ -344,6 +359,11 @@ $services_result = $conn->query($services_query);
 document.querySelector('input[name="appointment_date"]').addEventListener('change', function() {
     const selectedDate = this.value;
     const today = new Date().toISOString().split('T')[0];
+    const timeSelect = document.getElementById('time');
+    
+    // Reset time select
+    timeSelect.innerHTML = '<option value="">Select Time</option>';
+    timeSelect.disabled = true;
     
     // Check if selected date is not in the past
     if (selectedDate < today) {
@@ -356,53 +376,51 @@ document.querySelector('input[name="appointment_date"]').addEventListener('chang
         return;
     }
     
-    const timeSelect = document.getElementById('time');
-    timeSelect.innerHTML = '<option value="">Select Time</option>';
-    
     // Add loading indicator
     timeSelect.disabled = true;
     
-    // Modified fetch call to check both availability and existing appointments
     fetch(`check_slot_availability.php?date=${selectedDate}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
             timeSelect.disabled = false;
             if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            if (!data.available) {
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: data.error
+                    icon: 'info',
+                    title: 'No Available Slots',
+                    text: 'No appointments available for this date. Please select another date.'
                 });
                 return;
             }
             
-            if (data.available) {
-                // Filter out booked slots
-                const availableSlots = generateTimeSlots(data.time_start, data.time_end).filter(slot => 
-                    !data.booked_slots.includes(slot.value)
-                );
-                
-                if (availableSlots.length === 0) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Fully Booked',
-                        text: 'All time slots for this date are already booked.'
-                    });
-                } else {
-                    availableSlots.forEach(slot => {
-                        const option = document.createElement('option');
-                        option.value = slot.value;
-                        option.textContent = slot.display;
-                        timeSelect.appendChild(option);
-                    });
-                }
-            } else {
+            // Generate and filter available time slots
+            const availableSlots = generateTimeSlots(data.time_start, data.time_end)
+                .filter(slot => !data.booked_slots.includes(slot.value));
+            
+            if (availableSlots.length === 0) {
                 Swal.fire({
                     icon: 'info',
-                    title: 'No Available Slots',
-                    text: 'No appointments available for this date'
+                    title: 'Fully Booked',
+                    text: 'All time slots for this date are already booked.'
                 });
+                return;
             }
+            
+            // Populate time slots
+            availableSlots.forEach(slot => {
+                const option = document.createElement('option');
+                option.value = slot.value;
+                option.textContent = slot.display;
+                timeSelect.appendChild(option);
+            });
         })
         .catch(error => {
             timeSelect.disabled = false;
@@ -410,7 +428,7 @@ document.querySelector('input[name="appointment_date"]').addEventListener('chang
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Failed to fetch available times'
+                text: error.message || 'Failed to fetch available times'
             });
         });
 });
@@ -467,13 +485,34 @@ document.getElementById('appointmentForm').addEventListener('submit', function(e
         }
     });
 
-    // Check if slot is occupied
-    fetch('check_occupied_slot.php', {
+    // First check for existing bookings by this user
+    fetch('check_existing_booking.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`
+        body: `date=${encodeURIComponent(date)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.hasExistingBooking) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Booking Not Allowed',
+                text: 'You already have an appointment scheduled for this date. Please select a different date.',
+                confirmButtonText: 'Choose Another Date'
+            });
+            return Promise.reject('existing_booking');
+        }
+        
+        // If no existing booking, proceed to check slot availability
+        return fetch('check_occupied_slot.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`
+        });
     })
     .then(response => response.json())
     .then(data => {
@@ -518,6 +557,7 @@ document.getElementById('appointmentForm').addEventListener('submit', function(e
         }
     })
     .catch(error => {
+        if (error === 'existing_booking') return;
         console.error('Error:', error);
         Swal.fire({
             icon: 'error',
