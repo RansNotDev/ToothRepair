@@ -94,6 +94,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" href="record_list.php">
+                    <i class="fas fa-fw fa-users"></i>
+                    <span>Appointment Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" href="reports.php">
                     <i class="fas fa-fw fa-chart-area"></i>
                     <span>Reports & Analytics</span>

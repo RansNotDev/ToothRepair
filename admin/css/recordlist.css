@@ -1,0 +1,21 @@
+.alpha-filter {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 10px;
+}
+
+.alpha-filter .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.alpha-filter .btn.active {
+    background-color: #4e73df;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .alpha-filter {
+        margin-top: 1rem;
+    }
+}
