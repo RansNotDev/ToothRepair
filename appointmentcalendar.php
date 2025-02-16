@@ -11,11 +11,15 @@ function generateRandomPassword($length = 8)
 
 include_once('database/db_connection.php');
 
-// Get available dates and times with max_daily_appointments
+// Update the availability query to include formatted times
 $availability = [];
 $result = mysqli_query(
     $conn,
-    "SELECT available_date, time_start, time_end, max_daily_appointments 
+    "SELECT available_date, 
+            TIME_FORMAT(time_start, '%l:%i %p') as formatted_start,
+            TIME_FORMAT(time_end, '%l:%i %p') as formatted_end,
+            time_start, time_end, 
+            max_daily_appointments 
      FROM availability_tb"
 );
 
@@ -23,13 +27,13 @@ while ($row = mysqli_fetch_assoc($result)) {
     $availability[$row['available_date']] = $row;
 }
 
-// Get booked time slots
+// Update the booked slots query to only exclude confirmed and pending appointments
 $bookedSlots = [];
 $result = mysqli_query(
     $conn,
     "SELECT appointment_date, appointment_time 
      FROM appointments 
-     WHERE status IN ('confirmed','pending')"
+     WHERE status IN ('confirmed', 'pending')"  // Removed cancelled status
 );
 while ($row = mysqli_fetch_assoc($result)) {
     $bookedSlots[$row['appointment_date']][] = $row['appointment_time'];
@@ -85,8 +89,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                         <div class="legend-indicator fc-day-disabled mr-2"></div>
                         <span>Not Available</span>
                     </div>
-                </div>
--->
+                </div> -->
                         <div class="calendar-wrapper bg-white rounded-lg shadow-sm p-4">
                             <div id="calendar"></div>
                         </div>
@@ -327,7 +330,8 @@ while ($row = mysqli_fetch_assoc($result)) {
                     const isPast = arg.date < new Date().setHours(0, 0, 0, 0);
                     const isAvailable = checkDateAvailability(dateStr);
                     const bookedCount = bookedSlots[dateStr]?.length || 0;
-                    const maxDaily = availability[dateStr]?.max_daily_appointments || 0;
+                    const dayInfo = availability[dateStr] || {};
+                    const maxDaily = dayInfo.max_daily_appointments || 0;
                     const remaining = Math.max(maxDaily - bookedCount, 0);
 
                     let slotInfo = '';
@@ -335,15 +339,22 @@ while ($row = mysqli_fetch_assoc($result)) {
                         if (!isAvailable) {
                             slotInfo = 'Closed';
                         } else {
-                            slotInfo = `${remaining} slot${remaining !== 1 ? 's' : ''} available`;
+                            slotInfo = `
+                                <div class="slot-count">${remaining} slot${remaining !== 1 ? 's' : ''} available</div>
+                                <div class="clinic-hours small">
+                                    ${dayInfo.formatted_start} - ${dayInfo.formatted_end}
+                                </div>
+                            `;
                         }
                     }
 
                     return {
                         html: `
-                    <div class="fc-daygrid-day-number">${arg.dayNumberText}</div>
-                    <div class="slot-info small">${slotInfo}</div>
-                `
+                            <div class="fc-daygrid-day-number">${arg.dayNumberText}</div>
+                            <div class="slot-info">
+                                ${slotInfo}
+                            </div>
+                        `
                     };
                 },
                 dayCellClassNames: function (arg) {
@@ -414,81 +425,73 @@ while ($row = mysqli_fetch_assoc($result)) {
                     success: function (response) {
                         if (response.status === 'success') {
                             const email = $('#email').val();
-                            const plainPassword = response.password; // Get the plain password from response
-
-                            // Send confirmation email with enhanced design and appointment details
+                            
+                            // Check if user already exists
                             $.ajax({
-                                url: 'sendmail.php',
+                                url: 'check_user.php',
                                 type: 'POST',
-                                data: {
-                                    sendmail: true,
-                                    email: email,
-                                    subject: 'ToothRepair Appointment Confirmation',
-                                    message: `
-                            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; border-radius: 10px;">
-                                <div style="text-align: center; background-color: #4e73df; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                                    <h2 style="color: white; margin: 0;">Welcome to ToothRepair Dental Clinic!</h2>
-                                </div>
-                                
-                                <div style="background-color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                    <h3 style="color: #4e73df; margin-bottom: 15px;">Your Appointment Details</h3>
-                                    <p><strong>Patient Name:</strong> ${fullName}</p>
-                                    <p><strong>Date:</strong> ${appointmentDate}</p>
-                                    <p><strong>Time:</strong> ${appointmentTime}</p>
-                                    <p><strong>Service:</strong> ${serviceName}</p>
-                                </div>
-                                
-                                <div style="background-color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                    <h3 style="color: #4e73df; margin-bottom: 15px;">Your Login Credentials</h3>
-                                    <p><strong>Email:</strong> ${email}</p>
-                                    <p><strong>Password:</strong> ${plainPassword}</p>
-                                    <p style="color: #dc3545;"><em>Please change your password upon first login.</em></p>
-                                </div>
-                                
-                                <div style="text-align: center; margin-top: 20px;">
-                                    <p style="color: #6c757d;">Thank you for choosing ToothRepair Dental Clinic!</p>
-                                    <p style="font-size: 12px; color: #6c757d;">If you have any questions, please contact us.</p>
-                                </div>
-                            </div>
-                        `
-                                },
-                                success: function () {
-                                    Swal.fire({
-                                        title: 'Appointment Booked Successfully!',
-                                        html: `
-                                <div class="text-left">
-                                    <p>An email has been sent with your:</p>
-                                    <ul>
-                                        <li>Appointment details</li>
-                                        <li>Login credentials</li>
-                                    </ul>
-                                    <p>Please check your email inbox.</p>
-                                </div>
-                            `,
-                                        icon: 'success',
-                                        confirmButtonText: 'OK',
-                                        allowOutsideClick: false
-                                    }).then((result) => {
-                                        if (result.isConfirmed) {
-                                            Swal.fire({
-                                                title: 'Proceed to Login?',
-                                                text: 'Click below to go to the login page',
-                                                icon: 'question',
-                                                showCancelButton: true,
-                                                confirmButtonText: 'Proceed to Login',
-                                                cancelButtonText: 'Stay Here'
-                                            }).then((result) => {
-                                                if (result.isConfirmed) {
-                                                    window.location.href = 'usrbase/entryvault.php';
-                                                }
-                                            });
-                                        }
-                                    });
+                                data: { email: email },
+                                success: function(userResponse) {
+                                    if (userResponse.exists) {
+                                        // User exists - show login/forgot password dialog
+                                        Swal.fire({
+                                            title: 'Account Found!',
+                                            html: `
+                                                <p>An account with this email already exists.</p>
+                                                <p>Would you like to:</p>
+                                            `,
+                                            icon: 'info',
+                                            showCloseButton: true,
+                                            showDenyButton: true,
+                                            showCancelButton: true,
+                                            confirmButtonText: 'Login',
+                                            denyButtonText: 'Forgot Password',
+                                            cancelButtonText: 'Stay Here'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                // Redirect to login
+                                                window.location.href = 'usrbase/entryvault.php';
+                                            } else if (result.isDenied) {
+                                                // Redirect to password reset
+                                                window.location.href = 'usrbase/forgot_password.php';
+                                            }
+                                        });
+                                    } else {
+                                        // New user - show welcome message with credentials
+                                        Swal.fire({
+                                            title: 'Appointment Booked Successfully!',
+                                            html: `
+                                                <div class="text-left">
+                                                    <p>An email has been sent with your:</p>
+                                                    <ul>
+                                                        <li>Appointment details</li>
+                                                        <li>Login credentials</li>
+                                                    </ul>
+                                                    <p>Please check your email inbox.</p>
+                                                </div>
+                                            `,
+                                            icon: 'success',
+                                            confirmButtonText: 'OK',
+                                            allowOutsideClick: false
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                Swal.fire({
+                                                    title: 'Proceed to Login?',
+                                                    text: 'Click below to go to the login page',
+                                                    icon: 'question',
+                                                    showCancelButton: true,
+                                                    confirmButtonText: 'Proceed to Login',
+                                                    cancelButtonText: 'Stay Here'
+                                                }).then((result) => {
+                                                    if (result.isConfirmed) {
+                                                        window.location.href = 'usrbase/entryvault.php';
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
                                     $('#appointmentModal').modal('hide');
                                     calendar.refetchEvents();
-                                },
-                                error: function () {
-                                    console.log('Error sending confirmation email');
                                 }
                             });
                         } else {

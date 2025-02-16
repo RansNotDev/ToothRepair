@@ -74,47 +74,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // If status is being changed to completed
         if ($status === 'completed') {
-            // Begin transaction
-            $conn->begin_transaction();
-
             try {
-                // First, get all the appointment data
-                $get_sql = "SELECT 
-                    appointments.*,
-                    users.fullname,
-                    users.email,
-                    users.contact_number,
-                    users.address,
-                    services.service_name
-                FROM appointments
-                JOIN users ON appointments.user_id = users.user_id
-                JOIN services ON appointments.service_id = services.service_id
-                WHERE appointment_id = ?";
-                
-                $stmt = $conn->prepare($get_sql);
-                $stmt->bind_param("i", $_POST['appointment_id']);
-                $stmt->execute();
-                $result = $stmt->get_result();
-                $appointment = $result->fetch_assoc();
+                // Check if record already exists in appointment_records
+                $check_record = $conn->prepare("SELECT appointment_id FROM appointment_records WHERE appointment_id = ?");
+                $check_record->bind_param("i", $_POST['appointment_id']);
+                $check_record->execute();
+                $exists = $check_record->get_result()->num_rows > 0;
 
-                // Insert into appointment_records
-                $insert_sql = "INSERT INTO appointment_records 
-                    (user_id, service_id, appointment_date, appointment_time, completion_date, status)
-                    VALUES (?, ?, ?, ?, NOW(), 'completed')";
-                
-                $stmt = $conn->prepare($insert_sql);
-                $stmt->bind_param(
-                    "iiss", 
-                    $appointment['user_id'],
-                    $appointment['service_id'],
-                    $appointment['appointment_date'],
-                    $appointment['appointment_time']
-                );
-                $stmt->execute();
+                // Only insert if record doesn't exist
+                if (!$exists) {
+                    // Insert into appointment_records
+                    $insert_sql = "INSERT INTO appointment_records 
+                        (appointment_id, user_id, service_id, appointment_date, appointment_time, completion_date, status)
+                        VALUES (?, ?, ?, ?, ?, NOW(), 'completed')";
+                    
+                    $stmt = $conn->prepare($insert_sql);
+                    $stmt->bind_param(
+                        "iiiss", 
+                        $_POST['appointment_id'],
+                        $appointment['user_id'],
+                        $appointment['service_id'],
+                        $appointment['appointment_date'],
+                        $appointment['appointment_time']
+                    );
+                    $stmt->execute();
+                }
 
-                // Delete from appointments table
-                $delete_sql = "DELETE FROM appointments WHERE appointment_id = ?";
-                $stmt->prepare($delete_sql);
+                // Update appointments table status
+                $update_sql = "UPDATE appointments SET status = 'completed' WHERE appointment_id = ?";
+                $stmt = $conn->prepare($update_sql);
                 $stmt->bind_param("i", $_POST['appointment_id']);
                 $stmt->execute();
 

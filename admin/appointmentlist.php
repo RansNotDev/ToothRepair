@@ -442,14 +442,8 @@ if (isset($_GET['date'])) {
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Service</label>
-                                <select name="service_id" id="editService" class="form-control" readonly>
-                                    <option value="">Select Service</option>
-                                    <?php foreach ($services as $service): ?>
-                                        <option value="<?= $service['service_id'] ?>">
-                                            <?= htmlspecialchars($service['service_name']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <input type="text" id="editService" name="service_name" class="form-control" readonly>
+                                <input type="hidden" name="service_id" id="editServiceId">
                             </div>
                             <div class="form-group">
                                 <label>Status</label>
@@ -569,9 +563,9 @@ if (isset($_GET['date'])) {
                     $('#editAddress').val(data.address || '');
                     $('#editDate').val(data.appointment_date || '');
                     $('#editTime').val(data.appointment_time || '');
-                    $('#editService').val(data.service_id || '');
+                    $('#editService').val(data.service_name || ''); // Show service name
+                    $('#editServiceId').val(data.service_id || ''); // Store service ID in hidden 
                     $('#editStatus').val(data.status || '');
-
                     // Format the time to be more readable
                     const formattedTime = data.appointment_time ? 
                         new Date('2000-01-01T' + data.appointment_time)

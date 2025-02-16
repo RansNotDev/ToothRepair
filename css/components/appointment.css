@@ -49,9 +49,24 @@
 }
 
 .slot-info {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 2px 4px;
+    margin-top: 2px;
+}
+
+.slot-count {
+    font-weight: 600;
+    color: #4e73df;
+}
+
+.clinic-hours {
     color: #6c757d;
-    margin-top: 4px;
+    font-size: 0.75rem;
+}
+
+.fc-daygrid-day-frame {
+    min-height: 100px !important;
 }
 
 .section-title {
