@@ -262,3 +262,29 @@ select.form-control {
         padding: 20px;
     }
 }
+
+/* Add these styles to your CSS */
+.fc-day.fc-day-disabled {
+    cursor: not-allowed !important;
+    background-color: #f8f9fa;
+    opacity: 0.7;
+}
+
+.fc-day.fc-day-disabled .fc-daygrid-day-events,
+.fc-day.fc-day-disabled .fc-daygrid-day-frame {
+    pointer-events: none;
+}
+
+.fc-day.has-slots {
+    cursor: pointer;
+}
+
+.slot-count {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.slot-count:empty,
+.slot-count:contains('0 slots available') {
+    color: #dc3545;
+}

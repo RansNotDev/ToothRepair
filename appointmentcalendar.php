@@ -300,13 +300,16 @@ while ($row = mysqli_fetch_assoc($result)) {
                     const dateStr = info.dateStr;
                     const isPast = info.date < new Date().setHours(0, 0, 0, 0);
                     const isAvailable = checkDateAvailability(dateStr);
+                    const bookedCount = bookedSlots[dateStr]?.length || 0;
+                    const dayInfo = availability[dateStr] || {};
+                    const maxDaily = dayInfo.max_daily_appointments || 0;
+                    const remaining = Math.max(maxDaily - bookedCount, 0);
 
-                    if (!isPast && isAvailable) {
+                    // Only show modal if date is available and has remaining slots
+                    if (!isPast && isAvailable && remaining > 0) {
                         const { time_start, time_end, max_daily_appointments } = availability[dateStr];
                         const slots = generateTimeSlots(time_start, time_end);
                         const booked = bookedSlots[dateStr] || [];
-                        const bookedCount = booked.length;
-                        const remaining = Math.max(max_daily_appointments - bookedCount, 0);
 
                         $('#date').val(dateStr);
                         const timeSelect = $('#time');

@@ -17,89 +17,128 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// Replace the existing POST handling section with this:
+// Add this check to disable the form if feedback was already submitted today
+$disable_form = false;
+$today = date('Y-m-d');
+if (isset($_SESSION['user_id'])) {
+    $check_sql = "SELECT COUNT(*) as count FROM feedbacks 
+                  WHERE user_id = ? 
+                  AND DATE(created_at) = ?";
+    $check_stmt = $conn->prepare($check_sql);
+    $check_stmt->bind_param("is", $_SESSION['user_id'], $today);
+    $check_stmt->execute();
+    $result = $check_stmt->get_result();
+    $row = $result->fetch_assoc();
+    $disable_form = ($row['count'] > 0);
+    $check_stmt->close();
+}
+
+// Update the POST handling section
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    error_log("POST data: " . print_r($_POST, true));
+    // Check if user has already submitted feedback today
+    $user_id = $_SESSION['user_id'];
+    $today = date('Y-m-d');
     
-    $user_id = $_SESSION['user_id'] ?? null;
-    $rating = isset($_POST['rating']) ? (int)$_POST['rating'] : null;
-    $feedback = trim($_POST['feedback'] ?? '');
-    $satisfaction = $_POST['satisfaction'] ?? '';
-    $current_datetime = date('Y-m-d H:i:s');
-
-    // Validate inputs
-    if (!$user_id) {
-        $error_message = "User ID is missing. Please login again.";
-        error_log("Missing user_id in session");
-    } elseif (!$rating || $rating < 1 || $rating > 5) {
-        $error_message = "Please select a valid rating (1-5 stars)";
-        error_log("Invalid rating: " . $rating);
-    } elseif (empty($feedback)) {
-        $error_message = "Please provide feedback";
-        error_log("Empty feedback text");
-    } elseif (empty($satisfaction)) {
-        $error_message = "Please select satisfaction level";
-        error_log("Empty satisfaction level");
+    $check_sql = "SELECT COUNT(*) as count FROM feedbacks 
+                  WHERE user_id = ? 
+                  AND DATE(created_at) = ?";
+                  
+    $check_stmt = $conn->prepare($check_sql);
+    $check_stmt->bind_param("is", $user_id, $today);
+    $check_stmt->execute();
+    $result = $check_stmt->get_result();
+    $row = $result->fetch_assoc();
+    
+    if ($row['count'] > 0) {
+        $error_message = "You have already submitted feedback today. Please try again tomorrow.";
+        error_log("User $user_id attempted multiple feedback submissions on $today");
     } else {
-        try {
-            // Start transaction
-            $conn->begin_transaction();
+        error_log("Debug: Starting feedback submission process");
+        error_log("POST data: " . print_r($_POST, true));
+        error_log("Session data: " . print_r($_SESSION, true));
+        
+        $user_id = $_SESSION['user_id'] ?? null;
+        $rating = isset($_POST['rating']) ? (int)$_POST['rating'] : null;
+        $feedback = trim($_POST['feedback'] ?? '');
+        $satisfaction = $_POST['satisfaction'] ?? '';
+        $current_datetime = date('Y-m-d H:i:s');
 
-            // Check if user has already submitted feedback recently (optional)
-            $check_recent = "SELECT COUNT(*) as recent_count 
-                           FROM feedback 
-                           WHERE user_id = ? 
-                           AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)";
-            
-            $stmt = $conn->prepare($check_recent);
-            $stmt->bind_param("i", $user_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $recent = $result->fetch_assoc();
+        // Validate inputs
+        if (!$user_id) {
+            $error_message = "User ID is missing. Please login again.";
+            error_log("Missing user_id in session");
+        } elseif (!$rating || $rating < 1 || $rating > 5) {
+            $error_message = "Please select a valid rating (1-5 stars)";
+            error_log("Invalid rating: " . $rating);
+        } elseif (empty($feedback)) {
+            $error_message = "Please provide feedback";
+            error_log("Empty feedback text");
+        } elseif (empty($satisfaction) || !in_array($satisfaction, ['Very Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Very Dissatisfied'])) {
+            $error_message = "Please select a valid satisfaction level";
+            error_log("Invalid satisfaction level: " . $satisfaction);
+        } else {
+            try {
+                error_log("Debug: Starting database transaction");
+                $conn->begin_transaction();
 
-            if ($recent['recent_count'] > 0) {
-                throw new Exception("You have already submitted feedback in the last 24 hours.");
-            }
+                // Add parameter debugging
+                error_log("Parameters to be inserted:");
+                error_log("user_id: " . $user_id);
+                error_log("rating: " . $rating);
+                error_log("feedback: " . $feedback);
+                error_log("satisfaction: " . $satisfaction);
+                error_log("current_datetime: " . $current_datetime);
 
-            // Prepare and execute insert statement
-            $sql = "INSERT INTO feedback (user_id, rating, feedback_text, satisfaction_level, created_at) 
-                    VALUES (?, ?, ?, ?, ?)";
-            
-            $stmt = $conn->prepare($sql);
-            if (!$stmt) {
-                throw new Exception("Prepare failed: " . $conn->error);
-            }
-            
-            if (!$stmt->bind_param("iisss", $user_id, $rating, $feedback, $satisfaction, $current_datetime)) {
-                throw new Exception("Binding parameters failed: " . $stmt->error);
-            }
-            
-            if (!$stmt->execute()) {
-                throw new Exception("Execute failed: " . $stmt->error);
-            }
+                // Insert into feedbacks table
+                $sql = "INSERT INTO feedbacks (user_id, rating, feedback_text, satisfaction_level, created_at) 
+                        VALUES (?, ?, ?, ?, ?)";
+                
+                $stmt = $conn->prepare($sql);
+                if (!$stmt) {
+                    throw new Exception("Prepare failed: " . $conn->error);
+                }
+                
+                if (!$stmt->bind_param("iisss", $user_id, $rating, $feedback, $satisfaction, $current_datetime)) {
+                    throw new Exception("Binding parameters failed: " . $stmt->error);
+                }
+                
+                if (!$stmt->execute()) {
+                    throw new Exception("Execute failed: " . $stmt->error);
+                }
 
-            // Commit transaction
-            $conn->commit();
-            
-            // Set success message and clear form
-            $success_message = "Thank you for your feedback! Your response has been recorded.";
-            $_POST = array();
-            
-            // Log successful submission
-            error_log("Feedback successfully saved for user_id: $user_id");
-            
-        } catch (Exception $e) {
-            // Rollback transaction on error
-            $conn->rollback();
-            
-            $error_message = "Error saving feedback: " . $e->getMessage();
-            error_log("Database error in feedback submission: " . $e->getMessage());
-        } finally {
-            if (isset($stmt)) {
-                $stmt->close();
+                $affected_rows = $stmt->affected_rows;
+                error_log("Affected rows: " . $affected_rows);
+
+                if ($affected_rows === 0) {
+                    throw new Exception("No rows were inserted");
+                }
+
+                $conn->commit();
+                error_log("Transaction committed successfully");
+                
+                // Set success message
+                $success_message = "Thank you for your feedback! Your response has been recorded.";
+                
+                // Clear form data
+                $_POST = array();
+                
+                // Log successful submission
+                error_log("Feedback successfully saved for user_id: $user_id");
+                
+            } catch (Exception $e) {
+                // Rollback transaction on error
+                $conn->rollback();
+                
+                $error_message = "Error saving feedback: " . $e->getMessage();
+                error_log("Database error in feedback submission: " . $e->getMessage());
+            } finally {
+                if (isset($stmt)) {
+                    $stmt->close();
+                }
             }
         }
     }
+    $check_stmt->close();
 }
 ?>
 
@@ -261,9 +300,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     font-size: 0.875rem;
 }
 .active {
-        background-color:rgb(51, 94, 139) !important;
-        color: white !important;
-    }
+    background-color: rgb(51, 94, 139) !important;
+    color: white !important;
+}
 .sticky-top {
     position: sticky;
     top: 20px;
@@ -358,7 +397,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     top: 20px !important;
     z-index: 1000;
 }
-    </style>
+    /* Add to your existing styles */
+    form.disabled {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+    
+    form.disabled input,
+    form.disabled select,
+    form.disabled textarea,
+    form.disabled button {
+        cursor: not-allowed;
+    }
+</style>
 </head>
 <body>
 <div class="container-fluid px-0">
@@ -385,30 +436,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="col-lg-3 mb-4">
             <div class="card border-0 shadow-sm rounded-lg position-sticky" style="top: 20px;">
                 <div class="card-body p-4">
-                
                     <div class="d-grid gap-3">
                         <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                            <i class="fas fa-home text-primary me-3"></i>
                             <span>Home</span>
                         </a>
                         <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                            <i class="fas fa-calendar-plus text-primary me-3"></i>
                             <span>Book New Appointment</span>
                         </a>
                         <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                            <i class="fas fa-history text-primary me-3"></i>
                             <span>View History</span>
                         </a>
-                        <a href="user_feedback.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                            <i class="fas fa-comment-dots text-primary me-3"></i>
+                        <a href="user_feedback.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn active">
                             <span>Feed Back</span>
                         </a>
                         <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                            <i class="fas fa-user text-primary me-3"></i>
                             <span>Update Profile</span>
                         </a>
                         <a href="logout.php" onclick="return confirmLogout();" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                            <i class="fas fa-sign-out-alt text-primary me-3"></i>
                             <span>Logout</span>
                         </a>
                     </div>
@@ -430,24 +474,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <div class="alert alert-danger"><?php echo $error_message; ?></div>
                     <?php endif; ?>
 
-                    <form method="POST" action="" id="feedbackForm">
+                    <?php
+                    // Add this before the form:
+                    if (isset($_GET['test'])) {
+                        echo "<div class='alert alert-info'>";
+                        echo "Testing database connection...<br>";
+                        try {
+                            $test_sql = "SELECT 1 FROM feedbacks LIMIT 1";
+                            $result = $conn->query($test_sql);
+                            echo "Database connection successful. Table exists.<br>";
+                            echo "MySQL version: " . $conn->server_info;
+                        } catch (Exception $e) {
+                            echo "Error: " . $e->getMessage();
+                        }
+                        echo "</div>";
+                    }
+                    ?>
+
+                    <!-- Modify the form tag to include the disabled state -->
+                    <form method="POST" action="" id="feedbackForm" <?php echo $disable_form ? 'class="disabled"' : ''; ?>>
+                        <?php if ($disable_form): ?>
+                            <div class="alert alert-info">
+                                You have already submitted feedback today. Please come back tomorrow to share more feedback.
+                            </div>
+                        <?php endif; ?>
+                        
+                        <!-- Add disabled attribute to form elements -->
                         <div class="mb-4">
                             <h5 class="text-center mb-3">Rate our clinic</h5>
                             <div class="rating-container">
                                 <div class="rating">
-                                    <input type="radio" id="star5" name="rating" value="5" required/>
+                                    <input type="radio" id="star5" name="rating" value="5" required <?php echo $disable_form ? 'disabled' : ''; ?>/>
                                     <label for="star5" data-rating="5"></label>
                                     
-                                    <input type="radio" id="star4" name="rating" value="4"/>
+                                    <input type="radio" id="star4" name="rating" value="4" <?php echo $disable_form ? 'disabled' : ''; ?>/>
                                     <label for="star4" data-rating="4"></label>
                                     
-                                    <input type="radio" id="star3" name="rating" value="3"/>
+                                    <input type="radio" id="star3" name="rating" value="3" <?php echo $disable_form ? 'disabled' : ''; ?>/>
                                     <label for="star3" data-rating="3"></label>
                                     
-                                    <input type="radio" id="star2" name="rating" value="2"/>
+                                    <input type="radio" id="star2" name="rating" value="2" <?php echo $disable_form ? 'disabled' : ''; ?>/>
                                     <label for="star2" data-rating="2"></label>
                                     
-                                    <input type="radio" id="star1" name="rating" value="1"/>
+                                    <input type="radio" id="star1" name="rating" value="1" <?php echo $disable_form ? 'disabled' : ''; ?>/>
                                     <label for="star1" data-rating="1"></label>
                                 </div>
                                 <div class="rating-text" id="ratingText">Click a star to rate</div>
@@ -456,23 +525,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                         <div class="mb-4">
                             <h5>Satisfaction Level</h5>
-                            <select class="form-control" name="satisfaction" required>
+                            <select class="form-control" name="satisfaction" required <?php echo $disable_form ? 'disabled' : ''; ?>>
                                 <option value="">Select your satisfaction level...</option>
                                 <option value="Very Satisfied">Very Satisfied</option>
                                 <option value="Satisfied">Satisfied</option>
                                 <option value="Neutral">Neutral</option>
                                 <option value="Dissatisfied">Dissatisfied</option>
+                                <option value="Very Dissatisfied">Very Dissatisfied</option>
                             </select>
                         </div>
 
                         <div class="mb-4">
                             <h5>Your Feedback</h5>
                             <textarea class="form-control" name="feedback" rows="5" 
-                                placeholder="Please share your experience with us..." required></textarea>
+                                placeholder="Please share your experience with us..." required <?php echo $disable_form ? 'disabled' : ''; ?>></textarea>
                         </div>
 
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                            <button type="submit" class="btn btn-primary" <?php echo $disable_form ? 'disabled' : ''; ?>>Submit Feedback</button>
                             <a href="userdashboard.php" class="btn btn-secondary">
                                 Return to Home
                             </a>
@@ -664,6 +734,20 @@ document.getElementById('feedbackForm').addEventListener('submit', function(e) {
             this.submit();
         }
     });
+});
+
+// Add to your existing DOMContentLoaded event listener
+document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+    if (this.classList.contains('disabled')) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'info',
+            title: 'Feedback Limited',
+            text: 'You can only submit one feedback per day. Please try again tomorrow.'
+        });
+        return false;
+    }
+    // ... rest of your existing form submission code ...
 });
 </script>
 </body>
