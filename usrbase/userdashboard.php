@@ -96,15 +96,14 @@ $appointments = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
 // Add helper function for status badge colors
-function getStatusBadge($status)
-{
+function getStatusBadge($status) {
     return match (strtolower($status)) {
-        'booked' => 'warning',
-        'pending' => 'info',
-        'confirmed' => 'primary',
-        'completed' => 'success',
-        'cancelled' => 'danger',
-        default => 'secondary'
+        'booked' => 'warning text-dark',    // Yellow with dark text
+        'pending' => 'info text-white',     // Blue with white text
+        'confirmed' => 'primary text-white', // Primary blue with white text
+        'completed' => 'success text-white', // Green with white text
+        'cancelled' => 'danger text-white',  // Red with white text
+        default => 'secondary text-white'    // Gray with white text
     };
 }
 
@@ -374,6 +373,75 @@ function getStatusBadge($status)
             background-color: #e9ecef !important;
             color: #6c757d;
         }
+
+        /* Status Badge Colors */
+        .badge.bg-warning {
+            background-color: #ffc107 !important;
+            color: #000 !important;
+        }
+
+        .badge.bg-info {
+            background-color: #0dcaf0 !important;
+            color: #fff !important;
+        }
+
+        .badge.bg-primary {
+            background-color: #0d6efd !important;
+            color: #fff !important;
+        }
+
+        .badge.bg-success {
+            background-color: #198754 !important;
+            color: #fff !important;
+        }
+
+        .badge.bg-danger {
+            background-color: #dc3545 !important;
+            color: #fff !important;
+        }
+
+        .badge.bg-secondary {
+            background-color: #6c757d !important;
+            color: #fff !important;
+        }
+
+        /* Progress Bar Styles */
+        .progress {
+            height: 8px !important;
+            margin: 1rem 0;
+            border-radius: 4px;
+            background-color: #e9ecef;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(to right,
+                #ffc107 0%,    /* Booked - Yellow */
+                #0dcaf0 33%,   /* Pending - Info Blue */
+                #0d6efd 66%,   /* Confirmed - Primary Blue */
+                #198754 100%   /* Completed - Success Green */
+            );
+            transition: width .6s ease;
+        }
+
+        /* Badge Container Styles */
+        .status-badges {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+        }
+
+        .status-badges .badge {
+            font-size: 0.75rem;
+            padding: 0.5em 1em;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .status-badges .badge:hover {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 
@@ -463,8 +531,7 @@ function getStatusBadge($status)
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title text-primary mb-0">Current Appointment</h5>
                             <?php if ($appointment): ?>
-                                <span
-                                    class="badge bg-<?php echo getStatusBadge($appointment['status']); ?> px-3 py-2 rounded-pill">
+                                <span class="badge bg-<?php echo getStatusBadge($appointment['status']); ?> px-3 py-2 rounded-pill">
                                     <?php echo htmlspecialchars(ucfirst($appointment['status'])); ?>
                                 </span>
                             <?php endif; ?>
@@ -481,29 +548,23 @@ function getStatusBadge($status)
                         <?php elseif ($appointment): ?>
                             <div class="appointment-details">
                                 <div class="progress-tracker mb-4">
-                                    <div class="progress" style="height: 4px;">
+                                    <div class="progress">
                                         <div class="progress-bar" role="progressbar" 
-                                            style="width: <?php echo getProgressBarWidth($appointment['status'] ?? 'Booked'); ?>; 
-                                                background: linear-gradient(to right, 
-                                                    #ffc107 25%, /* Warning/Yellow for Booked */
-                                                    #17a2b8 50%, /* Info/Blue for Pending */
-                                                    #0d6efd 75%, /* Primary for Confirmed */
-                                                    #198754 100% /* Success/Green for Completed */
-                                                );">
+                                            style="width: <?php echo getProgressBarWidth($appointment['status'] ?? 'Booked'); ?>">
                                         </div>
                                     </div>
-                                    <div class="d-flex justify-content-between mt-2">
+                                    <div class="status-badges">
                                         <span class="badge <?php echo getStatusClass($appointment['status'] ?? 'Booked', 'Booked'); ?>">
-                                            Booked
+                                            <i class="fas fa-calendar-check me-1"></i> Booked
                                         </span>
                                         <span class="badge <?php echo getStatusClass($appointment['status'] ?? 'Booked', 'Pending'); ?>">
-                                            Pending
+                                            <i class="fas fa-clock me-1"></i> Pending
                                         </span>
                                         <span class="badge <?php echo getStatusClass($appointment['status'] ?? 'Booked', 'Confirmed'); ?>">
-                                            Confirmed
+                                            <i class="fas fa-check-circle me-1"></i> Confirmed
                                         </span>
                                         <span class="badge <?php echo getStatusClass($appointment['status'] ?? 'Booked', 'Completed'); ?>">
-                                            Completed
+                                            <i class="fas fa-flag-checkered me-1"></i> Completed
                                         </span>
                                     </div>
                                 </div>
