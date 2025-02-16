@@ -42,11 +42,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         error_log("Empty satisfaction level");
     } else {
         try {
-            // Prepare statement
+            // Start transaction
+            $conn->begin_transaction();
+
+            // Check if user has already submitted feedback recently (optional)
+            $check_recent = "SELECT COUNT(*) as recent_count 
+                           FROM feedback 
+                           WHERE user_id = ? 
+                           AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)";
+            
+            $stmt = $conn->prepare($check_recent);
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $recent = $result->fetch_assoc();
+
+            if ($recent['recent_count'] > 0) {
+                throw new Exception("You have already submitted feedback in the last 24 hours.");
+            }
+
+            // Prepare and execute insert statement
             $sql = "INSERT INTO feedback (user_id, rating, feedback_text, satisfaction_level, created_at) 
                     VALUES (?, ?, ?, ?, ?)";
             
-            if (!($stmt = $conn->prepare($sql))) {
+            $stmt = $conn->prepare($sql);
+            if (!$stmt) {
                 throw new Exception("Prepare failed: " . $conn->error);
             }
             
@@ -57,15 +77,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if (!$stmt->execute()) {
                 throw new Exception("Execute failed: " . $stmt->error);
             }
+
+            // Commit transaction
+            $conn->commit();
             
+            // Set success message and clear form
             $success_message = "Thank you for your feedback! Your response has been recorded.";
-            $_POST = array(); // Clear form
+            $_POST = array();
             
-            $stmt->close();
+            // Log successful submission
+            error_log("Feedback successfully saved for user_id: $user_id");
             
         } catch (Exception $e) {
+            // Rollback transaction on error
+            $conn->rollback();
+            
             $error_message = "Error saving feedback: " . $e->getMessage();
             error_log("Database error in feedback submission: " . $e->getMessage());
+        } finally {
+            if (isset($stmt)) {
+                $stmt->close();
+            }
         }
     }
 }
@@ -83,6 +115,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css">
     <link rel="stylesheet" href="../admin/css/sb-admin-2.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     
     <style>
         .rating {
@@ -90,21 +123,52 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             flex-direction: row-reverse;
             justify-content: center;
             gap: 10px;
+            padding: 20px 0;
         }
-        .rating input { display: none; }
+
+        .rating input {
+            display: none;
+        }
+
         .rating label {
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 30px;
             color: #ddd;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            transition: color 0.2s ease;
         }
-        .rating label.checked,
+
+        .rating label:before {
+            content: '\f005';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+        }
+
+        .rating input:checked ~ label,
         .rating label:hover,
-        .rating label:hover ~ label,
-        .rating input:checked ~ label {
+        .rating label:hover ~ label {
             color: #ffd700;
-            transition: all 0.2s ease;
         }
+
+        .rating-text {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 16px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .rating-container {
+            background: #f8f9fc;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
         body 
 {
     background-color: #f8f9fc;
@@ -368,18 +432,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     <form method="POST" action="" id="feedbackForm">
                         <div class="mb-4">
-                            <h5>Rate our clinic</h5>
-                            <div class="rating mb-3">
-                                <input type="radio" name="rating" value="5" id="star5" required>
-                                <label for="star5" class="fas fa-star"></label>
-                                <input type="radio" name="rating" value="4" id="star4">
-                                <label for="star4" class="fas fa-star"></label>
-                                <input type="radio" name="rating" value="3" id="star3">
-                                <label for="star3" class="fas fa-star"></label>
-                                <input type="radio" name="rating" value="2" id="star2">
-                                <label for="star2" class="fas fa-star"></label>
-                                <input type="radio" name="rating" value="1" id="star1">
-                                <label for="star1" class="fas fa-star"></label>
+                            <h5 class="text-center mb-3">Rate our clinic</h5>
+                            <div class="rating-container">
+                                <div class="rating">
+                                    <input type="radio" id="star5" name="rating" value="5" required/>
+                                    <label for="star5" data-rating="5"></label>
+                                    
+                                    <input type="radio" id="star4" name="rating" value="4"/>
+                                    <label for="star4" data-rating="4"></label>
+                                    
+                                    <input type="radio" id="star3" name="rating" value="3"/>
+                                    <label for="star3" data-rating="3"></label>
+                                    
+                                    <input type="radio" id="star2" name="rating" value="2"/>
+                                    <label for="star2" data-rating="2"></label>
+                                    
+                                    <input type="radio" id="star1" name="rating" value="1"/>
+                                    <label for="star1" data-rating="1"></label>
+                                </div>
+                                <div class="rating-text" id="ratingText">Click a star to rate</div>
                             </div>
                         </div>
 
@@ -418,85 +489,163 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    let links = document.querySelectorAll(".quick-action-btn");
-    let currentUrl = window.location.pathname.split("/").pop();
+// Add this to your existing script section
+document.addEventListener('DOMContentLoaded', function() {
+    const ratingInputs = document.querySelectorAll('.rating input');
+    const ratingText = document.getElementById('ratingText');
+    
+    const ratingDescriptions = {
+        5: 'Excellent - Very satisfied with the service ★★★★★',
+        4: 'Very Good - Above average experience ★★★★',
+        3: 'Good - Met expectations ★★★',
+        2: 'Fair - Below average experience ★★',
+        1: 'Poor - Unsatisfied with the service ★'
+    };
 
-    links.forEach(link => {
-        if (link.getAttribute("href") === currentUrl) {
-            link.classList.add("active");
-            link.querySelector("i").classList.remove("text-primary");
-        }
+    ratingInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const rating = this.value;
+            ratingText.textContent = ratingDescriptions[rating];
+            
+            // Update all stars
+            document.querySelectorAll('.rating label').forEach(label => {
+                const labelRating = label.getAttribute('data-rating');
+                if (labelRating <= rating) {
+                    label.style.color = '#ffd700'; // Selected stars
+                } else {
+                    label.style.color = '#ddd'; // Unselected stars
+                }
+            });
+        });
     });
-});
 
-function confirmLogout() {
-    return confirm("Are you sure you want to logout?");
-}
+    // Add hover effect
+    document.querySelectorAll('.rating label').forEach(label => {
+        label.addEventListener('mouseover', function() {
+            const rating = this.getAttribute('data-rating');
+            document.querySelectorAll('.rating label').forEach(l => {
+                const labelRating = l.getAttribute('data-rating');
+                if (labelRating <= rating) {
+                    l.style.color = '#ffd700';
+                }
+            });
+        });
 
-document.addEventListener("DOMContentLoaded", function () {
-    let links = document.querySelectorAll(".card-body a");
-    let currentUrl = window.location.pathname.split("/").pop();
-
-    links.forEach(link => {
-        if (link.getAttribute("href") === currentUrl) {
-            link.classList.add("active");
-        }
+        label.addEventListener('mouseout', function() {
+            const selectedRating = document.querySelector('.rating input:checked');
+            document.querySelectorAll('.rating label').forEach(l => {
+                const labelRating = l.getAttribute('data-rating');
+                if (!selectedRating || labelRating > selectedRating.value) {
+                    l.style.color = '#ddd';
+                }
+            });
+        });
     });
 
+    // Form validation enhancement
     document.getElementById('feedbackForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Get form values
         const rating = document.querySelector('input[name="rating"]:checked');
         const satisfaction = document.querySelector('select[name="satisfaction"]').value;
-        const feedback = document.querySelector('textarea[name="feedback"]').value;
+        const feedback = document.querySelector('textarea[name="feedback"]').value.trim();
         
-        // Debug values
-        console.log('Rating:', rating ? rating.value : 'not selected');
-        console.log('Satisfaction:', satisfaction);
-        console.log('Feedback:', feedback);
-        
-        // Validate form
-        if (!rating || !satisfaction || !feedback.trim()) {
+        if (!rating) {
             Swal.fire({
                 icon: 'error',
-                title: 'Incomplete Form',
-                text: 'Please fill all required fields'
+                title: 'Rating Required',
+                text: 'Please select a star rating (1-5)'
             });
             return;
         }
         
-        // Show loading state
-        Swal.fire({
-            title: 'Submitting Feedback',
-            text: 'Please wait...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-        
-        // Submit the form
-        this.submit();
-    });
-
-    // Add rating validation
-    document.querySelectorAll('.rating input').forEach(input => {
-        input.addEventListener('change', function() {
-            document.querySelectorAll('.rating label').forEach(label => {
-                label.classList.remove('checked');
+        if (!satisfaction) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Satisfaction Level Required',
+                text: 'Please select your satisfaction level'
             });
-            if (this.checked) {
-                this.nextElementSibling.classList.add('checked');
+            return;
+        }
+        
+        if (!feedback) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Feedback Required',
+                text: 'Please provide your feedback'
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Confirm Submission',
+            html: `
+                <p>Rating: ${rating.value} stars</p>
+                <p>Satisfaction: ${satisfaction}</p>
+                <p>Feedback: ${feedback}</p>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Submit',
+            cancelButtonText: 'Review'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.submit();
             }
         });
     });
 });
 
-function confirmLogout() {
-    return confirm('Are you sure you want to logout?');
-}
+// Replace or update the existing form submission handler
+document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const rating = document.querySelector('input[name="rating"]:checked');
+    const satisfaction = document.querySelector('select[name="satisfaction"]').value;
+    const feedback = document.querySelector('textarea[name="feedback"]').value.trim();
+    
+    // Validate all required fields
+    if (!rating || !satisfaction || !feedback) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Required Fields Missing',
+            text: 'Please fill in all required fields'
+        });
+        return;
+    }
+
+    // Show confirmation dialog
+    Swal.fire({
+        title: 'Confirm Feedback Submission',
+        html: `
+            <div class="text-left">
+                <p><strong>Rating:</strong> ${rating.value} stars</p>
+                <p><strong>Satisfaction:</strong> ${satisfaction}</p>
+                <p><strong>Feedback:</strong> ${feedback}</p>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Submit Feedback',
+        cancelButtonText: 'Review',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading state
+            Swal.fire({
+                title: 'Submitting Feedback',
+                text: 'Please wait...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Submit the form
+            this.submit();
+        }
+    });
+});
 </script>
 </body>
 </html>

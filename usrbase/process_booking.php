@@ -20,46 +20,40 @@ $service_id = $_POST['service_id'];
 $appointment_date = $_POST['appointment_date'];
 $appointment_time = $_POST['appointment_time'];
 
-// Validate appointment date is in the future
-if (strtotime($appointment_date) < strtotime(date('Y-m-d'))) {
-    $_SESSION['error'] = "Please select a future date.";
-    header("Location: book-appointment.php");
-    exit;
-}
-
 try {
     // Start transaction
     $conn->begin_transaction();
 
-    // Check if user has pending or confirmed appointments
-    $check_query = "SELECT COUNT(*) as count FROM appointments 
-                   WHERE user_id = ? AND status IN ('pending', 'confirmed')";
-    $stmt = $conn->prepare($check_query);
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $count = $result->fetch_assoc()['count'];
-
-    if ($count >= 3) {
-        throw new Exception("You cannot book more than 3 active appointments.");
-    }
-
-    // Check if timeslot is available in availability_tb
-    $check_availability = "SELECT COUNT(*) as available FROM availability_tb 
-                         WHERE available_date = ? AND available = 1";
+    // Check availability and current appointment count
+    $check_availability = "
+        SELECT a.max_daily_appointments, 
+               COUNT(ap.appointment_id) as current_appointments
+        FROM availability_tb a
+        LEFT JOIN appointments ap ON ap.appointment_date = a.available_date 
+             AND ap.status IN ('confirmed', 'pending')
+        WHERE a.available_date = ?
+        GROUP BY a.available_date, a.max_daily_appointments";
+    
     $stmt = $conn->prepare($check_availability);
     $stmt->bind_param("s", $appointment_date);
     $stmt->execute();
     $avail_result = $stmt->get_result();
-    
-    if ($avail_result->fetch_assoc()['available'] == 0) {
+    $availability = $avail_result->fetch_assoc();
+
+    if (!$availability) {
         throw new Exception("Selected date is not available for booking.");
     }
 
+    if ($availability['current_appointments'] >= $availability['max_daily_appointments']) {
+        throw new Exception("Maximum appointments for this date have been reached.");
+    }
+
     // Check if timeslot is already booked
-    $check_slot = "SELECT COUNT(*) as booked FROM appointments 
-                  WHERE appointment_date = ? AND appointment_time = ? 
-                  AND status IN ('pending', 'confirmed')";
+    $check_slot = "SELECT COUNT(*) as booked 
+                   FROM appointments 
+                   WHERE appointment_date = ? 
+                   AND appointment_time = ? 
+                   AND status IN ('pending', 'confirmed')";
     $stmt = $conn->prepare($check_slot);
     $stmt->bind_param("ss", $appointment_date, $appointment_time);
     $stmt->execute();
@@ -94,18 +88,17 @@ try {
     $user_details = $user_result->fetch_assoc();
 
     // Check if this is a rebooking
-    $is_rebooking = false;
-    $check_previous = "SELECT COUNT(*) as previous FROM appointments 
-                      WHERE user_id = ? AND status IN ('completed', 'cancelled')";
+    $check_previous = "SELECT COUNT(*) as previous 
+                      FROM appointments 
+                      WHERE user_id = ? 
+                      AND status IN ('completed', 'cancelled')";
     $stmt = $conn->prepare($check_previous);
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $previous_result = $stmt->get_result();
-    if ($previous_result->fetch_assoc()['previous'] > 0) {
-        $is_rebooking = true;
-    }
+    $is_rebooking = ($previous_result->fetch_assoc()['previous'] > 0);
 
-    // Send confirmation email with rebooking flag
+    // Send confirmation email
     $emailSent = sendBookingConfirmationEmail(
         $user_details['email'],
         $_SESSION['fullname'],
