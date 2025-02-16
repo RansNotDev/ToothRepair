@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 12, 2025 at 02:09 AM
+-- Generation Time: Feb 16, 2025 at 01:24 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -61,6 +61,50 @@ CREATE TABLE `appointments` (
   `cancelled_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `appointments`
+--
+
+INSERT INTO `appointments` (`appointment_id`, `user_id`, `service_id`, `appointment_date`, `appointment_time`, `status`, `notes`, `created_at`, `cancel_reason`, `cancelled_at`) VALUES
+(53, 55, 15, '2025-02-22', '14:30:00', 'Pending', NULL, '2025-02-16 15:36:51', NULL, NULL);
+
+--
+-- Triggers `appointments`
+--
+DELIMITER $$
+CREATE TRIGGER `after_appointment_complete` AFTER UPDATE ON `appointments` FOR EACH ROW BEGIN
+    -- Only proceed if status changed to completed and record doesn't exist
+    IF NEW.status = 'completed' AND OLD.status != 'completed' AND 
+       NOT EXISTS (SELECT 1 FROM appointment_records WHERE appointment_id = NEW.appointment_id) THEN
+        
+        INSERT INTO appointment_records (
+            appointment_id,
+            user_id,
+            service_id,
+            appointment_date,
+            appointment_time,
+            service_name,
+            status,
+            completion_date
+        )
+        SELECT 
+            a.appointment_id,
+            a.user_id,
+            a.service_id,
+            a.appointment_date,
+            a.appointment_time,
+            s.service_name,
+            'completed',
+            NOW()
+        FROM appointments a
+        JOIN services s ON a.service_id = s.service_id
+        WHERE a.appointment_id = NEW.appointment_id;
+        
+    END IF;
+END
+$$
+DELIMITER ;
+
 -- --------------------------------------------------------
 
 --
@@ -80,8 +124,27 @@ CREATE TABLE `appointment_deletions` (
 --
 
 INSERT INTO `appointment_deletions` (`deletion_id`, `appointment_id`, `delete_reason`, `deleted_at`, `CREATED_AT`) VALUES
-(4, 39, 'test to delete', '2025-02-11 17:47:06', '2025-02-11 09:47:06'),
-(5, 40, 'test delete', '2025-02-11 17:53:33', '2025-02-11 09:53:33');
+(10, 47, 'asdasd', '2025-02-13 11:32:18', '2025-02-13 03:32:18');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `appointment_records`
+--
+
+CREATE TABLE `appointment_records` (
+  `record_id` int(11) NOT NULL,
+  `appointment_id` int(11) DEFAULT NULL,
+  `user_id` int(11) NOT NULL,
+  `service_id` int(11) NOT NULL,
+  `appointment_date` date NOT NULL,
+  `appointment_time` time NOT NULL,
+  `service_name` varchar(255) NOT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'completed',
+  `notes` text DEFAULT NULL,
+  `completion_date` datetime NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -94,25 +157,16 @@ CREATE TABLE `availability_tb` (
   `available_date` date NOT NULL,
   `time_start` time NOT NULL,
   `time_end` time NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `is_active` tinyint(1) DEFAULT 1
+  `max_daily_appointments` int(11) NOT NULL DEFAULT 8
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `availability_tb`
 --
 
-INSERT INTO `availability_tb` (`id`, `available_date`, `time_start`, `time_end`, `created_at`, `is_active`) VALUES
-(182, '2025-02-12', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
-(183, '2025-02-13', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
-(184, '2025-02-14', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
-(185, '2025-02-15', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
-(186, '2025-02-16', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
-(187, '2025-02-17', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
-(188, '2025-02-18', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
-(189, '2025-02-19', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
-(190, '2025-02-24', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1),
-(191, '2025-02-25', '08:00:00', '16:00:00', '2025-02-12 00:49:30', 1);
+INSERT INTO `availability_tb` (`id`, `available_date`, `time_start`, `time_end`, `max_daily_appointments`) VALUES
+(1, '2025-02-21', '08:00:00', '16:00:00', 8),
+(2, '2025-02-22', '08:00:00', '16:00:00', 9);
 
 -- --------------------------------------------------------
 
@@ -135,7 +189,29 @@ CREATE TABLE `clinic_settings` (
 --
 
 INSERT INTO `clinic_settings` (`setting_id`, `max_daily_appointments`, `contact_number`, `email`, `address`, `logo`, `cover`) VALUES
-(1, 16, '09635963243', 'admin@gmail.com', 'malasiqui', 'uploads/default_logo.png', 'uploads/default_cover.jpg');
+(1, 18, '09635963243', 'admin@gmail.com', 'malasiqui', 'uploads/default_logo.png', 'uploads/default_cover.jpg');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `feedback`
+--
+
+CREATE TABLE `feedback` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `rating` int(11) DEFAULT NULL,
+  `feedback_text` text DEFAULT NULL,
+  `satisfaction_level` varchar(20) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `feedback`
+--
+
+INSERT INTO `feedback` (`id`, `user_id`, `rating`, `feedback_text`, `satisfaction_level`, `created_at`) VALUES
+(16, 55, 5, 'asdasd', 'Very Satisfied', '2025-02-16 08:53:41');
 
 -- --------------------------------------------------------
 
@@ -148,24 +224,24 @@ CREATE TABLE `services` (
   `service_name` varchar(100) NOT NULL,
   `description` text DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
-  `image_url` varchar(255) DEFAULT NULL
+  `image` longblob DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `services`
 --
 
-INSERT INTO `services` (`service_id`, `service_name`, `description`, `price`, `image_url`) VALUES
-(1, 'Tooth Extraction', 'Removal of a damaged or decayed tooth to prevent further complications.', 1500.00, NULL),
-(2, 'Dental Cleaning', 'Professional cleaning to remove plaque, tartar, and stains for better oral health.', 1200.00, NULL),
-(3, 'Tooth Filling', 'Restoration of decayed or damaged teeth using dental fillings.', 1800.00, NULL),
-(4, 'Root Canal Treatment', 'Procedure to save an infected tooth by removing the pulp and sealing it.', 5000.00, NULL),
-(5, 'Dental Braces', 'Orthodontic treatment to correct misaligned teeth and improve bite.', 25000.00, NULL),
-(6, 'Teeth Whitening', 'Cosmetic procedure to lighten and brighten stained teeth.', 3000.00, NULL),
-(7, 'Dental Crowns', 'Caps placed over damaged teeth to restore shape, size, and strength.', 8000.00, NULL),
-(8, 'Dentures', 'Removable replacements for missing teeth.', 15000.00, NULL),
-(9, 'Gum Treatment', 'Treatment for gum diseases like gingivitis and periodontitis.', 2000.00, NULL),
-(10, 'Dental Implants', 'Surgical placement of artificial tooth roots for missing teeth replacement.', 35000.00, NULL);
+INSERT INTO `services` (`service_id`, `service_name`, `description`, `price`, `image`) VALUES
+(15, 'Tooth Extraction', 'Safe and professional removal of damaged or decayed teeth to relieve pain and prevent further oral health issues', 500.00, NULL),
+(16, 'Wisdom Tooth Extraction', 'Surgical removal of impacted or problematic wisdom teeth to prevent pain, infection, and alignment issues.', 1000.00, NULL),
+(17, 'Dental Restoration', 'Repair of decayed, chipped, or damaged teeth using high-quality dental materials to restore function and aesthetics.', 500.00, NULL),
+(18, 'Oral Prophylaxis', 'Professional teeth cleaning to remove plaque, tartar, and stains, ensuring optimal oral hygiene and fresher breath.', 500.00, NULL),
+(19, 'Braces', 'Orthodontic treatment using metal braces to gradually straighten teeth and improve bite alignment.', 35000.00, NULL),
+(20, 'Fixed Bridge Plastic', 'A permanent solution to replace missing teeth, restoring both function and aesthetics.', 3000.00, NULL),
+(21, 'Fixed Bridge Porcelain', 'A permanent solution to replace missing teeth, restoring both function and aesthetics.', 5000.00, NULL),
+(22, 'Dentures (Full Upper & Lower) China Brand', 'Custom-made removable dentures designed for comfort and durability to restore your smile and chewing ability.', 10000.00, NULL),
+(23, 'Dentures (Full Upper & Lower) Japan Brand', 'Custom-made removable dentures designed for comfort and durability to restore your smile and chewing ability.', 12000.00, NULL),
+(24, 'Dentures (Full Upper & Lower) US Brand', 'Custom-made removable dentures designed for comfort and durability to restore your smile and chewing ability.', 15000.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -190,7 +266,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `fullname`, `email`, `password`, `contact_number`, `address`, `created_at`, `reset_token`, `reset_expiry`) VALUES
-(50, 'Rany boy Templado', 'ranney.templado20@gmail.com', '$2y$10$QY9rT3ICVfjdmhqw7bPy0e3XO3l/sO3hM13nHCQS8eUFKIEptYVYq', '09635963243', 'malasiqui', '2025-02-11 13:47:07', NULL, NULL);
+(55, 'Rany Boy Templado', 'ranney.templado20@gmail.com', '$2y$10$WmsxjU5gcynM78Fo5IRsaezG5GeFCc03tAnDCNgzGyHf7ljwHVzXi', '09123456789', 'Montemayor Malasiqui', '2025-02-13 14:22:34', NULL, NULL);
 
 --
 -- Indexes for dumped tables
@@ -218,18 +294,35 @@ ALTER TABLE `appointment_deletions`
   ADD PRIMARY KEY (`deletion_id`);
 
 --
+-- Indexes for table `appointment_records`
+--
+ALTER TABLE `appointment_records`
+  ADD PRIMARY KEY (`record_id`),
+  ADD UNIQUE KEY `appointment_id` (`appointment_id`),
+  ADD KEY `service_id` (`service_id`),
+  ADD KEY `idx_appointment_id` (`appointment_id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_completion_date` (`completion_date`);
+
+--
 -- Indexes for table `availability_tb`
 --
 ALTER TABLE `availability_tb`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `available_date` (`available_date`),
-  ADD UNIQUE KEY `idx_available_date` (`available_date`);
+  ADD UNIQUE KEY `unique_date` (`available_date`);
 
 --
 -- Indexes for table `clinic_settings`
 --
 ALTER TABLE `clinic_settings`
   ADD PRIMARY KEY (`setting_id`);
+
+--
+-- Indexes for table `feedback`
+--
+ALTER TABLE `feedback`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `services`
@@ -258,19 +351,25 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `appointments`
 --
 ALTER TABLE `appointments`
-  MODIFY `appointment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `appointment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
 -- AUTO_INCREMENT for table `appointment_deletions`
 --
 ALTER TABLE `appointment_deletions`
-  MODIFY `deletion_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `deletion_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT for table `appointment_records`
+--
+ALTER TABLE `appointment_records`
+  MODIFY `record_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `availability_tb`
 --
 ALTER TABLE `availability_tb`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=192;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `clinic_settings`
@@ -279,16 +378,22 @@ ALTER TABLE `clinic_settings`
   MODIFY `setting_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT for table `feedback`
+--
+ALTER TABLE `feedback`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+
+--
 -- AUTO_INCREMENT for table `services`
 --
 ALTER TABLE `services`
-  MODIFY `service_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `service_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- Constraints for dumped tables
@@ -298,10 +403,24 @@ ALTER TABLE `users`
 -- Constraints for table `appointments`
 --
 ALTER TABLE `appointments`
-  ADD CONSTRAINT `appointments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  ADD CONSTRAINT `appointments_ibfk_2` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`),
+  ADD CONSTRAINT `appointments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `appointments_ibfk_2` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_service` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `appointment_records`
+--
+ALTER TABLE `appointment_records`
+  ADD CONSTRAINT `appointment_records_ibfk_1` FOREIGN KEY (`appointment_id`) REFERENCES `appointments` (`appointment_id`),
+  ADD CONSTRAINT `appointment_records_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `appointment_records_ibfk_3` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`);
+
+--
+-- Constraints for table `feedback`
+--
+ALTER TABLE `feedback`
+  ADD CONSTRAINT `feedback_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

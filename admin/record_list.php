@@ -5,15 +5,20 @@ include_once('includes/sidebar.php');
 include_once('includes/topbar.php');
 include_once('../database/db_connection.php');
 
-// Replace the existing query with this optimized version
+// Update the query to include all necessary fields
 $query = "SELECT 
     ar.*,
     u.fullname,
+    u.email,
+    u.contact_number,
+    u.address,
+    s.service_name,
     DATE_FORMAT(ar.appointment_date, '%M %d, %Y') as formatted_date,
     DATE_FORMAT(ar.appointment_time, '%h:%i %p') as formatted_time,
     DATE_FORMAT(ar.completion_date, '%M %d, %Y %h:%i %p') as completed_at
 FROM appointment_records ar
 JOIN users u ON ar.user_id = u.user_id
+JOIN services s ON ar.service_id = s.service_id
 ORDER BY ar.completion_date DESC";
 
 $result = $conn->query($query);
@@ -27,8 +32,8 @@ $result = $conn->query($query);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <!-- DataTables Bundle -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.13.7/r-2.5.0/datatables.min.css"/>
     <!-- SB Admin 2 Template -->
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
     <!-- Custom CSS -->
@@ -103,7 +108,7 @@ $result = $conn->query($query);
             </div>
             <!-- Existing Table Code -->
             <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <table class="table table-bordered" id="recordTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
                             <th>Full Name</th>
@@ -111,51 +116,37 @@ $result = $conn->query($query);
                             <th>Appointment Time</th>
                             <th>Service</th>
                             <th>Status</th>
-                            <th>Actions</th>
+                            <!-- Removed Actions column -->
                         </tr>
                     </thead>
                     <tbody>
-    <?php if ($result && $result->num_rows > 0): ?>
-        <?php while ($row = $result->fetch_assoc()): ?>
-            <tr>
-                <td data-label="Full Name"><?= htmlspecialchars($row['fullname']) ?></td>
-                <td data-label="Appointment Date"><?= htmlspecialchars($row['formatted_date']) ?></td>
-                <td data-label="Appointment Time"><?= htmlspecialchars($row['formatted_time']) ?></td>
-                <td data-label="Service"><?= htmlspecialchars($row['service_name']) ?></td>
-                <td data-label="Completion">
-                    <span class="badge badge-success">
-                        <i class="fas fa-check-circle"></i> 
-                        Completed on <?= htmlspecialchars($row['completed_at']) ?>
-                    </span>
-                </td>
-                <td data-label="Actions">
-                    <div class="btn-group">
-                        <button class="btn btn-info btn-sm view-record-btn" 
-                                data-id="<?= htmlspecialchars($row['record_id']) ?>"
-                                title="View Details">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <?php if ($_SESSION['role'] === 'admin'): ?>
-                            <button class="btn btn-danger btn-sm delete-record-btn" 
-                                    data-id="<?= htmlspecialchars($row['record_id']) ?>"
-                                    title="Delete Record">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <?php if ($result && $result->num_rows > 0): ?>
+                            <?php while ($row = $result->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($row['fullname']) ?></td>
+                                    <td><?= htmlspecialchars($row['formatted_date']) ?></td>
+                                    <td><?= htmlspecialchars($row['formatted_time']) ?></td>
+                                    <td><?= htmlspecialchars($row['service_name']) ?></td>
+                                    <td>
+                                        <span class="badge badge-success">
+                                            <i class="fas fa-check-circle"></i> 
+                                            Completed on <?= htmlspecialchars($row['completed_at']) ?>
+                                        </span>
+                                    </td>
+                                    <!-- Removed Actions column -->
+                                </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="5" class="text-center">
+                                    <!-- Updated colspan from 6 to 5 -->
+                                    <div class="alert alert-info m-0">
+                                        <i class="fas fa-info-circle"></i> No completed appointments found
+                                    </div>
+                                </td>
+                            </tr>
                         <?php endif; ?>
-                    </div>
-                </td>
-            </tr>
-        <?php endwhile; ?>
-    <?php else: ?>
-        <tr>
-            <td colspan="6" class="text-center">
-                <div class="alert alert-info m-0">
-                    <i class="fas fa-info-circle"></i> No completed appointments found
-                </div>
-            </td>
-        </tr>
-    <?php endif; ?>
-</tbody>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -168,9 +159,47 @@ $result = $conn->query($query);
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
 <!-- Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- DataTables -->
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<!-- DataTables Bundle -->
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.13.7/r-2.5.0/datatables.min.js"></script>
 <!-- Custom JS -->
 <script src="js/record_list.js"></script>
+<script>
+// Replace the existing DataTables initialization with this:
+$(document).ready(function() {
+    var table = $('#recordTable').DataTable({
+        "responsive": true,
+        "processing": true,
+        "pageLength": 10,
+        "order": [[1, "desc"]], // Sort by appointment date
+        "columnDefs": [
+            {
+                "targets": [4], // Status column
+                "orderable": false
+            }
+            // Removed Actions column configuration
+        ],
+        "language": {
+            "emptyTable": "No records available",
+            "zeroRecords": "No matching records found"
+        },
+        "dom": '<"top"lf>rt<"bottom"ip><"clear">'
+    });
+
+    // Search functionality
+    $('#searchInput').on('keyup', function() {
+        table.search(this.value).draw();
+    });
+
+    // Alphabetical filter
+    $('.btn[data-letter]').on('click', function() {
+        var letter = $(this).data('letter');
+        if (letter === 'all') {
+            table.search('').draw();
+        } else {
+            table.search('^' + letter, true, false).draw();
+        }
+    });
+});
+</script>
 </body>
 </html>

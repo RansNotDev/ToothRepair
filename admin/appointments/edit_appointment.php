@@ -72,6 +72,83 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         );
         $stmt->execute();
 
+        // If status is being changed to completed
+        if ($status === 'completed') {
+            // Begin transaction
+            $conn->begin_transaction();
+
+            try {
+                // First, get all the appointment data
+                $get_sql = "SELECT 
+                    appointments.*,
+                    users.fullname,
+                    users.email,
+                    users.contact_number,
+                    users.address,
+                    services.service_name
+                FROM appointments
+                JOIN users ON appointments.user_id = users.user_id
+                JOIN services ON appointments.service_id = services.service_id
+                WHERE appointment_id = ?";
+                
+                $stmt = $conn->prepare($get_sql);
+                $stmt->bind_param("i", $_POST['appointment_id']);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $appointment = $result->fetch_assoc();
+
+                // Insert into appointment_records
+                $insert_sql = "INSERT INTO appointment_records 
+                    (user_id, service_id, appointment_date, appointment_time, completion_date, status)
+                    VALUES (?, ?, ?, ?, NOW(), 'completed')";
+                
+                $stmt = $conn->prepare($insert_sql);
+                $stmt->bind_param(
+                    "iiss", 
+                    $appointment['user_id'],
+                    $appointment['service_id'],
+                    $appointment['appointment_date'],
+                    $appointment['appointment_time']
+                );
+                $stmt->execute();
+
+                // Delete from appointments table
+                $delete_sql = "DELETE FROM appointments WHERE appointment_id = ?";
+                $stmt->prepare($delete_sql);
+                $stmt->bind_param("i", $_POST['appointment_id']);
+                $stmt->execute();
+
+                // Commit transaction
+                $conn->commit();
+                
+                echo json_encode(['success' => true]);
+                exit;
+
+            } catch (Exception $e) {
+                // Rollback transaction on error
+                $conn->rollback();
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Database error: ' . $e->getMessage()
+                ]);
+                exit;
+            }
+        } else {
+            // Normal update for non-completed status
+            $update_sql = "UPDATE appointments SET status = ? WHERE appointment_id = ?";
+            $stmt = $conn->prepare($update_sql);
+            $stmt->bind_param("si", $status, $_POST['appointment_id']);
+            
+            if ($stmt->execute()) {
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Failed to update appointment'
+                ]);
+            }
+        }
+
         // Commit transaction
         $conn->commit();
 

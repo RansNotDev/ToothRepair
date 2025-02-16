@@ -28,23 +28,64 @@ include_once('../database/db_connection.php');
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
 
     <style>
-        .content-wrapper {
-            height: calc(100vh - 4.375rem);
-            overflow-y: auto;
-            position: relative;
+        /* Reset default overflow */
+        html, body {
+            height: 100%;
+            overflow: hidden;
         }
 
+        /* Main content wrapper */
+        .content-wrapper {
+            height: 100vh;
+            overflow: hidden;
+            padding-top: 4.375rem; /* Adjust based on your topbar height */
+        }
+
+        /* Container for the services content */
         .container-fluid {
+            height: calc(100vh - 4.375rem);
+            overflow-y: auto;
             padding-bottom: 2rem;
         }
 
+        /* Hide horizontal overflow */
         #wrapper #content-wrapper {
             overflow-x: hidden;
-            position: relative;
         }
 
-        body {
-            overflow: hidden;
+        /* Table container styles */
+        .card {
+            margin-bottom: 1rem;
+        }
+
+        .table-responsive {
+            overflow-y: visible;
+        }
+
+        /* Sticky header */
+        thead {
+            position: sticky;
+            top: 0;
+            background-color: #fff;
+            z-index: 1;
+        }
+
+        /* Scrollbar styling */
+        .container-fluid::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .container-fluid::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .container-fluid::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .container-fluid::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
     </style>
 </head>
@@ -121,8 +162,44 @@ include_once('../database/db_connection.php');
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <!-- Modal edit Service -->
     </div>
-    <!-- Include Footer -->
-    <?php include_once('includes/footer.php'); ?>
+
+    <!-- Add this before the footer include -->
+    <!-- Modal Add Service -->
+    <div class="modal fade" id="addServiceModal" tabindex="-1" aria-labelledby="addServiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addServiceModalLabel">Add New Service</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addServiceForm" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="service_name" class="form-label">Service Name</label>
+                            <input type="text" class="form-control" id="service_name" name="service_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Price</label>
+                            <input type="number" class="form-control" id="price" name="price" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Service Image</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add Service</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
@@ -130,6 +207,9 @@ include_once('../database/db_connection.php');
         crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Include Footer -->
+    <?php include_once('includes/footer.php'); ?>
     <script>
     $(document).ready(function() {
         $('.delete-btn').click(function(e) {
@@ -144,7 +224,13 @@ include_once('../database/db_connection.php');
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, delete it!'
+                confirmButtonText: 'Yes, delete it!',
+                showClass: {
+                    popup: 'swal2-show'
+                },
+                hideClass: {
+                    popup: 'swal2-hide'
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Send AJAX request to delete the service
@@ -183,6 +269,53 @@ include_once('../database/db_connection.php');
                     });
                 }
             })
+        });
+
+        $('#addServiceForm').submit(function(e) {
+            e.preventDefault();
+            
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: 'services/add_service.php',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    try {
+                        var result = JSON.parse(response);
+                        if (result.status === 'success') {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Service added successfully',
+                                icon: 'success'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: result.message,
+                                icon: 'error'
+                            });
+                        }
+                    } catch (e) {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'An unexpected error occurred',
+                            icon: 'error'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'There was an error communicating with the server',
+                        icon: 'error'
+                    });
+                }
+            });
         });
     });
     </script>

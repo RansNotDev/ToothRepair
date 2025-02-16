@@ -28,19 +28,19 @@ if (empty($availabilityDates)) {
     error_log('No available dates found in availability_tb');
 }
 
-// Update appointment counts query - exclude deleted status
+// Update the appointment counts query to exclude completed appointments
 $appointmentCounts = [];
 $result = mysqli_query($conn, 
     "SELECT appointment_date, COUNT(*) AS count 
      FROM appointments 
-     WHERE status IN ('confirmed', 'pending') 
-     AND status != 'deleted'  
+     WHERE status IN ('confirmed', 'pending', 'cancelled') 
+     AND status NOT IN ('completed', 'deleted')  
      GROUP BY appointment_date");
 while ($row = mysqli_fetch_assoc($result)) {
     $appointmentCounts[$row['appointment_date']] = $row['count'];
 }
 
-// Modify the appointment fetch query to include cancelled status
+// Modify the appointment fetch query to exclude completed appointments
 $sched_arr = [];
 $query = "SELECT 
     a.appointment_id AS id, 
@@ -53,7 +53,7 @@ $query = "SELECT
     FROM appointments a
     INNER JOIN users u ON a.user_id = u.user_id
     INNER JOIN services s ON a.service_id = s.service_id
-    WHERE a.status != 'deleted'
+    WHERE a.status NOT IN ('completed', 'deleted')
     ORDER BY a.appointment_date, a.appointment_time";
 $result = mysqli_query($conn, $query);
 
@@ -290,9 +290,9 @@ if ($result) {
                     ${sched.status === "pending" ? "⏳" : sched.status === "cancelled" ? "❌" : "✓"}`,
                 start: `${sched.appointment_date}T${sched.appointment_time}`,
                 backgroundColor: sched.status === "pending" ? "#ffa500" : 
-                                sched.status === "cancelled" ? "#dc3545" : "#dc3545",
+                                sched.status === "cancelled" ? "#dc3545" : "#28a745",
                 borderColor: sched.status === "pending" ? "#ff8c00" : 
-                            sched.status === "cancelled" ? "#c82333" : "#c82333",
+                            sched.status === "cancelled" ? "#c82333" : "#218838",
                 textColor: '#fff',
                 extendedProps: {
                     status: sched.status,

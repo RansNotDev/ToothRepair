@@ -56,7 +56,9 @@ $sql = "SELECT
             appointments.status
         FROM appointments
         INNER JOIN users ON appointments.user_id = users.user_id
-        INNER JOIN services ON appointments.service_id = services.service_id";
+        INNER JOIN services ON appointments.service_id = services.service_id 
+        WHERE appointments.status != 'completed'  /* Add this line */
+        ORDER BY appointments.appointment_date DESC";
 $result = $conn->query($sql);
 
 // Fetch all services for dropdowns
@@ -225,10 +227,6 @@ if (isset($_GET['date'])) {
 </head>
 <body>
     
-
-
-
-
 <div class="container-fluid">
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
@@ -410,22 +408,22 @@ if (isset($_GET['date'])) {
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Full Name</label>
-                                <input type="text" name="fullname" id="editFullname" class="form-control">
+                                <input type="text" name="fullname" id="editFullname" class="form-control" readonly>
                                 <input type="hidden" name="appointment_id" id="editAppointmentId">
                             </div>
                             <div class="form-group">
                                 <label>Email</label>
-                                <input type="email" name="email" id="editEmail" class="form-control">
+                                <input type="email" name="email" id="editEmail" class="form-control" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Contact Number</label>
-                                <input type="tel" name="contact_number" id="editContact" class="form-control">
+                                <input type="tel" name="contact_number" id="editContact" class="form-control" readonly>
                             </div>
                             <div class="form-group">
                                 <label>Address</label>
-                                <textarea name="address" id="editAddress" class="form-control"></textarea>
+                                <textarea name="address" id="editAddress" class="form-control" readonly></textarea>
                             </div>
                         </div>
                     </div>
@@ -444,7 +442,7 @@ if (isset($_GET['date'])) {
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Service</label>
-                                <select name="service_id" id="editService" class="form-control">
+                                <select name="service_id" id="editService" class="form-control" readonly>
                                     <option value="">Select Service</option>
                                     <?php foreach ($services as $service): ?>
                                         <option value="<?= $service['service_id'] ?>">

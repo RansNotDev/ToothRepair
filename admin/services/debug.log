@@ -1,0 +1,24 @@
+Array
+(
+    [POST] => Array
+        (
+            [service_name] => asdasd
+            [description] => asdasd
+            [price] => 12323
+        )
+
+    [FILES] => Array
+        (
+            [image] => Array
+                (
+                    [name] => exercise.png
+                    [full_path] => exercise.png
+                    [type] => image/png
+                    [tmp_name] => C:\xampp\tmp\phpB393.tmp
+                    [error] => 0
+                    [size] => 46646
+                )
+
+        )
+
+)
