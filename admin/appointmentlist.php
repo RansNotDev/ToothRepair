@@ -66,7 +66,6 @@ $services_query = "SELECT * FROM services";
 $services_result = $conn->query($services_query);
 $services = $services_result->fetch_all(MYSQLI_ASSOC);
 
-
 if (isset($_GET['date'])) {
     $date = $_GET['date'];
 
@@ -130,103 +129,36 @@ if (isset($_GET['date'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<!-- SweetAlert2 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-<!-- SB Admin 2 Template -->
-<link href="css/sb-admin-2.min.css" rel="stylesheet">
-<!-- DataTables -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-
-<style>
-    /* General Responsive Styles */
-    .container-fluid {
-        padding: 15px;
-    }
-
-    /* Table Responsiveness */
-    .table-responsive {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    @media (max-width: 768px) {
-        .table thead {
-            display: none;
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link href="css/sb-admin-2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <style>
+        .notify-btn {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #000;
+            transition: all 0.3s ease;
         }
-
-        .table tr {
-            display: block;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
+        .notify-btn:hover {
+            background-color: #e0a800;
+            border-color: #d39e00;
+            color: #000;
         }
-
-        .table td {
-            display: block;
-            text-align: left;
-            position: relative;
-            padding-left: 50%;
+        .notify-btn:disabled {
+            background-color: #ffd754;
+            border-color: #ffd754;
+            cursor: not-allowed;
+            opacity: 0.65;
         }
-
-        .table td:before {
-            content: attr(data-label);
-            position: absolute;
-            left: 10px;
-            width: 45%;
-            font-weight: bold;
+        .swal2-popup {
+            font-size: 0.9rem !important;
         }
-    }
-
-    /* Modal Responsiveness */
-    @media (max-width: 576px) {
-        .modal-dialog {
-            margin: 0.5rem;
+        .swal2-html-container {
+            text-align: left !important;
         }
-
-        .modal-content {
-            padding: 10px;
-        }
-
-        .form-group {
-    }
-
-    .badge {
-        padding: 8px 12px;
-        font-size: 0.9em;
-    }
-
-    .badge-warning {
-        background-color: #ffc107;
-        color: #212529;
-    }
-
-    .badge-info {
-        background-color: rgb(190, 148, 9);
-        color: #fff;
-    }
-
-    .badge-primary {
-        background-color: #007bff;
-        color: #fff;
-    }
-
-    .badge-success {
-        background-color: #28a745;
-        color: #fff;
-    }
-
-    .badge-danger {
-        background-color: #dc3545;
-        color: #fff;
-    }
-
-    .badge-secondary {
-        background-color: #6c757d;
-        color: #fff;
-    }
-</style>
+    </style>
 </head>
 <body>
-    
 <div class="container-fluid">
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
@@ -274,6 +206,15 @@ if (isset($_GET['date'])) {
                                                 data-status="<?= $row['status'] ?>"
                                                 data-service="<?= $row['service_id'] ?>">
                                                 <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button class="btn btn-warning btn-sm notify-btn" 
+                                                data-id="<?= $row['appointment_id'] ?>"
+                                                data-email="<?= $row['email'] ?>"
+                                                data-name="<?= $row['fullname'] ?>"
+                                                data-date="<?= $row['appointment_date'] ?>"
+                                                data-time="<?= $row['appointment_time'] ?>"
+                                                data-service="<?= $row['service_name'] ?>">
+                                                <i class="fas fa-bell"></i> Notify
                                             </button>
                                         </div>
                                     </td>
@@ -515,7 +456,7 @@ if (isset($_GET['date'])) {
                     <div class="col-md-6">
                         <div class="form-group">
                             <label>Service</label>
-                            <input type="text" id="viewService" class="form-control" readonly>
+                            <input type="text" id="viewService" class="form-control, readonly>
                         </div>
                         <div class="form-group">
                             <label>Status</label>
@@ -532,7 +473,98 @@ if (isset($_GET['date'])) {
 </div>
 
 <script>
-    $(document).ready(function () {
+    $(document).ready(function() {
+        // Enhanced notification button handler
+        $('.notify-btn').on('click', function() {
+            const btn = $(this);
+            const data = {
+                email: btn.data('email'),
+                name: btn.data('name'),
+                date: btn.data('date'),
+                time: btn.data('time'),
+                service: btn.data('service')
+            };
+
+            // Disable button while processing
+            btn.prop('disabled', true);
+            
+            // Show loading state
+            const originalText = btn.html();
+            btn.html('<i class="fas fa-spinner fa-spin"></i> Sending...');
+
+            // Send notification
+            $.ajax({
+                url: 'appointments/send_notification.php',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'Notification sent successfully',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message || 'Failed to send notification'
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    let errorMessage = 'Failed to send notification';
+                    console.error('Error:', xhr.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: errorMessage
+                    });
+                },
+                complete: function() {
+                    // Reset button state
+                    btn.prop('disabled', false);
+                    btn.html(originalText);
+                }
+            });
+        });
+
+        // Fix the form submission closure
+        $('#addAppointmentModal form').on('submit', function(e) {
+            e.preventDefault();
+            
+            const form = $(this);
+            const submitBtn = form.find('button[type="submit"]');
+            
+            submitBtn.prop('disabled', true);
+            
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: form.serialize(),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        $('#addAppointmentModal').modal('hide');
+                        alert('Appointment added successfully!');
+                        window.location.href = 'appointmentlist.php?success=add';
+                    } else {
+                        alert('Error: ' + (response.error || 'Failed to add appointment'));
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Server error:', xhr.responseText);
+                    alert('Failed to add appointment. Please try again.');
+                },
+                complete: function() {
+                    submitBtn.prop('disabled', false);
+                }
+            });
+        });
+
         // Replace or update existing edit button handler
         $('.edit-btn').on('click', function () {
             const appointmentId = $(this).data('id');
@@ -1187,9 +1219,72 @@ if (isset($_GET['date'])) {
             }
         });
     });
+
+    // Add this inside your existing $(document).ready(function() {...})
+    $('.notify-btn').on('click', function() {
+        const btn = $(this);
+        const data = {
+            email: btn.data('email'),
+            name: btn.data('name'),
+            date: btn.data('date'),
+            time: btn.data('time'),
+            service: btn.data('service')
+        };
+
+        // First show confirmation dialog
+        Swal.fire({
+            title: 'Send Reminder?',
+            html: `
+                <div class="text-left">
+                    <p>Send appointment reminder to:</p>
+                    <ul class="list-unstyled">
+                        <li><strong>Patient:</strong> ${data.name}</li>
+                        <li><strong>Email:</strong> ${data.email}</li>
+                        <li><strong>Date:</strong> ${data.date}</li>
+                        <li><strong>Time:</strong> ${data.time}</li>
+                        <li><strong>Service:</strong> ${data.service}</li>
+                    </ul>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, send reminder',
+            cancelButtonText: 'Cancel',
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                return $.ajax({
+                    url: 'appointments/send_notification.php',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.success) {
+                        throw new Error(response.message || 'Failed to send notification');
+                    }
+                    return response;
+                })
+                .catch(error => {
+                    Swal.showValidationMessage(`Request failed: ${error}`);
+                });
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sent!',
+                    text: 'Appointment reminder has been sent successfully',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    // Redirect back to appointment list after success message
+                    window.location.href = 'appointmentlist.php';
+                });
+            }
+        });
+    });
 </script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 <?php require 'includes/footer.php'; ?>
 </body>
 </html>
