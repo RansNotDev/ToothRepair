@@ -344,6 +344,23 @@ $services_result = $conn->query($services_query);
 </div>
 
 <script>
+    function confirmLogout() {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You will be logged out of your account",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, logout'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = 'logout.php';
+        }
+    });
+    return false;
+}
+
     document.addEventListener("DOMContentLoaded", function () {
         let links = document.querySelectorAll(".quick-action-btn");
         let currentUrl = window.location.pathname.split("/").pop();

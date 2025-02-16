@@ -84,7 +84,7 @@
             <li class="nav-item">
                 <a class="nav-link" href="calendar.php">
                     <i class="fas fa-fw fa-calendar-alt"></i>
-                    <span>Calendar</span>
+                    <span>Appointments Calendar</span>
                 </a>
             </li>
             <li class="nav-item">

@@ -4,6 +4,19 @@ include_once('includes/header.php');
 include_once('includes/sidebar.php');
 include_once('includes/topbar.php');
 include_once('../database/db_connection.php');
+
+// Replace the existing query with this optimized version
+$query = "SELECT 
+    ar.*,
+    u.fullname,
+    DATE_FORMAT(ar.appointment_date, '%M %d, %Y') as formatted_date,
+    DATE_FORMAT(ar.appointment_time, '%h:%i %p') as formatted_time,
+    DATE_FORMAT(ar.completion_date, '%M %d, %Y %h:%i %p') as completed_at
+FROM appointment_records ar
+JOIN users u ON ar.user_id = u.user_id
+ORDER BY ar.completion_date DESC";
+
+$result = $conn->query($query);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -102,44 +115,47 @@ include_once('../database/db_connection.php');
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if ($result->num_rows > 0): ?>
-                            <?php while ($row = $result->fetch_assoc()): ?>
-                                <tr>
-                                    <td data-label="Full Name"><?= htmlspecialchars($row['fullname']) ?></td>
-                                    <td data-label="Appointment Date"><?= htmlspecialchars($row['appointment_date']) ?></td>
-                                    <td data-label="Appointment Time"><?= htmlspecialchars($row['appointment_time']) ?></td>
-                                    <td data-label="Service"><?= htmlspecialchars($row['service_name']) ?></td>
-                                    <td data-label="Status">
-                                        <span class="badge badge-<?= getStatusBadge($row['status']) ?>">
-                                            <?= ucfirst($row['status']) ?>
-                                        </span>
-                                    </td>
-                                    <td data-label="Actions">
-                                        <div class="btn-group">
-                                            <button class="btn btn-info btn-sm view-btn"
-                                                data-id="<?= $row['appointment_id'] ?>">
-                                                View
-                                            </button>
-                                            <button class="btn btn-primary btn-sm edit-btn"
-                                                data-id="<?= $row['appointment_id'] ?>" data-status="<?= $row['status'] ?>"
-                                                data-service="<?= $row['service_id'] ?>">
-                                                Edit
-                                            </button>
-                                            <button class="btn btn-danger btn-sm delete-btn"
-                                                data-id="<?= $row['appointment_id'] ?>">
-                                                Delete
-                                            </button>
-                                        </div>
-
-                                    </td>
-                                </tr>
-                            <?php endwhile; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="6" class="text-center">No appointments found</td>
-                            </tr>
+    <?php if ($result && $result->num_rows > 0): ?>
+        <?php while ($row = $result->fetch_assoc()): ?>
+            <tr>
+                <td data-label="Full Name"><?= htmlspecialchars($row['fullname']) ?></td>
+                <td data-label="Appointment Date"><?= htmlspecialchars($row['formatted_date']) ?></td>
+                <td data-label="Appointment Time"><?= htmlspecialchars($row['formatted_time']) ?></td>
+                <td data-label="Service"><?= htmlspecialchars($row['service_name']) ?></td>
+                <td data-label="Completion">
+                    <span class="badge badge-success">
+                        <i class="fas fa-check-circle"></i> 
+                        Completed on <?= htmlspecialchars($row['completed_at']) ?>
+                    </span>
+                </td>
+                <td data-label="Actions">
+                    <div class="btn-group">
+                        <button class="btn btn-info btn-sm view-record-btn" 
+                                data-id="<?= htmlspecialchars($row['record_id']) ?>"
+                                title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <?php if ($_SESSION['role'] === 'admin'): ?>
+                            <button class="btn btn-danger btn-sm delete-record-btn" 
+                                    data-id="<?= htmlspecialchars($row['record_id']) ?>"
+                                    title="Delete Record">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         <?php endif; ?>
-                    </tbody>
+                    </div>
+                </td>
+            </tr>
+        <?php endwhile; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="6" class="text-center">
+                <div class="alert alert-info m-0">
+                    <i class="fas fa-info-circle"></i> No completed appointments found
+                </div>
+            </td>
+        </tr>
+    <?php endif; ?>
+</tbody>
                 </table>
             </div>
         </div>

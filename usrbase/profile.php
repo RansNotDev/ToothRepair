@@ -385,6 +385,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.querySelector('form').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -394,8 +395,22 @@ document.querySelector('form').addEventListener('submit', function(e) {
 });
 
 function confirmLogout() {
-    return confirm('Are you sure you want to logout?');
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You will be logged out of your account",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, logout'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = 'logout.php';
+        }
+    });
+    return false;
 }
+
 document.addEventListener("DOMContentLoaded", function () {
     let links = document.querySelectorAll(".quick-action-btn");
     let currentUrl = window.location.pathname.split("/").pop();
