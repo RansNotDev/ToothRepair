@@ -636,6 +636,7 @@ if (isset($_GET['date'])) {
             const form = $(this);
             const submitBtn = form.find('button[type="submit"]');
             const status = $('#editStatus').val();
+            const oldStatus = form.data('original').status;
             
             if (!status) {
                 Swal.fire({
@@ -646,54 +647,71 @@ if (isset($_GET['date'])) {
                 return;
             }
             
+            // Don't send notification if status hasn't changed
+            if (status === oldStatus) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'No Change',
+                    text: 'The appointment status remains the same'
+                });
+                return;
+            }
+            
             submitBtn.prop('disabled', true);
             
-            // Create the data object
             const formData = {
                 appointment_id: $('#editAppointmentId').val(),
                 status: status,
                 service_id: $('#editServiceId').val()
             };
             
-            $.ajax({
-                url: form.attr('action'),
-                type: 'POST',
-                data: formData,
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        // If status is completed, don't send confirmation email
-                        if (status !== 'completed' && status !== 'cancelled') {
-                            // Send confirmation email for other status changes
-                            sendStatusUpdateEmail(formData.appointment_id, status);
+            // Confirm before updating status
+            Swal.fire({
+                title: 'Confirm Status Update',
+                text: `Are you sure you want to mark this appointment as ${status}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, update status',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: form.attr('action'),
+                        type: 'POST',
+                        data: formData,
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                // Always send notification for status changes
+                                sendStatusUpdateEmail(formData.appointment_id, status);
+                                
+                                $('#editAppointmentModal').modal('hide');
+                                
+                                // Refresh the page after a short delay
+                                setTimeout(() => {
+                                    window.location.href = 'appointmentlist.php?success=edit';
+                                }, 2500);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: response.message || 'Failed to update appointment status'
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            console.error('Server error:', xhr.responseText);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Failed to update appointment status. Please try again.'
+                            });
+                        },
+                        complete: function() {
+                            submitBtn.prop('disabled', false);
                         }
-                        
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success!',
-                            text: 'Appointment status updated successfully',
-                            timer: 2000,
-                            showConfirmButton: false
-                        }).then(() => {
-                            window.location.href = 'appointmentlist.php?success=edit';
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: response.message || 'Failed to update appointment status'
-                        });
-                    }
-                },
-                error: function(xhr) {
-                    console.error('Server error:', xhr.responseText);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Failed to update appointment status. Please try again.'
                     });
-                },
-                complete: function() {
+                } else {
                     submitBtn.prop('disabled', false);
                 }
             });
@@ -701,17 +719,50 @@ if (isset($_GET['date'])) {
 
         // Function to send status update email
         function sendStatusUpdateEmail(appointmentId, status) {
-            if (status === 'confirmed') {
-                $.ajax({
-                    url: 'appointments/send_status_notification.php',
-                    type: 'POST',
-                    data: {
-                        appointment_id: appointmentId,
-                        status: status
-                    },
-                    dataType: 'json'
-                });
-            }
+            // Show loading indicator
+            Swal.fire({
+                title: 'Sending notification...',
+                text: 'Please wait while we notify the patient.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.ajax({
+                url: 'appointments/send_status_notification.php',
+                type: 'POST',
+                data: {
+                    appointment_id: appointmentId,
+                    status: status
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Notification Sent',
+                            text: `Patient has been notified about the ${status} appointment.`,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message || 'Failed to send notification'
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Error sending notification:', xhr.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to send status update notification'
+                    });
+                }
+            });
         }
 
         // Replace or update existing view button handler  
@@ -1332,6 +1383,128 @@ if (isset($_GET['date'])) {
             }
         });
     });
+
+    // Update the edit form submission handler
+
+    // Inside your existing $(document).ready(function() {...})
+    $('#editAppointmentModal form').on('submit', function(e) {
+        e.preventDefault();
+        
+        const form = $(this);
+        const submitBtn = form.find('button[type="submit"]');
+        const status = $('#editStatus').val();
+        
+        if (!status) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Please select a status'
+            });
+            return;
+        }
+        
+        submitBtn.prop('disabled', true);
+        
+        const formData = {
+            appointment_id: $('#editAppointmentId').val(),
+            status: status,
+            service_id: $('#editServiceId').val()
+        };
+        
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Handle different status updates
+                    if (status === 'cancelled') {
+                        // Send cancellation email
+                        sendStatusUpdateEmail(formData.appointment_id, status);
+                    } else if (status === 'confirmed') {
+                        // Send confirmation email
+                        sendStatusUpdateEmail(formData.appointment_id, status);
+                    }
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Appointment status updated successfully',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = 'appointmentlist.php?success=edit';
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.message || 'Failed to update appointment status'
+                    });
+                }
+            },
+            error: function(xhr) {
+                console.error('Server error:', xhr.responseText);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to update appointment status. Please try again.'
+                });
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false);
+            }
+        });
+    });
+
+    // Update the sendStatusUpdateEmail function
+    function sendStatusUpdateEmail(appointmentId, status) {
+        // Show loading indicator
+        Swal.fire({
+            title: 'Sending notification...',
+            text: 'Please wait while we notify the patient.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        $.ajax({
+            url: 'appointments/send_status_notification.php',
+            type: 'POST',
+            data: {
+                appointment_id: appointmentId,
+                status: status
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Notification Sent',
+                        text: `Patient has been notified about the ${status} appointment.`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.message || 'Failed to send notification'
+                    });
+                }
+            },
+            error: function(xhr) {
+                console.error('Error sending notification:', xhr.responseText);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to send status update notification'
+                });
+            }
+        });
+    }
 </script>
 <?php require 'includes/footer.php'; ?>
 </body>
