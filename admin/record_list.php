@@ -46,7 +46,7 @@ $result = $conn->query($query);
 <body>
 
     <div class="container-fluid">
-        <div class="card shadow mb-4">
+        <div class="card shadow mb-4 scrollable-card">
             <div class="card-header py-3 d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold text-primary">Appointments Records</h6>
                 <div>
@@ -329,23 +329,26 @@ $(document).ready(function() {
     var table = $('#recordTable').DataTable({
         "responsive": true,
         "processing": true,
-        "pageLength": 10, // Show 10 entries per page
-        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]], // Page length options
-        "order": [[0, "asc"]], // Default sort by name ascending
+        "pageLength": 10,
+        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        "order": [[0, "asc"]],
         "columnDefs": [{
-            "targets": [5, 6], // Status and Actions columns
+            "targets": [5, 6],
             "orderable": false
         }],
         "language": {
             "emptyTable": "No records available",
             "zeroRecords": "No matching records found",
             "lengthMenu": "Show _MENU_ records per page",
-            "info": "Showing _START_ to _END_ of _TOTAL_ records",
-            "search": "Search records:"
+            "info": "Showing _START_ to _END_ of _TOTAL_ records"
         },
-        // Enable all DataTables features
-        "dom": '<"top"lBf>rt<"bottom"ip><"clear">',
-        "buttons": ['copy', 'excel', 'pdf', 'print']
+        // Remove search bar from DataTables
+        "dom": '<"top"l>rt<"bottom"ip><"clear">',
+        "buttons": ['copy', 'excel', 'pdf', 'print'],
+        // Disable the built-in search
+        "searching": true,
+        // Hide the default search box
+        "sDom": 'lrtip'
     });
 
     // Connect search box to DataTable

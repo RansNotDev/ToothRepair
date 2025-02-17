@@ -35,11 +35,13 @@ ORDER BY total_bookings DESC
 LIMIT 5";
 $services_result = $conn->query($services_query);
 
-// Add new query for appointment status distribution
+// Update the status query to filter for current month
 $status_query = "SELECT 
     status,
     COUNT(*) as count
 FROM appointments 
+WHERE MONTH(appointment_date) = MONTH(CURRENT_DATE())
+    AND YEAR(appointment_date) = YEAR(CURRENT_DATE())
 GROUP BY status";
 $status_result = $conn->query($status_query);
 
@@ -382,28 +384,77 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Status Distribution Chart
+    // Update the Status Distribution Chart configuration
     new Chart(document.getElementById('statusChart'), {
         type: 'doughnut',
         data: {
             labels: [<?php 
                 $labels = [];
                 $data = [];
+                $colors = [];
                 mysqli_data_seek($status_result, 0);
                 while($row = $status_result->fetch_assoc()) {
-                    $labels[] = ucfirst($row['status']);
+                    $status = strtolower($row['status']);
+                    // Map status to proper label and color
+                    switch($status) {
+                        case 'completed':
+                            $label = 'Completed';
+                            $colors[] = '#1cc88a'; // Green
+                            break;
+                        case 'cancelled':
+                            $label = 'Cancelled';
+                            $colors[] = '#e74a3b'; // Red
+                            break;
+                        case 'pending':
+                            $label = 'Pending';
+                            $colors[] = '#f6c23e'; // Yellow
+                            break;
+                        case 'booked':
+                            $label = 'Confirmed';
+                            $colors[] = '#4e73df'; // Blue
+                            break;
+                        default:
+                            $label = ucfirst($status);
+                            $colors[] = '#858796'; // Default gray
+                    }
+                    $labels[] = $label;
                     $data[] = $row['count'];
                 }
                 echo '"'.implode('","', $labels).'"';
             ?>],
             datasets: [{
                 data: [<?php echo implode(',', $data); ?>],
-                backgroundColor: ['#4e73df', '#1cc88a', '#f6c23e', '#e74a3b']
+                backgroundColor: <?php echo json_encode($colors); ?>,
+                borderWidth: 1,
+                borderColor: '#ffffff'
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#5a5c69',
+                        font: {
+                            size: 12,
+                            family: "'Nunito', sans-serif"
+                        },
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Current Month Status Distribution',
+                    color: '#5a5c69',
+                    font: {
+                        size: 14,
+                        family: "'Nunito', sans-serif"
+                    }
+                }
+            }
         }
     });
 });

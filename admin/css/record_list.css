@@ -273,3 +273,32 @@
     max-width: 300px;
     margin-bottom: 1rem;
 }
+
+/* Add these styles to make the table section scrollable */
+.scrollable-card {
+    height: calc(100vh - 130px); /* Adjust the height based on your topbar height */
+    margin-top: -1rem; /* Move closer to topbar */
+}
+
+.scrollable-card .card-body {
+    height: calc(100% - 60px); /* Account for card header */
+    overflow-y: auto;
+}
+
+/* Optional: Style the scrollbar */
+.scrollable-card .card-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.scrollable-card .card-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.scrollable-card .card-body::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.scrollable-card .card-body::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

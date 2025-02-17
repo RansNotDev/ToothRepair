@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -11,7 +10,7 @@
 
     <style>
         #accordionSidebar {
-            background-color: #4e73df;
+            background-color: rgb(152, 193, 233);
             color: white;
         }
 
@@ -23,40 +22,47 @@
 
         #accordionSidebar .nav-link:hover,
         #accordionSidebar .nav-link.active {
-            background-color: #3658b8;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
         }
 
         #accordionSidebar .nav-link.active,
         #accordionSidebar .collapse-inner {
-            background-color: #3658b8;
+            background-color: rgba(255, 255, 255, 0.15);
             color: white;
-        }
-
-        #accordionSidebar .sidebar-heading {
-            padding: 0.5rem 1rem;
-            text-transform: uppercase;
-            font-size: 0.7rem;
-        }
-
-        #accordionSidebar .nav-item {
-            margin-bottom: 5px;
-        }
-
-        #accordionSidebar .nav-link i {
-            margin-right: 10px;
-            font-size: 1.2rem;
         }
 
         #accordionSidebar .sidebar-brand {
             color: white;
             font-weight: bold;
+            padding: 1rem;
         }
 
-        #accordionSidebar .sidebar-brand .sidebar-brand-icon {
-            font-size: 2rem;
+        #accordionSidebar .sidebar-brand-icon img {
+            width: 40px;
+            height: 40px;
+            filter: brightness(1.2) contrast(1.2);  /* Increase brightness and contrast */
+            background-color: white;  /* Add white background */
+            padding: 5px;  /* Add padding around the logo */
+            border-radius: 50%;  /* Make it circular */
+            box-shadow: 0 0 10px rgba(16, 92, 192, 0.3);  /* Add subtle glow */
         }
-        .sidebar-divider{
-            background-color: white;
+
+        #accordionSidebar .sidebar-brand-text {
+            font-size: 12px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);  /* Add subtle text shadow */
+        }
+
+        #accordionSidebar .sidebar-heading {
+            color: rgba(205, 205, 235, 0.8);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            padding: 0.5rem 1rem;
+        }
+
+        .sidebar-divider {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
@@ -65,10 +71,10 @@
     <div id="wrapper">
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="dashboard.php">
-                <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-tooth"></i>
+                <div class="sidebar-brand-icon">
+                    <img src="../img/logo/cliniclogo.png" alt="Clinic Logo" style="width: 40px; height: 40px;">
                 </div>
-                <div class="sidebar-brand-text mx-2">Tooth Repair</div>
+                <div class="sidebar-brand-text mx-2">Tooth Repair Dental Clinic</div>
             </a>
            
 
