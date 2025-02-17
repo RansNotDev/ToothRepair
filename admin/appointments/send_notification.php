@@ -40,7 +40,6 @@ try {
 
     $mail = new PHPMailer(true);
 
-    // Debug mode
     $mail->SMTPDebug = SMTP::DEBUG_SERVER;
     $mail->Debugoutput = function($str, $level) {
         error_log("PHPMailer debug: $str");

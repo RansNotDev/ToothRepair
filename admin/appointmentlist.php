@@ -532,7 +532,6 @@ if (isset($_GET['date'])) {
             });
         });
 
-        // Fix the form submission closure
         $('#addAppointmentModal form').on('submit', function(e) {
             e.preventDefault();
             

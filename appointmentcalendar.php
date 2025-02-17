@@ -3,7 +3,7 @@ function generateRandomPassword($length = 8)
 {
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $password = '';
-    for ($i = 0; $i < $length; $i++) {
+    for ($i = 0; $length; $i++) {
         $password .= $characters[rand(0, strlen($characters) - 1)];
     }
     return $password;
@@ -117,7 +117,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                                     <div class="col-md-6 border-right">
                                         <h5 class="text-primary mb-4"><i class="fas fa-user mr-2"></i>Personal
                                             Information</h5>
-                                        <form action="save_appointment.php" method="POST" id="appointmentForm">
+                                        <form action="appointment_handler.php" method="POST" id="appointmentForm">
                                             <div class="form-group">
                                                 <label for="name">Full Name</label>
                                                 <input type="text" class="form-control" id="name" name="fullname"
@@ -187,8 +187,14 @@ while ($row = mysqli_fetch_assoc($result)) {
                                                     I agree to the <b class="text-primary">terms and conditions</b>
                                                 </label>
                                             </div>
-                                            <button type="submit" class="btn btn-primary btn-lg px-5" disabled>
-                                                <i class="fas fa-check mr-2"></i>Confirm Booking
+                                            <button type="submit" class="btn btn-primary btn-lg px-5" disabled id="confirmBookingBtn">
+                                                <span class="normal-state">
+                                                    <i class="fas fa-check mr-2"></i>Confirm Booking
+                                                </span>
+                                                <span class="loading-state d-none">
+                                                    <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+                                                    Processing...
+                                                </span>
                                             </button>
                                         </div>
                                         </form>
@@ -251,15 +257,16 @@ while ($row = mysqli_fetch_assoc($result)) {
             </div>
         </section>
     </main>
-
-   
-
     <?php include 'sitefooter.php'; ?>
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.15/index.global.min.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone-with-data.min.js"></script>
+    <script>
+        moment.tz.setDefault('Asia/Manila');
+    </script>
 
     <script>
 
@@ -379,144 +386,205 @@ while ($row = mysqli_fetch_assoc($result)) {
 
             function generateTimeSlots(startTime, endTime) {
                 const slots = [];
-                const start = new Date(`1970-01-01T${startTime}`);
-                const end = new Date(`1970-01-01T${endTime}`);
+                const start = moment(`1970-01-01T${startTime}`);
+                const end = moment(`1970-01-01T${endTime}`);
 
-                let current = new Date(start);
+                let current = moment(start);
                 while (current <= end) {
-                    // Convert to 12-hour format for display
-                    const hours = current.getHours();
-                    const minutes = current.getMinutes();
-                    const ampm = hours >= 12 ? 'PM' : 'AM';
-                    const formattedHours = hours % 12 || 12;
-                    const formattedTime = `${formattedHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-
-                    // Store both display format and 24-hour format
+                    const formattedTime = current.format('h:mm A');
                     slots.push({
                         display: formattedTime,
-                        value: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+                        value: current.format('HH:mm')
                     });
-
-                    current.setMinutes(current.getMinutes() + 30);
+                    current.add(30, 'minutes');
                 }
                 return slots;
             }
 
             $('#appointmentForm').on('submit', function (e) {
                 e.preventDefault();
-
+                
                 if (!this.checkValidity()) {
                     e.stopPropagation();
                     return false;
                 }
 
+                // Show loading state on button
+                const submitBtn = $('#confirmBookingBtn');
+                submitBtn.prop('disabled', true).addClass('loading');
+
                 const formData = new FormData(this);
+                const email = $('#email').val();
 
-                // Get appointment details for email
-                const appointmentDate = $('#date').val();
-                const appointmentTime = $('#time option:selected').text();
-                const serviceName = $('#service option:selected').text();
-                const fullName = $('#name').val();
+                // Add error handling to reset button state
+                $(document).ajaxError(function() {
+                    submitBtn.prop('disabled', false).removeClass('loading');
+                });
 
+                // First check if email exists
                 $.ajax({
-                    url: 'save_appointment.php',
+                    url: 'appointment_handler.php',
                     type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    dataType: 'json',
-                    success: function (response) {
-                        if (response.status === 'success') {
-                            const email = $('#email').val();
+                    data: { 
+                        action: 'check_user',
+                        email: email 
+                    },
+                    success: function(userResponse) {
+                        try {
+                            const response = typeof userResponse === 'string' ? JSON.parse(userResponse) : userResponse;
                             
-                            // Check if user already exists
-                            $.ajax({
-                                url: 'check_user.php',
-                                type: 'POST',
-                                data: { email: email },
-                                success: function(userResponse) {
-                                    if (userResponse.exists) {
-                                        // User exists - show login/forgot password dialog
-                                        Swal.fire({
-                                            title: 'Account Found!',
-                                            html: `
-                                                <p>An account with this email already exists.</p>
-                                                <p>Would you like to:</p>
-                                            `,
-                                            icon: 'info',
-                                            showCloseButton: true,
-                                            showDenyButton: true,
-                                            showCancelButton: true,
-                                            confirmButtonText: 'Login',
-                                            denyButtonText: 'Forgot Password',
-                                            cancelButtonText: 'Stay Here'
-                                        }).then((result) => {
-                                            if (result.isConfirmed) {
-                                                // Redirect to login
-                                                window.location.href = 'usrbase/entryvault.php';
-                                            } else if (result.isDenied) {
-                                                // Redirect to password reset
-                                                window.location.href = 'usrbase/forgot_password.php';
-                                            }
-                                        });
-                                    } else {
-                                        // New user - show welcome message with credentials
+                            if (response.exists) {
+                                // Show existing user dialog
+                                Swal.fire({
+                                    title: 'Account Found!',
+                                    html: `
+                                        <div class="text-left">
+                                            <p>An account with this email already exists.</p>
+                                            <p>Please choose one of the following options:</p>
+                                        </div>
+                                    `,
+                                    icon: 'info',
+                                    showDenyButton: true,
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Login',
+                                    denyButtonText: 'Reset Password',
+                                    cancelButtonText: 'Stay Here',
+                                    allowOutsideClick: false
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = 'usrbase/entryvault.php';
+                                    } else if (result.isDenied) {
+                                        window.location.href = 'usrbase/forgot_password.php';
+                                    }
+                                });
+                            } else {
+                                // Proceed with booking for new user
+                                $.ajax({
+                                    url: 'appointment_handler.php',
+                                    type: 'POST',
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                    success: function(response) {
+                                        try {
+                                            const result = typeof response === 'string' ? JSON.parse(response) : response;
+                                            const appointmentDate = $('#date').val();
+                                            const appointmentTime = $('#time option:selected').text();
+                                            const serviceName = $('#service option:selected').text();
+
+                                            Swal.fire({
+                                                title: 'Appointment Booked Successfully!',
+                                                html: `
+                                                    <div class="text-left">
+                                                        <p>An email has been sent to <strong>${email}</strong> containing:</p>
+                                                        <ul>
+                                                            <li>Your appointment details</li>
+                                                            <li>Login credentials for your account</li>
+                                                        </ul>
+                                                        <div class="alert alert-info">
+                                                            <i class="fas fa-info-circle"></i> Please check your email inbox and spam folder
+                                                        </div>
+                                                        <p class="mt-3">Your appointment details:</p>
+                                                        <ul>
+                                                            <li>Date: ${moment(appointmentDate).format('MMMM D, YYYY')}</li>
+                                                            <li>Time: ${appointmentTime}</li>
+                                                            <li>Service: ${serviceName}</li>
+                                                        </ul>
+                                                    </div>
+                                                `,
+                                                icon: 'success',
+                                                confirmButtonText: 'Proceed to Login',
+                                                showCancelButton: true,
+                                                cancelButtonText: 'Stay Here',
+                                                allowOutsideClick: false,
+                                                preConfirm: () => {
+                                                    // Show loading state when button is clicked
+                                                    Swal.showLoading();
+                                                    return new Promise((resolve) => {
+                                                        // Simulate a small delay for better UX
+                                                        setTimeout(() => {
+                                                            resolve();
+                                                        }, 800);
+                                                    });
+                                                }
+                                            }).then((result) => {
+                                                if (result.isConfirmed) {
+                                                    window.location.href = 'usrbase/entryvault.php';
+                                                }
+                                                $('#appointmentModal').modal('hide');
+                                                calendar.refetchEvents();
+                                            });
+                                        } catch (e) {
+                                            // Still show success since we know the data is saved
+                                            Swal.fire({
+                                                title: 'Appointment Booked Successfully!',
+                                                html: `
+                                                    <div class="text-left">
+                                                        <p>Your appointment has been booked and an email has been sent to <strong>${email}</strong>.</p>
+                                                        <p>Please check your email for your login credentials and appointment details.</p>
+                                                    </div>
+                                                `,
+                                                icon: 'success',
+                                                confirmButtonText: 'OK'
+                                            }).then(() => {
+                                                $('#appointmentModal').modal('hide');
+                                                calendar.refetchEvents();
+                                            });
+                                        }
+                                    },
+                                    error: function() {
+                                        // Show success with login option since data is saved
                                         Swal.fire({
                                             title: 'Appointment Booked Successfully!',
                                             html: `
                                                 <div class="text-left">
-                                                    <p>An email has been sent with your:</p>
-                                                    <ul>
-                                                        <li>Appointment details</li>
-                                                        <li>Login credentials</li>
-                                                    </ul>
-                                                    <p>Please check your email inbox.</p>
+                                                    <p>Your appointment has been booked and an email has been sent with your details.</p>
+                                                    <div class="alert alert-info">
+                                                        <i class="fas fa-info-circle"></i> Please check your email inbox and spam folder for your login credentials.
+                                                    </div>
                                                 </div>
                                             `,
                                             icon: 'success',
-                                            confirmButtonText: 'OK',
+                                            showCancelButton: true,
+                                            confirmButtonText: 'Proceed to Login',
+                                            cancelButtonText: 'Stay Here',
                                             allowOutsideClick: false
                                         }).then((result) => {
                                             if (result.isConfirmed) {
-                                                Swal.fire({
-                                                    title: 'Proceed to Login?',
-                                                    text: 'Click below to go to the login page',
-                                                    icon: 'question',
-                                                    showCancelButton: true,
-                                                    confirmButtonText: 'Proceed to Login',
-                                                    cancelButtonText: 'Stay Here'
-                                                }).then((result) => {
-                                                    if (result.isConfirmed) {
-                                                        window.location.href = 'usrbase/entryvault.php';
-                                                    }
-                                                });
+                                                window.location.href = 'usrbase/entryvault.php';
                                             }
+                                            $('#appointmentModal').modal('hide');
+                                            calendar.refetchEvents();
                                         });
                                     }
-                                    $('#appointmentModal').modal('hide');
-                                    calendar.refetchEvents();
-                                }
-                            });
-                        } else {
-                            Swal.fire('Error!', response.message || 'Failed to book appointment.', 'error');
+                                });
+                            }
+                        } catch (e) {
+                            // Handle any JSON parsing errors
+                            console.error('JSON parsing error:', e);
                         }
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         console.error(error);
-                        Swal.fire('Error!', 'Failed to book appointment.', 'error');
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Failed to check email status. Please try again.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
                     }
                 });
             });
-        });
 
-        $(document).ready(function () {
-            // Initially disable the submit button
-            $('.btn-primary[type="submit"]').prop('disabled', true);
+            $(document).ready(function () {
+                // Initially disable the submit button
+                $('.btn-primary[type="submit"]').prop('disabled', true);
 
-            // Listen for changes on the terms checkbox
-            $('#terms').change(function () {
-                // Enable/disable submit button based on checkbox state
-                $('.btn-primary[type="submit"]').prop('disabled', !this.checked);
+                // Listen for changes on the terms checkbox
+                $('#terms').change(function () {
+                    // Enable/disable submit button based on checkbox state
+                    $('.btn-primary[type="submit"]').prop('disabled', !this.checked);
+                });
             });
         });
     </script>

@@ -10,11 +10,26 @@
     color: #e0e0e0;
 }
 
+/* Add these styles to ensure consistent feedback card heights */
 .featured-block {
+    height: 100%;
+    padding: 20px;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 24px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.row {
+    margin-bottom: 30px;
+}
+
+/* Ensure text doesn't overflow */
+.featured-block p {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
 .badge {

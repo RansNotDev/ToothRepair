@@ -288,3 +288,15 @@ select.form-control {
 .slot-count:contains('0 slots available') {
     color: #dc3545;
 }
+
+#confirmBookingBtn:disabled {
+    cursor: not-allowed;
+}
+
+#confirmBookingBtn.loading .normal-state {
+    display: none;
+}
+
+#confirmBookingBtn.loading .loading-state {
+    display: inline-block !important;
+}

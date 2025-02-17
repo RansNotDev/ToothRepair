@@ -32,16 +32,16 @@ if(isset($_POST['sendmail'])) {
         $mail->send();
         echo "<script>
             alert('Email sent successfully!');
-            window.location.href='calendar.php';
+            window.location.href='appointmentcalendar.php';
         </script>";
     } catch (Exception $e) {
         echo "<script>
             alert('Message could not be sent. Mailer Error: {$mail->ErrorInfo}');
-            window.location.href='test.php';
+            window.location.href='appointmentcalendar.php';
         </script>";
     }
 } else {
-    header("Location: test.php");
+    header("Location: appointmentcalendar.php");
     exit();
 }
 ?>
