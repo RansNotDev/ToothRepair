@@ -116,3 +116,53 @@ function sendAppointmentEmail($userEmail, $appointmentData, $type = 'new') {
         return false;
     }
 }
+
+function sendStatusUpdateEmail($userEmail, $appointmentData) {
+    try {
+        $mail = new PHPMailer(true);
+
+        // Server settings
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'toothrepairdentalclinic@gmail.com';
+        $mail->Password = 'evwt cpxf ywtl zytp';
+        $mail->SMTPSecure = 'ssl';
+        $mail->Port = 465;
+
+        // Recipients
+        $mail->setFrom('toothrepairdentalclinic@gmail.com', 'Tooth Repair Dental Clinic');
+        $mail->addAddress($userEmail);
+
+        // Content
+        $mail->isHTML(true);
+        $mail->Subject = 'Appointment Status Update - Tooth Repair Dental Clinic';
+
+        // Only send confirmation email for 'confirmed' status
+        if ($appointmentData['status'] === 'confirmed') {
+            $formattedDate = date('F j, Y', strtotime($appointmentData['appointment_date']));
+            $formattedTime = date('g:i A', strtotime($appointmentData['appointment_time']));
+
+            $mail->Body = "
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                    <h2>Appointment Confirmation</h2>
+                    <p>Dear {$appointmentData['fullname']},</p>
+                    <p>Your appointment has been confirmed with the following details:</p>
+                    <ul>
+                        <li>Date: {$formattedDate}</li>
+                        <li>Time: {$formattedTime}</li>
+                        <li>Service: {$appointmentData['service_name']}</li>
+                    </ul>
+                    <p>Please arrive 10 minutes before your scheduled time.</p>
+                    <p>Thank you for choosing our services!</p>
+                </div>";
+
+            $mail->send();
+            return true;
+        }
+        return false;
+    } catch (Exception $e) {
+        error_log("Email sending failed: {$mail->ErrorInfo}");
+        return false;
+    }
+}

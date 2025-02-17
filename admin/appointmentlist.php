@@ -635,32 +635,43 @@ if (isset($_GET['date'])) {
             
             const form = $(this);
             const submitBtn = form.find('button[type="submit"]');
-            const originalData = form.data('original');
+            const status = $('#editStatus').val();
             
-            // Create FormData object
-            const formData = new FormData(this);
+            if (!status) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Please select a status'
+                });
+                return;
+            }
             
-            // Check each field and use original value if empty
-            formData.forEach((value, key) => {
-                if (!value && originalData && originalData[key]) {
-                    formData.set(key, originalData[key]);
-                }
-            });
-            
-            // Disable submit button
             submitBtn.prop('disabled', true);
+            
+            // Create the data object
+            const formData = {
+                appointment_id: $('#editAppointmentId').val(),
+                status: status,
+                service_id: $('#editServiceId').val()
+            };
             
             $.ajax({
                 url: form.attr('action'),
                 type: 'POST',
-                data: Object.fromEntries(formData),
+                data: formData,
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
+                        // If status is completed, don't send confirmation email
+                        if (status !== 'completed' && status !== 'cancelled') {
+                            // Send confirmation email for other status changes
+                            sendStatusUpdateEmail(formData.appointment_id, status);
+                        }
+                        
                         Swal.fire({
                             icon: 'success',
                             title: 'Success!',
-                            text: 'Appointment updated successfully',
+                            text: 'Appointment status updated successfully',
                             timer: 2000,
                             showConfirmButton: false
                         }).then(() => {
@@ -670,7 +681,7 @@ if (isset($_GET['date'])) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: response.message || 'Failed to update appointment'
+                            text: response.message || 'Failed to update appointment status'
                         });
                     }
                 },
@@ -679,7 +690,7 @@ if (isset($_GET['date'])) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'Failed to update appointment. Please try again.'
+                        text: 'Failed to update appointment status. Please try again.'
                     });
                 },
                 complete: function() {
@@ -687,6 +698,21 @@ if (isset($_GET['date'])) {
                 }
             });
         });
+
+        // Function to send status update email
+        function sendStatusUpdateEmail(appointmentId, status) {
+            if (status === 'confirmed') {
+                $.ajax({
+                    url: 'appointments/send_status_notification.php',
+                    type: 'POST',
+                    data: {
+                        appointment_id: appointmentId,
+                        status: status
+                    },
+                    dataType: 'json'
+                });
+            }
+        }
 
         // Replace or update existing view button handler  
         $('.view-btn').on('click', function () {
