@@ -499,29 +499,36 @@ if (isset($_GET['date'])) {
                 contentType: 'application/json',
                 data: JSON.stringify(data),
                 success: function(response) {
-                    if (response.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success!',
-                            text: 'Notification sent successfully',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    } else {
+                    try {
+                        // Parse response if it's a string
+                        const result = typeof response === 'string' ? JSON.parse(response) : response;
+                        
+                        if (result.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: 'Notification sent successfully',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            throw new Error(result.message || 'Failed to send notification');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: response.message || 'Failed to send notification'
+                            text: error.message || 'Failed to send notification'
                         });
                     }
                 },
                 error: function(xhr) {
-                    let errorMessage = 'Failed to send notification';
-                    console.error('Error:', xhr.responseText);
+                    console.error('Server error:', xhr.responseText);
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: errorMessage
+                        text: 'Failed to send notification. Please try again.'
                     });
                 },
                 complete: function() {
@@ -650,14 +657,30 @@ if (isset($_GET['date'])) {
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        window.location.href = 'appointmentlist.php?success=edit';
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'Appointment updated successfully',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.href = 'appointmentlist.php?success=edit';
+                        });
                     } else {
-                        alert('Error: ' + (response.error || 'Failed to update appointment'));
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message || 'Failed to update appointment'
+                        });
                     }
                 },
                 error: function(xhr) {
                     console.error('Server error:', xhr.responseText);
-                    alert('Failed to update appointment. Please try again.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to update appointment. Please try again.'
+                    });
                 },
                 complete: function() {
                     submitBtn.prop('disabled', false);

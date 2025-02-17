@@ -18,6 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+$response = array('success' => false, 'message' => '');
+
 try {
     // Get and decode JSON data
     $input = file_get_contents('php://input');
@@ -99,95 +101,15 @@ HTML;
 
     $mail->send();
     
-    echo json_encode([
-        'success' => true, 
-        'message' => 'Appointment reminder sent successfully'
-    ]);
+    $response['success'] = true;
+    $response['message'] = 'Notification sent successfully';
 
 } catch (Exception $e) {
-    error_log("Email Error: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode([
-        'success' => false, 
-        'message' => 'Error sending notification: ' . $e->getMessage()
-    ]);
+    $response['message'] = $e->getMessage();
+    error_log("Email sending error: " . $e->getMessage());
 }
+
+header('Content-Type: application/json');
+echo json_encode($response);
+exit;
 ?>
-
-<script>
-$(document).ready(function() {
-    // Notify button handler
-    $('.notify-btn').on('click', function() {
-        const btn = $(this);
-        const data = {
-            email: btn.data('email'),
-            name: btn.data('name'),
-            date: btn.data('date'),
-            time: btn.data('time'),
-            service: btn.data('service')
-        };
-
-        // Disable button while processing
-        btn.prop('disabled', true);
-        
-        // Show loading state
-        const originalText = btn.html();
-        btn.html('<i class="fas fa-spinner fa-spin"></i> Sending...');
-
-        // Send notification
-        $.ajax({
-            url: 'appointments/send_notification.php',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            success: function(response) {
-                if (response.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: 'Notification sent successfully'
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: response.message
-                    });
-                }
-            },
-            error: function(xhr) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Failed to send notification'
-                });
-                console.error('Error:', xhr.responseText);
-            },
-            complete: function() {
-                // Reset button state
-                btn.prop('disabled', false);
-                btn.html(originalText);
-            }
-        });
-    });
-});
-</script>
-
-<style>
-.notify-btn {
-    background-color: #ffc107;
-    border-color: #ffc107;
-    color: #000;
-}
-
-.notify-btn:hover {
-    background-color: #e0a800;
-    border-color: #d39e00;
-    color: #000;
-}
-
-.notify-btn:disabled {
-    background-color: #ffd754;
-    border-color: #ffd754;
-}
-</style>
