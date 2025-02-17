@@ -117,11 +117,12 @@ $result = $conn->query($query);
                         <thead>
                             <tr>
                                 <th>Full Name</th>
+                                <th>Email</th>  <!-- Add this column -->
                                 <th>Appointment Date</th>
                                 <th>Appointment Time</th>
                                 <th>Service</th>
                                 <th>Status</th>
-                                <!-- Removed Actions column -->
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -129,6 +130,15 @@ $result = $conn->query($query);
                                 <?php while ($row = $result->fetch_assoc()): ?>
                                     <tr>
                                         <td><?= htmlspecialchars($row['fullname']) ?></td>
+                                        <td>
+                                            <?php if (!empty($row['email'])): ?>
+                                                <span class="badge badge-info">
+                                                    <i class="fas fa-envelope"></i> <?= htmlspecialchars($row['email']) ?>
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="badge badge-secondary">No email</span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td><?= htmlspecialchars($row['formatted_date']) ?></td>
                                         <td><?= htmlspecialchars($row['formatted_time']) ?></td>
                                         <td><?= htmlspecialchars($row['service_name']) ?></td>
@@ -138,12 +148,21 @@ $result = $conn->query($query);
                                                 Completed on <?= htmlspecialchars($row['completed_at']) ?>
                                             </span>
                                         </td>
-                                        <!-- Removed Actions column -->
+                                        <td>
+                                            <button class="btn btn-sm btn-info edit-record" 
+                                                    data-id="<?= $row['user_id'] ?>"
+                                                    data-fullname="<?= htmlspecialchars($row['fullname']) ?>"
+                                                    data-email="<?= htmlspecialchars($row['email'] ?? '') ?>"
+                                                    data-contact="<?= htmlspecialchars($row['contact_number']) ?>"
+                                                    data-address="<?= htmlspecialchars($row['address']) ?>">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                        </td>
                                     </tr>
                                 <?php endwhile; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="5" class="text-center">
+                                    <td colspan="7" class="text-center">
                                         <!-- Updated colspan from 6 to 5 -->
                                         <div class="alert alert-info m-0">
                                             <i class="fas fa-info-circle"></i> No completed appointments found
@@ -239,6 +258,53 @@ $result = $conn->query($query);
         </div>
     </div>
 
+    <!-- Update the Edit Record Modal -->
+    <div class="modal fade" id="editRecordModal" tabindex="-1" role="dialog" aria-labelledby="editRecordModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form action="appointments/update_record.php" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editRecordModalLabel">Edit Record Information</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="user_id" id="editUserId">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" name="fullname" id="editFullname" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <div class="input-group">
+                                <input type="email" name="email" id="editEmail" class="form-control" placeholder="Optional">
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-outline-secondary" id="clearEmailBtn">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">Leave blank to keep existing email (if any)</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Number</label>
+                            <input type="tel" name="contact_number" id="editContact" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Address</label>
+                            <textarea name="address" id="editAddress" class="form-control" rows="3" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <?php require 'includes/footer.php'; ?>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -250,108 +316,196 @@ $result = $conn->query($query);
     <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.13.7/r-2.5.0/datatables.min.js"></script>
     <!-- Custom JS -->
     <script src="js/record_list.js"></script>
+    <!-- Update your script includes at the bottom of the file -->
+    <!-- jQuery first -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Then Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <!-- Then Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
     <script>
-        // Replace the existing DataTables initialization with this:
-        $(document).ready(function () {
-            var table = $('#recordTable').DataTable({
-                "responsive": true,
-                "processing": true,
-                "pageLength": 10,
-                "order": [[1, "desc"]], // Sort by appointment date
-                "columnDefs": [
-                    {
-                        "targets": [4], // Status column
-                        "orderable": false
-                    }
-                    // Removed Actions column configuration
-                ],
-                "language": {
-                    "emptyTable": "No records available",
-                    "zeroRecords": "No matching records found"
-                },
-                "dom": '<"top"lf>rt<"bottom"ip><"clear">'
-            });
+$(document).ready(function() {
+    // Initialize DataTable with advanced features
+    var table = $('#recordTable').DataTable({
+        "responsive": true,
+        "processing": true,
+        "pageLength": 10, // Show 10 entries per page
+        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]], // Page length options
+        "order": [[0, "asc"]], // Default sort by name ascending
+        "columnDefs": [{
+            "targets": [5, 6], // Status and Actions columns
+            "orderable": false
+        }],
+        "language": {
+            "emptyTable": "No records available",
+            "zeroRecords": "No matching records found",
+            "lengthMenu": "Show _MENU_ records per page",
+            "info": "Showing _START_ to _END_ of _TOTAL_ records",
+            "search": "Search records:"
+        },
+        // Enable all DataTables features
+        "dom": '<"top"lBf>rt<"bottom"ip><"clear">',
+        "buttons": ['copy', 'excel', 'pdf', 'print']
+    });
 
-            // Search functionality
-            $('#searchInput').on('keyup', function () {
-                table.search(this.value).draw();
-            });
+    // Connect search box to DataTable
+    $('#searchInput').on('keyup', function() {
+        table.search($(this).val()).draw();
+    });
 
-            // Alphabetical filter
-            $('.btn[data-letter]').on('click', function () {
-                var letter = $(this).data('letter');
-                if (letter === 'all') {
-                    table.search('').draw();
+    // Alphabetical filter functionality
+    $('.alpha-pages button[data-letter]').on('click', function() {
+        const letter = $(this).data('letter');
+        
+        // Remove active class from all letter buttons
+        $('.alpha-pages button').removeClass('active');
+        $(this).addClass('active');
+
+        // Filter the table based on the letter
+        if (letter === 'all') {
+            table.column(0).search('').draw();
+        } else {
+            table.column(0).search('^' + letter, true, false).draw();
+        }
+    });
+
+    // Sort buttons functionality
+    $('.sort-btn[data-sort]').on('click', function() {
+        const sortDirection = $(this).data('sort');
+        
+        $('.sort-btn[data-sort]').removeClass('active');
+        $(this).addClass('active');
+
+        table.order([0, sortDirection]).draw();
+    });
+
+    // Reset all filters
+    $('.sort-btn[data-letter="all"]').on('click', function() {
+        $('.alpha-pages button').removeClass('active');
+        table.search('').columns().search('').draw();
+    });
+
+    // Letter navigation
+    let currentPage = 1;
+    const totalPages = $('.alpha-page').length;
+
+    function updateNavigationButtons() {
+        $('.nav-prev').prop('disabled', currentPage === 1);
+        $('.nav-next').prop('disabled', currentPage === totalPages);
+    }
+
+    $('.nav-prev').on('click', function() {
+        if (currentPage > 1) {
+            $('.alpha-page[data-page="' + currentPage + '"]').hide();
+            currentPage--;
+            $('.alpha-page[data-page="' + currentPage + '"]').show();
+            updateNavigationButtons();
+        }
+    });
+
+    $('.nav-next').on('click', function() {
+        if (currentPage < totalPages) {
+            $('.alpha-page[data-page="' + currentPage + '"]').hide();
+            currentPage++;
+            $('.alpha-page[data-page="' + currentPage + '"]').show();
+            updateNavigationButtons();
+        }
+    });
+
+    // Initialize navigation buttons
+    updateNavigationButtons();
+
+    // Keep your existing modal and form handling code here
+    // Edit record button click
+    $('.edit-record').on('click', function() {
+        const btn = $(this);
+        $('#editUserId').val(btn.data('id'));
+        $('#editFullname').val(btn.data('fullname'));
+        $('#editEmail').val(btn.data('email'));
+        $('#editContact').val(btn.data('contact'));
+        $('#editAddress').val(btn.data('address'));
+        $('#editRecordModal').modal('show');
+    });
+
+    // Clear email button
+    $('#clearEmailBtn').on('click', function() {
+        $('#editEmail').val('');
+    });
+
+    // Reset form when modal is hidden
+    $('#editRecordModal').on('hidden.bs.modal', function() {
+        $(this).find('form')[0].reset();
+    });
+
+    // Edit form submission
+    $('#editRecordModal form').on('submit', function(e) {
+        e.preventDefault();
+        const form = $(this);
+        const submitBtn = form.find('button[type="submit"]');
+        const emailInput = form.find('input[name="email"]');
+
+        // Validate email if provided
+        if (emailInput.val().trim() !== '' && !emailInput[0].checkValidity()) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Email',
+                text: 'Please enter a valid email address or leave it blank'
+            });
+            return;
+        }
+
+        submitBtn.prop('disabled', true);
+
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: form.serialize(),
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    $('#editRecordModal').modal('hide');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Record updated successfully',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
                 } else {
-                    table.search('^' + letter, true, false).draw();
-                }
-            });
-        });
-
-        // Handle Previous Record Form Submission
-        $('#addAppointmentModal form').on('submit', function(e) {
-            e.preventDefault();
-
-            const form = $(this);
-            const submitBtn = form.find('button[type="submit"]');
-            const emailInput = form.find('input[name="email"]');
-
-            // Only validate email if it's not empty
-            if (emailInput.val().trim() !== '' && !emailInput[0].checkValidity()) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Invalid Email',
-                    text: 'Please enter a valid email address or leave it blank'
-                });
-                return;
-            }
-
-            submitBtn.prop('disabled', true);
-
-            $.ajax({
-                url: form.attr('action'),
-                type: 'POST',
-                data: form.serialize(),
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        $('#addAppointmentModal').modal('hide');
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success!',
-                            text: 'Previous record added successfully',
-                            timer: 2000,
-                            showConfirmButton: false
-                        }).then(() => {
-                            window.location.reload();
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: response.message || 'Failed to add record'
-                        });
-                    }
-                },
-                error: function(xhr) {
-                    console.error('Server error:', xhr.responseText);
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'Failed to add record. Please try again.'
+                        text: response.message || 'Failed to update record'
                     });
-                },
-                complete: function() {
-                    submitBtn.prop('disabled', false);
                 }
-            });
+            },
+            error: function(xhr) {
+                console.error('Server error:', xhr.responseText);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to update record. Please try again.'
+                });
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false);
+            }
         });
+    });
 
-        // Set max date for appointment and completion date
-        const today = new Date().toISOString().split('T')[0];
-        $('input[name="appointment_date"]').attr('max', today);
-        $('input[name="completion_date"]').attr('max', new Date().toISOString().slice(0, 16));
-    </script>
+    // Set max date for appointment dates
+    const today = new Date().toISOString().split('T')[0];
+    $('input[name="appointment_date"]').attr('max', today);
+    $('input[name="completion_date"]').attr('max', new Date().toISOString().slice(0, 16));
+});
+</script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/v/bs4/dt-1.13.7/r-2.5.0/datatables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 
 </html>
