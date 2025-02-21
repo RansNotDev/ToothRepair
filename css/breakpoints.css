@@ -3,263 +3,138 @@ html {
     font-size: 16px;
 }
 
-/* Extra Small Mobile (Portrait): 320px – 480px */
-@media screen and (min-width: 320px) and (max-width: 480px) {
+/* Mobile First Approach */
+/* Extra Small Devices (phones, 320px and up) */
+@media (min-width: 320px) {
     .container {
-        width: 100%;
-        padding: 0 1rem;
+        width: 95%;
+        padding: 0 10px;
     }
     .hero-section h1 {
-        font-size: 1.5rem;
-    }
-    .custom-btn {
-        padding: 0.5rem 1rem;
-        font-size: 0.875rem;
+        font-size: 1.8rem;
     }
     .services-thumb {
-        margin-bottom: 20px;
         flex-direction: column;
     }
-    .services-image-wrap {
+    .col-lg-6, .col-lg-5, .col-lg-4, .col-lg-3 {
         width: 100%;
-        margin-bottom: 15px;
-    }
-    .services-info {
-        padding: 1rem;
-    }
-    .featured-block {
-        margin-bottom: 1rem;
-    }
-    .col-lg-6 { /* Force services to take full width */
-        width: 100%;
-    }
-    .col-lg-5,
-    .col-lg-4,
-    .col-lg-3,
-    .col-md-6,
-    .col-6 {
-        width: 100%; /* Full width for small screens */
-        margin-bottom: 1rem; /* Add spacing between sections */
-    }
-
-    .footer-menu {
-        margin-left: 0 !important; /* Reset left margin */
-    }
-
-    .social-icons-list {
-        justify-content: center; /* Center social icons */
+        margin-bottom: 1.5rem;
     }
 }
 
-/* Extra Small Mobile (Portrait): 320px – 480px */
-@media screen and (min-width: 300px) and (max-width: 480px) {
-    .services-image {
-        max-width: 80%; /* Reduce image size */
-        height: auto;
-    }
-}
-
-/* Small Mobile (Landscape): 481px – 600px */
-@media screen and (min-width: 481px) and (max-width: 600px) {
+/* Small Devices (phones, 480px and up) */
+@media (min-width: 480px) {
     .container {
-        width: 100%;
-        padding: 0 1.25rem;
-    }
-    .hero-section h1 {
-        font-size: 1.75rem;
-    }
-    .services-thumb .row {
-        flex-direction: column;
-    }
-    .services-image-wrap {
-        width: 100%;
-    }
-    .col-lg-6 { /* Force services to take full width */
-        width: 100%;
-    }
-    .col-lg-5,
-    .col-lg-4,
-    .col-lg-3,
-    .col-md-6,
-    .col-6 {
-        width: 100%; /* Full width for small screens */
-        margin-bottom: 1rem; /* Add spacing between sections */
-    }
-
-    .footer-menu {
-        margin-left: 0 !important; /* Reset left margin */
-    }
-
-    .social-icons-list {
-        justify-content: center; /* Center social icons */
-    }
-}
-
-/* Small Tablets (Portrait): 601px – 768px */
-@media screen and (min-width: 601px) and (max-width: 768px) {
-    .container {
-        width: 100%;
-        max-width: 720px;
-        margin: 0 auto;
+        width: 90%;
+        padding: 0 15px;
     }
     .hero-section h1 {
         font-size: 2rem;
     }
-    .custom-block {
-        padding: 20px;
-    }
-    .services-thumb .row {
+    .services-thumb {
+        flex-direction: row;
         flex-wrap: wrap;
     }
-    .services-image-wrap {
+    .col-lg-6 {
         width: 100%;
-        margin-bottom: 1rem;
     }
-    .col-lg-6 { /* Allow two services per row */
-        width: 50%;
-    }
-    .col-lg-5,
-    .col-lg-4,
-    .col-md-6 {
-        width: 50%; /* Two columns */
-    }
-    .col-lg-3,
-    .col-6 {
-        width: 50%; /* Two columns */
+    .col-lg-5 {
+        width: 48%;
+        margin-right: 2%;
     }
 }
 
-/* Large Tablets (Landscape): 769px – 1024px */
-@media screen and (min-width: 769px) and (max-width: 1024px) {
+/* Medium Devices (tablets, 768px and up) */
+@media (min-width: 768px) {
     .container {
-        width: 100%;
+        width: 90%;
+        max-width: 720px;
+    }
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+    .col-lg-6 {
+        width: 48%;
+        margin-right: 2%;
+    }
+    .col-lg-5 {
+        width: 40%;
+        margin-right: 2%;
+    }
+    .col-lg-4 {
+        width: 32%;
+        margin-right: 1%;
+    }
+}
+
+/* Large Devices (desktops, 1024px and up) */
+@media (min-width: 1024px) {
+    .container {
         max-width: 960px;
-        margin: 0 auto;
-        padding: 0 20px;
     }
-    .services-thumb {
-        margin-bottom: 2rem;
+    .hero-section h1 {
+        font-size: 3rem;
     }
-    .col-lg-6 { /* Two services per row */
-        width: 50%;
+    .col-lg-6 {
+        width: 48%;
     }
     .col-lg-5 {
-        width: 41.66666667%; /* Equivalent to col-lg-5 */
+        width: 40%;
     }
-
     .col-lg-4 {
-        width: 33.33333333%; /* Equivalent to col-lg-4 */
+        width: 32%;
     }
-
     .col-lg-3 {
-        width: 25%; /* Equivalent to col-lg-3 */
+        width: 24%;
     }
 }
 
-/* Small Desktops and Laptops: 1025px – 1280px */
-@media screen and (min-width: 1025px) and (max-width: 1280px) {
+/* Extra Large Devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
     .container {
-        width: 100%;
         max-width: 1140px;
-        margin: 0 auto;
     }
-    .col-lg-6 { /* Two services per row */
-        width: 50%;
-    }
-    .col-lg-5 {
-        width: 41.66666667%; /* Equivalent to col-lg-5 */
-    }
-
-    .col-lg-4 {
-        width: 33.33333333%; /* Equivalent to col-lg-4 */
-    }
-
-    .col-lg-3 {
-        width: 25%; /* Equivalent to col-lg-3 */
+    .hero-section h1 {
+        font-size: 3.5rem;
     }
 }
 
-/* Large Desktops: 1281px – 1440px */
-@media screen and (min-width: 1281px) and (max-width: 1440px) {
-    .container {
-        width: 100%;
-        max-width: 1320px;
-        margin: 0 auto;
+/* Utility Classes */
+.hide-mobile {
+    display: none;
+}
+@media (min-width: 768px) {
+    .hide-mobile {
+        display: block;
     }
-    .col-lg-6 { /* Two services per row */
-        width: 50%;
+    .hide-tablet {
+        display: none;
     }
-    .col-lg-5 {
-        width: 41.66666667%; /* Equivalent to col-lg-5 */
+}
+@media (min-width: 1024px) {
+    .hide-tablet {
+        display: block;
     }
-
-    .col-lg-4 {
-        width: 33.33333333%; /* Equivalent to col-lg-4 */
-    }
-
-    .col-lg-3 {
-        width: 25%; /* Equivalent to col-lg-3 */
+    .hide-desktop {
+        display: none;
     }
 }
 
-/* Extra-Large Screens: 1441px and up */
-@media screen and (min-width: 1441px) {
-    .container {
-        width: 100%;
-        max-width: 1400px;
-        margin: 0 auto;
-    }
-    .hero-section {
-        min-height: 100vh;
-    }
-    .col-lg-6 { /* Two services per row */
-        width: 50%;
-    }
-    .col-lg-5 {
-        width: 41.66666667%; /* Equivalent to col-lg-5 */
-    }
-
-    .col-lg-4 {
-        width: 33.33333333%; /* Equivalent to col-lg-4 */
-    }
-
-    .col-lg-3 {
-        width: 25%; /* Equivalent to col-lg-3 */
-    }
+/* Responsive Typography */
+h1 {
+    font-size: calc(1.5rem + 1.5vw);
+}
+h2 {
+    font-size: calc(1.3rem + 1vw);
+}
+p {
+    font-size: calc(0.9rem + 0.3vw);
 }
 
-/* Utility Classes for Responsive Display */
-.hide-xs {
-    display: none !important;
-}
-
-@media screen and (min-width: 481px) {
-    .hide-sm {
-        display: none !important;
-    }
-}
-
-@media screen and (min-width: 601px) {
-    .hide-md {
-        display: none !important;
-    }
-}
-
-@media screen and (min-width: 1025px) {
-    .hide-lg {
-        display: none !important;
-    }
-}
-
-@media screen and (min-width: 1441px) {
-    .hide-xl {
-        display: none !important;
-    }
-}
-
-/* Responsive Text Utilities */
-.text-responsive {
-    font-size: calc(16px + (24 - 16) * ((100vw - 320px) / (1920 - 320)));
+/* Responsive Images */
+.img-responsive {
+    max-width: 100%;
+    height: auto;
 }
 
 /* Flexbox Utilities */
@@ -267,10 +142,12 @@ html {
     display: flex;
     flex-wrap: wrap;
 }
-
-@media screen and (max-width: 600px) {
-    .flex-container {
-        flex-direction: column;
+.flex-column {
+    flex-direction: column;
+}
+@media (min-width: 768px) {
+    .flex-row {
+        flex-direction: row;
     }
 }
 
@@ -279,14 +156,17 @@ html {
     display: grid;
     gap: 1rem;
 }
-
-@media screen and (min-width: 601px) {
+@media (min-width: 480px) {
     .grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
-
-@media screen and (min-width: 1025px) {
+@media (min-width: 768px) {
+    .grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+@media (min-width: 1024px) {
     .grid {
         grid-template-columns: repeat(4, 1fr);
     }
@@ -316,23 +196,10 @@ html {
 }
 
 /* Common responsive utilities */
-.img-fluid {
-    max-width: 100%;
-    height: auto;
-}
-
 .row {
     display: flex;
     flex-wrap: wrap;
     margin: 0 -15px;
-}
-
-/* Responsive text adjustments */
-@media screen and (max-width: 768px) {
-    h1 { font-size: calc(1.5rem + 1.5vw); }
-    h2 { font-size: calc(1.3rem + 1vw); }
-    h4 { font-size: calc(1.1rem + 0.5vw); }
-    p { font-size: calc(0.9rem + 0.3vw); }
 }
 
 /* Flexbox utilities */

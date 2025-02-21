@@ -2,7 +2,7 @@
             require_once './database/db_connection.php';
 
             // Fetch services from database
-            $stmt = $conn->prepare("SELECT service_id, service_name, description, price, image FROM services");
+            $stmt = $conn->prepare("SELECT service_id, service_name, description, price, image FROM services WHERE is_active = 1");
             $stmt->execute();
             $result = $stmt->get_result();
             $services = [];
