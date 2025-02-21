@@ -83,25 +83,94 @@ if ($result) {
 
     <style>
         body {
-            overflow: hidden;
+            overflow: auto;
+            background: #f8f9fc;
+            margin: 0;
+            padding: 0;
         }
         
+        .container-fluid {
+            padding: 5px;
+            margin-left: 10px; /* Keep sidebar width */
+            width: calc(100% - 10px);
+        }
+
+        /* Remove unnecessary container */
+        .container {
+            padding: 0;
+            margin: 0;
+            max-width: none;
+            width: 100%;
+        }
+
+        .card {
+            border: none;
+            margin: 0;
+            height: calc(100vh - 10px); /* Reduced top space */
+        }
+
+        .card-body {
+            padding: 5px; /* Reduced padding */
+            height: 100%;
+        }
+
         #calendar-container {
-            height: 500px;
-            overflow-y: auto;
-            border-radius: 12px;
-            padding: 20px;
+            height: 100%;
+            padding: 5px; /* Reduced padding */
             background: #ffffff;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        #calendar {
+            height: 100% !important;
+            width: 100% !important;
+            margin-left: 0 !important; /* Remove left margin */
         }
 
         /* Calendar Header Styling */
-        .fc-toolbar-title {
-            font-size: 1.5rem !important;
-            font-weight: 600 !important;
-            color: #2c3e50;
+        .fc-header-toolbar {
+            padding: 5px !important;
+            margin: 0 !important;
         }
 
+        .fc-toolbar-title {
+            font-size: 1.5rem !important;
+        }
+
+        /* Make day cells larger */
+        .fc-daygrid-day {
+            min-height: 150px !important;
+        }
+
+        .fc-daygrid-day-frame {
+            min-height: 150px !important;
+        }
+
+        /* Keep sidebar visible */
+        #accordionSidebar {
+            display: block;
+            width: 224px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100%;
+            z-index: 1000;
+        }
+
+        /* Adjust main content area */
+        #content-wrapper {
+            margin-left: 224px;
+            width: calc(100% - 224px);
+            padding-left: 0; /* Remove left padding */
+        }
+
+        /* Adjust the page title spacing */
+        .d-sm-flex {
+            padding: 5px;
+            margin-bottom: 5px !important;
+        }
+
+        /* Calendar Button Styling */
         .fc-button {
             background-color: #4e73df !important;
             border-color: #4e73df !important;
@@ -127,14 +196,6 @@ if ($result) {
 
         .fc-daygrid-day:hover {
             background-color: #f8f9ff !important;
-        }
-
-        .fc-daygrid-day-frame {
-            min-height: 120px;
-            padding: 8px !important;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
         .fc-daygrid-day-number {
@@ -232,19 +293,120 @@ if ($result) {
         .table th {
             background-color: #f8f9fc;
         }
+
+        /* Add these new styles */
+        .fc-event-custom {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .fc-event-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .slot-info {
+            background: linear-gradient(145deg, #f8f9fa, #ffffff);
+            border-radius: 8px;
+            padding: 8px;
+            margin: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .slot-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .slot-count {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #4e73df;
+        }
+
+        .slot-text {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .closed-indicator {
+            color: #dc3545;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .appointment-details {
+            position: relative;
+        }
+
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .detail-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-item i {
+            color: #4e73df;
+            width: 20px;
+            text-align: center;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .btn-close-modal {
+            background: #4e73df;
+            color: white;
+            border-radius: 6px;
+            padding: 8px 20px;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-close-modal:hover {
+            background: #375abd;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
 <div class="container-fluid">
-    <div class=" align-items-center justify-content-between">
-        <h1 class="h3 text-gray-800">Appointment Calendar</h1>
+    <div class="d-sm-flex align-items-center justify-content-between mb-2">
+        <h1 class="h3 mb-0 text-gray-800">Appointment Calendar</h1>
     </div>
-    <div class="container">
-        <div class="card">
-            <div class="card-body">
-                <div id="calendar-container">
-                    <div id="calendar"></div>
-                </div>
+    <div class="card">
+        <div class="card-body">
+            <div id="calendar-container">
+                <div id="calendar"></div>
             </div>
         </div>
     </div>
@@ -282,18 +444,27 @@ if ($result) {
                 right: 'dayGridMonth,timeGridDay'
             },
             themeSystem: 'bootstrap',
+            themeName: 'custom',
+            customButtons: {
+                custom1: {
+                    text: 'Add Appointment',
+                    click: function() {
+                        // Add your custom button functionality here
+                    }
+                }
+            },
             initialView: 'dayGridMonth',
             timeZone: 'Asia/Manila',  // Set Philippine timezone
             events: scheds.map(sched => ({
                 id: sched.id,
-                title: `${sched.patient_name} (${sched.formatted_time}) 
-                    ${sched.status === "pending" ? "⏳" : sched.status === "cancelled" ? "❌" : "✓"}`,
+                title: `${sched.patient_name} (${sched.formatted_time})`,
                 start: `${sched.appointment_date}T${sched.appointment_time}`,
-                backgroundColor: sched.status === "pending" ? "#ffa500" : 
-                                sched.status === "cancelled" ? "#dc3545" : "#28a745",
-                borderColor: sched.status === "pending" ? "#ff8c00" : 
-                            sched.status === "cancelled" ? "#c82333" : "#218838",
+                backgroundColor: sched.status === "pending" ? "#FFD700" : 
+                                sched.status === "cancelled" ? "#FF6B6B" : "#6BCB77",
+                borderColor: sched.status === "pending" ? "#FFC107" : 
+                            sched.status === "cancelled" ? "#FF4757" : "#4CAF50",
                 textColor: '#fff',
+                className: 'fc-event-custom',
                 extendedProps: {
                     status: sched.status,
                     service: sched.service
@@ -315,48 +486,54 @@ if ($result) {
                 return {
                     html: `
                         <div class="fc-daygrid-day-number">${args.dayNumberText}</div>
-                        <div class="slot-info">
-                            ${isPast ? '' : (isOpen ? `${available} slot${available !== 1 ? 's' : ''} available` : 'Closed')}
+                        <div class="slot-info ${isPast ? 'past-day' : ''}">
+                            ${isPast ? '' : (isOpen ? `
+                                <div class="slot-indicator">
+                                    <span class="slot-count">${available}</span>
+                                    <span class="slot-text">slot${available !== 1 ? 's' : ''} available</span>
+                                </div>
+                            ` : '<div class="closed-indicator">Closed</div>')}
                         </div>
                     `
                 };
             },
             eventClick: function(info) {
                 const event = info.event;
+                const statusColor = event.extendedProps.status === 'pending' ? '#FFD700' : 
+                                 event.extendedProps.status === 'cancelled' ? '#FF6B6B' : '#6BCB77';
+                
                 const details = `
-                    <div class="p-3">
+                    <div class="p-3 appointment-details">
+                        <div class="status-bar" style="background: ${statusColor}"></div>
                         <h5 class="text-primary mb-3">Appointment Details</h5>
-                        <table class="table table-bordered">
-                            <tr>
-                                <th width="35%">Patient Name</th>
-                                <td>${event.title.split('(')[0]}</td>
-                            </tr>
-                            <tr>
-                                <th>Date</th>
-                                <td>${moment(event.start).format('MMMM D, YYYY')}</td>
-                            </tr>
-                            <tr>
-                                <th>Time</th>
-                                <td>${moment(event.start).format('h:mm A')}</td>
-                            </tr>
-                            <tr>
-                                <th>Service</th>
-                                <td>${event.extendedProps.service}</td>
-                            </tr>
-                            <tr>
-                                <th>Status</th>
-                                <td>
-                                    <span class="badge badge-${
-                                        event.extendedProps.status === 'pending' ? 'warning' : 
-                                        event.extendedProps.status === 'cancelled' ? 'danger' : 'success'
-                                    }">
-                                        ${event.extendedProps.status}
-                                    </span>
-                                </td>
-                            </tr>
-                        </table>
+                        <div class="detail-card">
+                            <div class="detail-item">
+                                <i class="fas fa-user"></i>
+                                <span>${event.title.split('(')[0]}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>${moment(event.start).format('MMMM D, YYYY')}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-clock"></i>
+                                <span>${moment(event.start).format('h:mm A')}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-stethoscope"></i>
+                                <span>${event.extendedProps.service}</span>
+                            </div>
+                            <div class="detail-item status">
+                                <i class="fas fa-info-circle"></i>
+                                <span class="status-badge" style="background: ${statusColor}">
+                                    ${event.extendedProps.status}
+                                </span>
+                            </div>
+                        </div>
                         <div class="text-right mt-3">
-                            <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
+                            <button type="button" class="btn btn-close-modal" onclick="closeModal()">
+                                Close
+                            </button>
                         </div>
                     </div>
                 `;
