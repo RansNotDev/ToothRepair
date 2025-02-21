@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <title>Login Page | Tooth Repair Clinic</title>
     <link rel="stylesheet" href="../assets/css/loginpage.css">
-    <link href="../plugins/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="../assets/Assetscalendar/fullcalendar/main.css" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -73,15 +73,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         body {
             background: linear-gradient(to right, #6a11cb, #2575fc);
             font-family: 'Nunito', sans-serif;
+            margin: 0;
+            padding: 0;
         }
         .container {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .logo {
+            width: 150px;
+            margin-bottom: 20px;
         }
         .col {
-            flex: 1;
+            width: 100%;
+            max-width: 500px;
             padding: 20px;
         }
         .hero-image {
@@ -142,21 +150,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .btn-primary:hover {
             background: #6a11cb;
         }
+
+        /* Responsive styles */
+        @media (min-width: 576px) { /* Small devices (landscape phones) */
+            .container {
+                padding: 30px;
+            }
+            .col {
+                max-width: 80%;
+            }
+        }
+        @media (min-width: 768px) { /* Medium devices (tablets) */
+            .container {
+                flex-direction: row;
+                justify-content: center;
+                padding: 40px;
+            }
+            .col {
+                max-width: 45%;
+                padding: 30px;
+            }
+            .logo {
+                width: 150px;
+                margin-bottom: 20px;
+                position: static;
+                transform: none;
+            }
+        }
+        @media (min-width: 992px) { /* Large devices (desktops) */
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            .col {
+                max-width: 50%;
+            }
+        }
     </style>
 </head>
 
 <body>
+    
     <div class="container">
         <!-- Left Content -->
-        <div class="col">
+        <div class="col d-none d-md-block text-center">
             <h1 class="animate__animated animate__fadeInLeft text-white">Welcome Back</h1>
-            <img src="../img/loginpage.png" alt="Login Image" class="hero-image animate__animated animate__fadeInLeft">
+            <img src="../img/loginpage.png" alt="Login Image" class="hero-image animate__animated animate__fadeInLeft" style="max-width: 80%; height: auto; margin: 0 auto;">
             <p class="animate__animated animate__fadeInLeft text-white">Log in to your account to see your appointment details</p>
         </div>
 
         <!-- Login Form -->
         <div class="col">
             <div class="card animate__animated animate__fadeInRight">
+                
+                <img src="../images/logo/cliniclogo.png" alt="Company Logo" class="logo animate__animated animate__fadeIn mx-auto d-block" style="width: 150px; margin-bottom: 20px;">
                 <h3>Login</h3>
                 <form method="POST" action="">
                     <div class="form-outline">
