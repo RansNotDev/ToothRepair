@@ -22,6 +22,7 @@
         
         <link href="css/landing_page.css" rel="stylesheet">
         <link href="css/components/contact.css" rel="stylesheet">
+        <link rel="stylesheet" href="css/breakpoints.css">
  <!-- Add this line -->
 
     </head>

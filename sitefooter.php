@@ -16,7 +16,7 @@
                         </ul>
                     </div>
 
-                    <div class="col-lg-5 col-12 mb-4 mb-lg-0">
+                    <div class="col-lg-5 col-md-6 col-12 mb-4 mb-lg-0">
                         <h5 class="site-footer-title mb-3">Our Services</h5>
 
                         <ul class="footer-menu">
@@ -36,7 +36,7 @@
                                                 <i class="bi-chevron-double-right footer-menu-link-icon me-2"></i>
                                                 ' . htmlspecialchars($row['service_name']) . '
                                             </a>
-                                        </li>';
+                                          </li>';
                                 }
                             } else {
                                 // Fallback in case no services are found
@@ -45,7 +45,7 @@
                                             <i class="bi-chevron-double-right footer-menu-link-icon me-2"></i>
                                             No services available
                                         </a>
-                                    </li>';
+                                      </li>';
                             }
 
                             // Free result set
@@ -77,32 +77,9 @@
                                 toothrepairdentalclinic@gmail.com
                             </a>
                         </p>
-
-                        <ul class="social-icons-list mt-4 d-flex gap-3">
-                            <li>
-                                <a href="#" class="social-link facebook" aria-label="Facebook">
-                                    <i class="bi-facebook"></i>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" class="social-link instagram" aria-label="Instagram">
-                                    <i class="bi-instagram"></i>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" class="social-link tiktok" aria-label="TikTok">
-                                    <i class="bi-tiktok"></i>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" class="social-link linkedin" aria-label="LinkedIn">
-                                    <i class="bi-linkedin"></i>
-                                </a>
-                            </li>
-                        </ul>
                     </div>
 
-                    <div class="col-lg-3 col-md-6 col-6 mt-3 mt-lg-0 mt-md-0">
+                    <div class="col-lg-3 col-md-6 col-sm-12 col-12 mt-3 mt-lg-0 mt-md-0">
                         <div class="featured-block">
                             <h5 class="text-black mb-3">Service Hours</h5>
 

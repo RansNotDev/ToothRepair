@@ -33,12 +33,8 @@ include_once('../database/db_connection.php');
             height: 100%;
             overflow: hidden;
         }
-
-        /* Main content wrapper */
-        .content-wrapper {
-            height: calc(100vh - 4.375rem);
-            overflow-y: auto;
-            margin-top: 4.375rem;
+        .content-wrapper{
+            overflow: auto;
         }
 
         /* Container for the services content */
@@ -48,7 +44,7 @@ include_once('../database/db_connection.php');
 
         /* Table styles */
         .card {
-            margin-bottom: 1rem;
+            margin-bottom: 1px;
         }
 
         .table-responsive {
@@ -73,81 +69,81 @@ include_once('../database/db_connection.php');
 </head>
 
 <body>
-    <!-- Wrap the container-fluid in a content-wrapper div -->
-    <div class="content-wrapper">
-        <!-- Begin Page Content -->
-        <div class="container-fluid">
-            <!-- Page Heading -->
-            <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                <h1 class="h3 mb-0 text-gray-800">Services Management</h1>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addServiceModal">
-                    <i class="fas fa-plus"></i> Add New Service
-                </button>
-            </div>
-            <!-- Display Services Table -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Services List</h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                            <thead>
-                                <tr>
-                                    <th>Service Name</th>
-                                    <th>Description</th>
-                                    <th>Price</th>
-                                    <th>Image</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                // Update the SQL query in the table section
-                                $sql = "SELECT service_id, service_name, description, price, image FROM services WHERE is_active = 1";
-                                $result = $conn->query($sql);
+    <!-- Begin Page Content -->
+    <div class="d-flex" id="wrapper">
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+            <!-- Main Content -->
+            <div id="content">
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Services Management</h1>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                            <i class="fas fa-plus"></i> Add New Service
+                        </button>
+                    </div>
+                    <!-- Display Services Table -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Services List</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>Service Name</th>
+                                            <th>Description</th>
+                                            <th>Price</th>
+                                            <th>Image</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $sql = "SELECT service_id, service_name, description, price, image FROM services WHERE is_active = 1";
+                                        $result = $conn->query($sql);
 
-                                if ($result->num_rows > 0) {
-                                    while ($row = $result->fetch_assoc()) {
-                                        echo "<tr>";
-                                        echo "<td>" . htmlspecialchars($row["service_name"]) . "</td>";
-                                        echo "<td>" . htmlspecialchars($row["description"]) . "</td>";
-                                        echo "<td>" . htmlspecialchars($row["price"]) . "</td>";
-                                        // Display the image
-                                        echo "<td>";
-                                        echo '<img src="data:image/jpeg;base64,' . base64_encode($row['image']) . '" alt="Service Image" style="width: 100px; height: auto;"/>';
-                                        echo "</td>";
-                                        echo "<td>
-                                                <button class='btn btn-primary edit-btn' data-service-id='" . $row['service_id'] . "' data-bs-toggle='modal' data-bs-target='#editServiceModal'>
-                                                    <i class='fas fa-edit'></i> Edit
-                                                </button>
-                                                <button class='btn btn-danger delete-btn' data-service-id='" . $row['service_id'] . "'>
-                                                    <i class='fas fa-trash'></i> Delete
-                                                </button>
-                                              </td>";
-                                        echo "</tr>";
-                                    }
-                                } else {
-                                    echo "<tr><td colspan='5'>No services found</td></tr>";
-                                }
-                                ?>
-                            </tbody>
-                        </table>
+                                        if ($result->num_rows > 0) {
+                                            while ($row = $result->fetch_assoc()) {
+                                                echo "<tr>";
+                                                echo "<td>" . htmlspecialchars($row["service_name"]) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row["description"]) . "</td>";
+                                                echo "<td>₱" . number_format($row["price"], 2) . "</td>";
+                                                echo "<td>";
+                                                if ($row['image']) {
+                                                    echo '<img src="data:image/jpeg;base64,' . base64_encode($row['image']) . '" alt="Service Image" style="width: 100px; height: auto;"/>';
+                                                } else {
+                                                    echo 'No image available';
+                                                }
+                                                echo "</td>";
+                                                echo "<td>
+                                                        <button class='btn btn-primary btn-sm edit-btn' data-service-id='" . $row['service_id'] . "' data-bs-toggle='modal' data-bs-target='#editServiceModal'>
+                                                            <i class='fas fa-edit'></i> Edit
+                                                        </button>
+                                                        <button class='btn btn-danger btn-sm delete-btn' data-service-id='" . $row['service_id'] . "'>
+                                                            <i class='fas fa-trash'></i> Delete
+                                                        </button>
+                                                      </td>";
+                                                echo "</tr>";
+                                            }
+                                        } else {
+                                            echo "<tr><td colspan='5' class='text-center'>No services found</td></tr>";
+                                        }
+                                        ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <!-- Modal Add Service -->
-    </div>
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <!-- Modal edit Service -->
-    </div>
-
-    <!-- Add this before the footer include -->
-    <!-- Modal Add Service -->
+    <!-- Add Service Modal -->
     <div class="modal fade" id="addServiceModal" tabindex="-1" aria-labelledby="addServiceModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -167,7 +163,10 @@ include_once('../database/db_connection.php');
                         </div>
                         <div class="mb-3">
                             <label for="price" class="form-label">Price</label>
-                            <input type="number" class="form-control" id="price" name="price" step="0.01" required>
+                            <div class="input-group">
+                                <span class="input-group-text">₱</span>
+                                <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" required>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="image" class="form-label">Service Image</label>
@@ -183,8 +182,7 @@ include_once('../database/db_connection.php');
         </div>
     </div>
 
-    <!-- Add this before the scripts section -->
-    <!-- Modal Edit Service -->
+    <!-- Edit Service Modal -->
     <div class="modal fade" id="editServiceModal" tabindex="-1" aria-labelledby="editServiceModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -205,7 +203,10 @@ include_once('../database/db_connection.php');
                         </div>
                         <div class="mb-3">
                             <label for="edit_price" class="form-label">Price</label>
-                            <input type="number" class="form-control" id="edit_price" name="price" step="0.01" required>
+                            <div class="input-group">
+                                <span class="input-group-text">₱</span>
+                                <input type="number" class="form-control" id="edit_price" name="price" step="0.01" min="0" required>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="edit_image" class="form-label">Service Image</label>

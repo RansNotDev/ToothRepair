@@ -45,24 +45,40 @@ while ($row = mysqli_fetch_assoc($result)) {
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <title>Book Appointment | Tooth Repair Dental Clinic</title>
 
     <!-- CSS FILES -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,700;1,400&display=swap"
         rel="stylesheet">
-
     <link href="css/bootstrap-icons.css" rel="stylesheet">
     
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
+    <!-- Custom CSS -->
     <link href="css/landing_page.css" rel="stylesheet">
     <link href="css/components/appointment.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/breakpoints.css">
 
+    <style>
+        /* Custom styles for responsiveness */
+        @media (max-width: 768px) {
+            .modal-dialog {
+                max-width: 95%; /* Adjust modal width for smaller screens */
+                margin: 0.5rem;
+            }
+            .modal-body {
+                padding: 0.75rem;
+            }
+            .col-md-6 {
+                margin-bottom: 15px; /* Add spacing between columns in the modal */
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -260,7 +276,7 @@ while ($row = mysqli_fetch_assoc($result)) {
     <?php include 'sitefooter.php'; ?>
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.15/index.global.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone-with-data.min.js"></script>
@@ -269,7 +285,7 @@ while ($row = mysqli_fetch_assoc($result)) {
     </script>
 
     <script>
-
+ 
         document.addEventListener('DOMContentLoaded', function () {
             const navbar = document.querySelector('.navbar');
 

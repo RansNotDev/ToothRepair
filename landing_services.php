@@ -32,6 +32,7 @@
 
         <link href="css/bootstrap-icons.css" rel="stylesheet">
         <link href="css/landing_page.css" rel="stylesheet">
+        <link href="css/breakpoints.css" rel="stylesheet">
 
     </head>
     

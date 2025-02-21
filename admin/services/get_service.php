@@ -4,37 +4,26 @@ include_once('../../database/db_connection.php');
 header('Content-Type: application/json');
 
 try {
-    if (empty($_GET['service_id'])) {
+    if (!isset($_GET['service_id'])) {
         throw new Exception('Service ID is required');
     }
 
-    $serviceId = intval($_GET['service_id']);
+    $service_id = intval($_GET['service_id']);
     
     $stmt = $conn->prepare("SELECT service_id, service_name, description, price FROM services WHERE service_id = ?");
-    $stmt->bind_param("i", $serviceId);
-    
-    if (!$stmt->execute()) {
-        throw new Exception('Failed to fetch service details');
-    }
-    
+    $stmt->bind_param("i", $service_id);
+    $stmt->execute();
     $result = $stmt->get_result();
-    $service = $result->fetch_assoc();
     
-    if (!$service) {
+    if ($service = $result->fetch_assoc()) {
+        echo json_encode(['status' => 'success', 'service' => $service]);
+    } else {
         throw new Exception('Service not found');
     }
 
-    echo json_encode([
-        'status' => 'success',
-        'service' => $service
-    ]);
-
 } catch (Exception $e) {
     http_response_code(400);
-    echo json_encode([
-        'status' => 'error',
-        'message' => $e->getMessage()
-    ]);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
 
 $stmt->close();

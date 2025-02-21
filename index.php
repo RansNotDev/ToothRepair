@@ -16,7 +16,7 @@ while ($row = $result->fetch_assoc()) {
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <meta name="description" content="">
     <meta name="author" content="">
@@ -28,6 +28,7 @@ while ($row = $result->fetch_assoc()) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="css/breakpoints.css">
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="css/landing_page.css">
@@ -98,7 +99,7 @@ while ($row = $result->fetch_assoc()) {
 
         <section class="services-section section-padding section-bg" id="services-section">
             <div class="container">
-                <div class="row">
+                <div class="row g-4">
                     <div class="col-lg-12 col-12">
                         <h2 class="mb-4 text-primary">Our Services</h2>
                     </div>

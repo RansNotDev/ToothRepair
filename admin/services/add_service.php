@@ -11,83 +11,34 @@ header('Content-Type: application/json');
 
 try {
     // Validate input
-    if (empty($_POST['service_name']) || empty($_POST['description']) || 
-        empty($_POST['price']) || empty($_FILES['image'])) {
-        throw new Exception('All fields are required');
+    if (!isset($_POST['service_name']) || !isset($_POST['description']) || !isset($_POST['price']) || !isset($_FILES['image'])) {
+        throw new Exception('Missing required fields');
     }
 
-    // Sanitize inputs
-    $serviceName = mysqli_real_escape_string($conn, $_POST['service_name']);
-    $description = mysqli_real_escape_string($conn, $_POST['description']);
+    $service_name = trim($_POST['service_name']);
+    $description = trim($_POST['description']);
     $price = floatval($_POST['price']);
-
-    // Validate price
-    if ($price <= 0) {
-        throw new Exception('Invalid price value');
-    }
-
-    // Handle image upload
-    $image = $_FILES['image'];
-    $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
     
-    if (!in_array($image['type'], $allowedTypes)) {
-        throw new Exception('Invalid image format. Only JPG, PNG, and GIF are allowed.');
+    // Validate image
+    if ($_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+        throw new Exception('Image upload failed');
     }
 
-    // Check file size (max 16MB)
-    if ($image['size'] > 16777216) {
-        throw new Exception('Image file is too large. Maximum size is 16MB.');
-    }
-
-    // Read image file as binary data
-    $imageData = null;
-    $imagePath = $image['tmp_name'];
+    $imageData = file_get_contents($_FILES['image']['tmp_name']);
     
-    if (!file_exists($imagePath)) {
-        throw new Exception('Error accessing uploaded file');
-    }
-
-    $imageData = file_get_contents($imagePath);
+    // Insert into database
+    $stmt = $conn->prepare("INSERT INTO services (service_name, description, price, image, is_active) VALUES (?, ?, ?, ?, 1)");
+    $stmt->bind_param("ssds", $service_name, $description, $price, $imageData);
     
-    if ($imageData === false) {
-        throw new Exception('Error reading image file');
+    if ($stmt->execute()) {
+        echo json_encode(['status' => 'success']);
+    } else {
+        throw new Exception('Failed to add service');
     }
-
-    // First, update the database table to use LONGBLOB if not already done
-    $alterTable = "ALTER TABLE services MODIFY COLUMN image LONGBLOB";
-    $conn->query($alterTable);
-    
-    // Prepare and execute the query with LONGBLOB data
-    $stmt = $conn->prepare("INSERT INTO services (service_name, description, price, image) VALUES (?, ?, ?, ?)");
-    
-    if (!$stmt) {
-        throw new Exception('Prepare failed: ' . $conn->error);
-    }
-
-    // Bind parameters
-    $stmt->bind_param("ssds", $serviceName, $description, $price, $imageData);
-    
-    if (!$stmt->execute()) {
-        throw new Exception('Execute failed: ' . $stmt->error);
-    }
-
-    $insertId = $stmt->insert_id;
-    $stmt->close();
-
-    // Return success response
-    echo json_encode([
-        'status' => 'success',
-        'message' => 'Service added successfully',
-        'service_id' => $insertId
-    ]);
 
 } catch (Exception $e) {
     http_response_code(400);
-    echo json_encode([
-        'status' => 'error',
-        'message' => $e->getMessage()
-    ]);
-    exit;
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
 
 $conn->close();

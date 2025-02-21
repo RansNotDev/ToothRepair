@@ -20,6 +20,7 @@
         <link href="css/bootstrap-icons.css" rel="stylesheet">
         <link href="css/landing_page.css" rel="stylesheet">
         <link rel="stylesheet" href="css/components/about.css">
+        <link rel="stylesheet" href="css/breakpoints.css">
 
     </head>
     
