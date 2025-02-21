@@ -42,8 +42,9 @@ if (!$new_users_result || !$today_appt_result || !$new_appt_result) {
 <ul class="navbar-nav ml-auto">
     <!-- Nav Item - Alerts -->
     <li class="nav-item dropdown no-arrow mx-1">
-        <a class="nav-link dropdown-toggle" href="appointmentlist.php" id="alertsDropdown" role="button"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <a class="nav-link dropdown-toggle <?php if ($total_notifications > 0) echo 'blink-notification'; ?>" 
+           href="appointmentlist.php" id="alertsDropdown" role="button"
+           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <i class="fas fa-bell fa-fw"></i>
             <!-- Counter - Alerts -->
             <?php if ($total_notifications > 0): ?>
@@ -106,7 +107,7 @@ if (!$new_users_result || !$today_appt_result || !$new_appt_result) {
     <li class="nav-item dropdown no-arrow">
         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span class="mr-2 d-none d-lg-inline text-gray-600 small">
+            <span class="mr-2 d-none d-lg-inline text-white-600 small">
     <?php 
     if (isset($_SESSION['admin_id'])) {
         $admin_id = $_SESSION['admin_id'];
@@ -161,3 +162,54 @@ if (!$new_users_result || !$today_appt_result || !$new_appt_result) {
 </div>
         </nav>
         <!-- End of Topbar -->
+
+<!-- Add this CSS in the head section or in a separate CSS file -->
+<style>
+    .navbar {
+        background: linear-gradient(45deg,rgb(67, 132, 252),rgb(81, 130, 214)) !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .navbar .nav-link {
+        color: #fff !important;
+        transition: all 0.3s ease;
+    }
+    
+    .navbar .nav-link:hover {
+        transform: translateY(-2px);
+    }
+    
+    .img-profile {
+        border: 2px solid #fff;
+        box-shadow: 0 0 10px rgba(255,255,255,0.3);
+    }
+    
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
+    
+    .blink-notification {
+        animation: blink 1.2s ease-in-out 5;
+    }
+</style>
+
+<!-- Add this JavaScript to handle the blinking every minute and auto-refresh -->
+<script>
+    function startBlinking() {
+        const notification = document.querySelector('.blink-notification');
+        if (notification) {
+            notification.style.animation = 'none';
+            setTimeout(() => {
+                notification.style.animation = '';
+            }, 10);
+        }
+    }
+    
+    setInterval(startBlinking, 6000); // Every 1 minute
+    
+    // Auto-refresh the page every minute
+    setTimeout(function() {
+        window.location.reload();
+    }, 60000); // 60000 milliseconds = 1 minute
+</script>
