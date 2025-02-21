@@ -65,17 +65,113 @@ while ($row = mysqli_fetch_assoc($result)) {
     <link rel="stylesheet" href="css/breakpoints.css">
 
     <style>
-        /* Custom styles for responsiveness */
-        @media (max-width: 768px) {
+        /* Custom responsive styles */
+        @media (max-width: 576px) { /* Mobile */
+            .calendar-wrapper {
+                padding: 0.5rem !important;
+            }
+            .fc .fc-toolbar-title {
+                font-size: 1.2rem;
+            }
+            .fc .fc-button {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.8rem;
+            }
+            .fc-daygrid-day-number {
+                font-size: 0.8rem;
+            }
+            .slot-info {
+                font-size: 0.7rem;
+            }
             .modal-dialog {
-                max-width: 95%; /* Adjust modal width for smaller screens */
                 margin: 0.5rem;
             }
             .modal-body {
-                padding: 0.75rem;
+                padding: 0.5rem;
             }
             .col-md-6 {
-                margin-bottom: 15px; /* Add spacing between columns in the modal */
+                margin-bottom: 1rem;
+                border-right: none !important;
+            }
+        }
+
+        @media (min-width: 576px) and (max-width: 992px) { /* Tablet */
+            .calendar-wrapper {
+                padding: 1rem !important;
+            }
+            .fc .fc-toolbar-title {
+                font-size: 1.5rem;
+            }
+            .fc .fc-button {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            .fc-daygrid-day-number {
+                font-size: 0.9rem;
+            }
+            .slot-info {
+                font-size: 0.8rem;
+            }
+            .modal-dialog {
+                max-width: 90%;
+                margin: 1rem auto;
+            }
+            .col-md-6 {
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        @media (min-width: 992px) { /* Desktop */
+            .calendar-wrapper {
+                padding: 2rem !important;
+            }
+            .fc .fc-toolbar-title {
+                font-size: 2rem;
+            }
+            .fc .fc-button {
+                padding: 0.5rem 1rem;
+            }
+            .modal-dialog {
+                max-width: 1200px;
+            }
+        }
+
+        /* Common responsive styles */
+        .fc .fc-toolbar {
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        @media (min-width: 768px) {
+            .fc .fc-toolbar {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+        }
+
+        .fc .fc-daygrid-day-frame {
+            min-height: 80px;
+        }
+
+        @media (max-width: 768px) {
+            .fc .fc-daygrid-day-frame {
+                min-height: 60px;
+            }
+        }
+
+        .modal-content {
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-group {
+                margin-bottom: 0.75rem;
             }
         }
     </style>
@@ -348,8 +444,18 @@ while ($row = mysqli_fetch_assoc($result)) {
                     }
                 },
                 headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title'
+                    left: window.innerWidth < 768 ? 'prev,next' : 'prev,next today',
+                    center: 'title',
+                    right: window.innerWidth < 768 ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                views: {
+                    dayGridMonth: {
+                        dayMaxEventRows: window.innerWidth < 768 ? 1 : 3
+                    }
+                },
+                windowResize: function(view) {
+                    calendar.updateSize();
+                    calendar.changeView(window.innerWidth < 768 ? 'dayGridMonth' : 'dayGridMonth');
                 },
                 dayCellContent: function (arg) {
                     const dateStr = arg.date.toISOString().split('T')[0];
@@ -395,7 +501,10 @@ while ($row = mysqli_fetch_assoc($result)) {
                     if (isPast || !isAvailable || !hasSlots) classes.push('fc-day-disabled');
                     if (isAvailable && hasSlots) classes.push('has-slots');
                     return classes;
-                }
+                },
+                height: 'auto',
+                contentHeight: 'auto',
+                aspectRatio: 1.5
             });
 
             calendar.render();
@@ -601,6 +710,16 @@ while ($row = mysqli_fetch_assoc($result)) {
                     // Enable/disable submit button based on checkbox state
                     $('.btn-primary[type="submit"]').prop('disabled', !this.checked);
                 });
+            });
+
+            // Make modal more responsive
+            $(window).on('resize', function() {
+                const modal = $('#appointmentModal');
+                if (modal.is(':visible')) {
+                    const isMobile = window.innerWidth < 768;
+                    modal.find('.modal-dialog').toggleClass('modal-fullscreen', isMobile);
+                    modal.find('.col-md-6').toggleClass('border-right', !isMobile);
+                }
             });
         });
     </script>

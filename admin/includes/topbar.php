@@ -190,7 +190,7 @@ if (!$new_users_result || !$today_appt_result || !$new_appt_result) {
     }
     
     .blink-notification {
-        animation: blink 1.2s ease-in-out 5;
+        animation: blink 0.6s ease-in-out 3;
     }
 </style>
 
@@ -206,7 +206,7 @@ if (!$new_users_result || !$today_appt_result || !$new_appt_result) {
         }
     }
     
-    setInterval(startBlinking, 6000); // Every 1 minute
+    setInterval(startBlinking, 60000); // Every 1 minute
     
     // Auto-refresh the page every minute
     setTimeout(function() {

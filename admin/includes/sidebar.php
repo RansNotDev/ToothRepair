@@ -10,7 +10,7 @@
 
     <style>
         #accordionSidebar {
-            background-color: rgb(152, 193, 233);
+            background-color: rgb(11, 65, 214);
             color: white;
         }
 
