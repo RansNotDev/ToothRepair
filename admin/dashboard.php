@@ -24,12 +24,14 @@ GROUP BY month
 ORDER BY month";
 $monthly_result = $conn->query($monthly_query);
 
-// Get popular services
+// Get popular services (modified for current month)
 $services_query = "SELECT 
     s.service_name,
     COUNT(*) as total_bookings
 FROM appointments a
 JOIN services s ON a.service_id = s.service_id
+WHERE MONTH(a.appointment_date) = MONTH(CURRENT_DATE())
+    AND YEAR(a.appointment_date) = YEAR(CURRENT_DATE())
 GROUP BY s.service_id
 ORDER BY total_bookings DESC
 LIMIT 5";
@@ -58,6 +60,61 @@ JOIN services s ON a.service_id = s.service_id
 WHERE DATE(a.appointment_date) = CURDATE()
 ORDER BY a.appointment_time";
 $today_result = $conn->query($today_appointments_query);
+
+// At the top with other PHP queries
+$selected_period = isset($_GET['period']) ? $_GET['period'] : 'monthly';
+
+$period_condition = "";
+switch($selected_period) {
+    case 'monthly':
+        $period_condition = "AND MONTH(appointment_date) = MONTH(CURRENT_DATE()) 
+                           AND YEAR(appointment_date) = YEAR(CURRENT_DATE())";
+        break;
+    case 'annual':
+        $period_condition = "AND YEAR(appointment_date) = YEAR(CURRENT_DATE())";
+        break;
+    case 'yearly':
+        $period_condition = "AND YEAR(appointment_date) = YEAR(CURRENT_DATE())";
+        break;
+}
+
+// Get appointment stats
+$stats_query = "SELECT 
+    COUNT(*) as total_appointments,
+    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+    SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled,
+    SUM(CASE WHEN status IN ('pending','booked') THEN 1 ELSE 0 END) as upcoming
+FROM appointments
+WHERE 1=1 " . $period_condition;
+
+// Get monthly appointments (for chart)
+$monthly_query = "SELECT 
+    DATE_FORMAT(appointment_date, '%Y-%m') as month,
+    COUNT(*) as total
+FROM appointments 
+WHERE appointment_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+    " . $period_condition . "
+GROUP BY month 
+ORDER BY month";
+
+// Get popular services
+$services_query = "SELECT 
+    s.service_name,
+    COUNT(*) as total_bookings
+FROM appointments a
+JOIN services s ON a.service_id = s.service_id
+WHERE 1=1 " . $period_condition . "
+GROUP BY s.service_id
+ORDER BY total_bookings DESC
+LIMIT 5";
+
+// Get status distribution
+$status_query = "SELECT 
+    status,
+    COUNT(*) as count
+FROM appointments 
+WHERE 1=1 " . $period_condition . "
+GROUP BY status";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -170,14 +227,54 @@ $today_result = $conn->query($today_appointments_query);
                 
                 <!-- Begin Page Content -->
                 <div class="content-wrapper">
-                    <!-- Stats Cards -->
+                    <!-- Page Heading with Statistics Toggle -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+                        <div class="btn-group shadow-sm">
+                            <a href="?period=monthly" class="btn <?= $selected_period == 'monthly' ? 'btn-primary' : 'btn-light' ?>">
+                                <i class="fas fa-calendar-day fa-sm mr-2"></i>Monthly
+                            </a>
+                            <a href="?period=annual" class="btn <?= $selected_period == 'annual' ? 'btn-primary' : 'btn-light' ?>">
+                                <i class="fas fa-calendar-week fa-sm mr-2"></i>Annual
+                            </a>
+                            <a href="?period=yearly" class="btn <?= $selected_period == 'yearly' ? 'btn-primary' : 'btn-light' ?>">
+                                <i class="fas fa-calendar fa-sm mr-2"></i>Yearly
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Period Indicator -->
+                    <div class="text-right mb-3">
+                        <span class="text-muted">
+                            Showing statistics for: 
+                            <strong>
+                                <?php 
+                                switch($selected_period) {
+                                    case 'monthly':
+                                        echo date('F Y'); // Current month and year
+                                        break;
+                                    case 'annual':
+                                        echo 'Annual ' . date('Y'); // Current year
+                                        break;
+                                    case 'yearly':
+                                        echo 'Year ' . date('Y'); // Current year
+                                        break;
+                                }
+                                ?>
+                            </strong>
+                        </span>
+                    </div>
+
+                    <!-- Stats Cards Row -->
                     <div class="row mb-4">
+                        <!-- Total Appointments Card -->
                         <div class="col-xl-3 col-md-6 mb-4">
                             <div class="card border-left-primary shadow h-100 py-2">
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Appointments</div>
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Total Appointments</div>
                                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['total_appointments'] ?></div>
                                         </div>
                                         <div class="col-auto">
@@ -188,12 +285,14 @@ $today_result = $conn->query($today_appointments_query);
                             </div>
                         </div>
 
+                        <!-- Completed Card -->
                         <div class="col-xl-3 col-md-6 mb-4">
                             <div class="card border-left-success shadow h-100 py-2">
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Completed</div>
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Completed</div>
                                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['completed'] ?></div>
                                         </div>
                                         <div class="col-auto">
@@ -204,12 +303,14 @@ $today_result = $conn->query($today_appointments_query);
                             </div>
                         </div>
 
+                        <!-- Pending Card -->
                         <div class="col-xl-3 col-md-6 mb-4">
                             <div class="card border-left-warning shadow h-100 py-2">
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Pending</div>
                                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['upcoming'] ?></div>
                                         </div>
                                         <div class="col-auto">
@@ -220,12 +321,14 @@ $today_result = $conn->query($today_appointments_query);
                             </div>
                         </div>
 
+                        <!-- Cancelled Card -->
                         <div class="col-xl-3 col-md-6 mb-4">
                             <div class="card border-left-danger shadow h-100 py-2">
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Cancelled</div>
+                                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                                Cancelled</div>
                                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['cancelled'] ?></div>
                                         </div>
                                         <div class="col-auto">
@@ -237,14 +340,47 @@ $today_result = $conn->query($today_appointments_query);
                         </div>
                     </div>
 
-                    <!-- Today's Appointments & Analytics Row -->
+                    <!-- Charts Row -->
+                    <div class="row">
+                        <!-- Monthly Appointments Chart -->
+                        <div class="col-xl-8 col-lg-7">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Appointments Overview</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-area">
+                                        <canvas id="monthlyChart" style="height: 320px;"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status Distribution Chart -->
+                        <div class="col-xl-4 col-lg-5">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Status Distribution</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-pie">
+                                        <canvas id="statusChart" style="height: 320px;"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content Row -->
                     <div class="row">
                         <!-- Today's Appointments -->
-                        <div class="col-xl-6 col-lg-6">
+                        <div class="col-xl-8 col-lg-7">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                                     <h6 class="m-0 font-weight-bold text-primary">Today's Appointments</h6>
-                                    <a href="calendar.php" class="btn btn-sm btn-primary shadow-sm">View Calendar</a>
+                                    <a href="calendar.php" class="btn btn-sm btn-primary shadow-sm">
+                                        <i class="fas fa-calendar fa-sm text-white-50"></i> View Calendar
+                                    </a>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
@@ -258,25 +394,27 @@ $today_result = $conn->query($today_appointments_query);
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php while($row = $today_result->fetch_assoc()): ?>
-                                                <tr>
-                                                    <td><?= $row['formatted_time'] ?></td>
-                                                    <td><?= $row['fullname'] ?></td>
-                                                    <td><?= $row['service_name'] ?></td>
-                                                    <td>
-                                                        <span class="badge badge-<?= 
-                                                            $row['status'] == 'pending' ? 'warning' : 
-                                                            ($row['status'] == 'completed' ? 'success' : 'danger') 
-                                                        ?>">
-                                                            <?= ucfirst($row['status']) ?>
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                                <?php endwhile; ?>
                                                 <?php if($today_result->num_rows == 0): ?>
                                                 <tr>
                                                     <td colspan="4" class="text-center">No appointments scheduled for today</td>
                                                 </tr>
+                                                <?php else: ?>
+                                                    <?php while($row = $today_result->fetch_assoc()): ?>
+                                                    <tr>
+                                                        <td><?= $row['formatted_time'] ?></td>
+                                                        <td><?= $row['fullname'] ?></td>
+                                                        <td><?= $row['service_name'] ?></td>
+                                                        <td>
+                                                            <span class="badge badge-<?= 
+                                                                $row['status'] == 'pending' ? 'warning' : 
+                                                                ($row['status'] == 'completed' ? 'success' : 
+                                                                ($row['status'] == 'booked' ? 'info' : 'danger')) 
+                                                            ?>">
+                                                                <?= ucfirst($row['status']) ?>
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                    <?php endwhile; ?>
                                                 <?php endif; ?>
                                             </tbody>
                                         </table>
@@ -285,41 +423,16 @@ $today_result = $conn->query($today_appointments_query);
                             </div>
                         </div>
 
-                        <!-- Monthly Appointments Chart -->
-                        <div class="col-xl-6 col-lg-6">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Appointments Overview</h6>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="monthlyChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Analytics Row -->
-                    <div class="row">
                         <!-- Popular Services Chart -->
-                        <div class="col-xl-6 col-lg-6">
+                        <div class="col-xl-4 col-lg-5">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
                                     <h6 class="m-0 font-weight-bold text-primary">Popular Services</h6>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="servicesChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Appointment Status Distribution -->
-                        <div class="col-xl-6 col-lg-6">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Status Distribution</h6>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="statusChart"></canvas>
+                                    <div class="chart-bar">
+                                        <canvas id="servicesChart" style="height: 320px;"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -380,7 +493,18 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: '<?php echo date("F Y"); ?> Popular Services',
+                    color: '#5a5c69',
+                    font: {
+                        size: 14,
+                        family: "'Nunito', sans-serif"
+                    }
+                }
+            }
         }
     });
 
@@ -447,7 +571,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 title: {
                     display: true,
-                    text: 'Current Month Status Distribution',
+                    text: '<?php echo date("F Y"); ?> Status Distribution',
                     color: '#5a5c69',
                     font: {
                         size: 14,

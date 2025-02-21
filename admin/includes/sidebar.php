@@ -64,6 +64,20 @@
         .sidebar-divider {
             border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
+
+        /* Add these styles for the toggle button */
+        #sidebarToggle {
+            background-color: rgba(255, 255, 255, 0.2);
+            width: 2.5rem;
+            height: 2.5rem;
+            margin: 1rem auto;
+            display: block;
+            cursor: pointer;
+        }
+
+        #sidebarToggle:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
     </style>
 </head>
 
@@ -80,7 +94,7 @@
 
             <li class="nav-item">
                 <a class="nav-link" href="dashboard.php">
-                    <i class="fas fa-fw fa-chart-pie"></i>
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
@@ -95,19 +109,19 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="appointmentlist.php">
-                    <i class="fas fa-fw fa-users"></i>
+                    <i class="fas fa-fw fa-calendar-check"></i>
                     <span>Appointment List</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="record_list.php">
-                    <i class="fas fa-fw fa-users"></i>
+                    <i class="fas fa-fw fa-folder-open"></i>
                     <span>Appointment Records</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="reports.php">
-                    <i class="fas fa-fw fa-chart-area"></i>
+                    <i class="fas fa-fw fa-chart-bar"></i>
                     <span>Reports & Analytics</span>
                 </a>
             </li>
@@ -117,7 +131,7 @@
 
             <li class="nav-item">
                 <a class="nav-link" href="admin_availability.php">
-                    <i class="fas fa-fw fa-chart-area"></i>
+                    <i class="fas fa-fw fa-clock"></i>
                     <span>Set Available Date</span>
                 </a>
             </li>
@@ -125,7 +139,7 @@
             <!-- add edit update Services of the clinic here  -->
             <li class="nav-item">
                 <a class="nav-link" href="services.php">
-                    <i class="fas fa-fw fa-chart-area"></i>
+                    <i class="fas fa-fw fa-tooth"></i>
                     <span>Services</span>
                 </a>
 
