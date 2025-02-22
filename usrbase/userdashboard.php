@@ -575,7 +575,7 @@ function getStatusBadge($status) {
                         <div class="notification-icon">
                             <button class="btn btn-link notification-bell" style="padding: 0;">
                                 <i class="fas fa-bell text-warning" style="font-size: 2.5rem;"></i>
-                                <?php if (count($appointments) > 1): ?>
+                                <?php if ($upcoming_count > 0): ?>
                                     <span class="notification-count badge bg-danger" 
                                           style="position: absolute;
                                                  font-size: 0.7rem; 
@@ -586,7 +586,7 @@ function getStatusBadge($status) {
                                                  display: flex;
                                                  align-items: center;
                                                  justify-content: center;">
-                                        <?php echo count($appointments) - 1; ?>
+                                        <?php echo $upcoming_count; ?>
                                     </span>
                                 <?php endif; ?>
                             </button>
