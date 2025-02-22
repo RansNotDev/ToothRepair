@@ -55,10 +55,21 @@ function getStatusClass($currentStatus, $status) {
     return 'bg-light text-dark';
 }
 
-// Replace the existing query with this updated version
-// Place this after session_start() and before the HTML
+// First, handle any past pending appointments that need to be cancelled
+$today = date('Y-m-d');
+$auto_cancel_reason = "Appointment expired - The appointment was not confirmed within the required timeframe.";
 
-// First, get the current appointment
+$stmt = $conn->prepare("
+    UPDATE appointments 
+    SET status = 'cancelled',
+        cancel_reason = ?
+    WHERE appointment_date < ? 
+    AND status IN ('booked', 'pending')");
+$stmt->bind_param("ss", $auto_cancel_reason, $today);
+$stmt->execute();
+$stmt->close();
+
+// Modified query for current appointment to only show today or future appointments
 $stmt = $conn->prepare("
     SELECT a.appointment_id, 
            a.appointment_date, 
@@ -68,16 +79,18 @@ $stmt = $conn->prepare("
            s.service_id
     FROM appointments a
     JOIN services s ON a.service_id = s.service_id
-    WHERE a.user_id = ? AND a.status IN ('pending', 'confirmed')
+    WHERE a.user_id = ? 
+    AND a.status IN ('pending', 'confirmed')
+    AND a.appointment_date >= ?
     ORDER BY a.appointment_date ASC, a.appointment_time ASC
     LIMIT 1");
-$stmt->bind_param("i", $user_id);
+$stmt->bind_param("is", $user_id, $today);
 $stmt->execute();
 $result = $stmt->get_result();
 $appointment = $result->fetch_assoc();
 $stmt->close();
 
-// Then get all upcoming appointments
+// Modified query for upcoming appointments to only show future appointments
 $stmt = $conn->prepare("
     SELECT a.appointment_id, 
            a.appointment_date, 
@@ -87,12 +100,15 @@ $stmt = $conn->prepare("
            s.service_id
     FROM appointments a
     JOIN services s ON a.service_id = s.service_id
-    WHERE a.user_id = ? AND a.status IN ('pending', 'confirmed')
+    WHERE a.user_id = ? 
+    AND a.status IN ('booked', 'pending', 'confirmed')
+    AND a.appointment_date >= ?
     ORDER BY a.appointment_date ASC, a.appointment_time ASC");
-$stmt->bind_param("i", $user_id);
+$stmt->bind_param("is", $user_id, $today);
 $stmt->execute();
 $result = $stmt->get_result();
 $appointments = $result->fetch_all(MYSQLI_ASSOC);
+$upcoming_count = count($appointments);
 $stmt->close();
 
 // Add helper function for status badge colors
