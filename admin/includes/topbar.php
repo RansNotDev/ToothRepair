@@ -194,7 +194,7 @@ if (!$new_users_result || !$today_appt_result || !$new_appt_result) {
     }
 </style>
 
-<!-- Add this JavaScript to handle the blinking every minute and auto-refresh -->
+<!-- Add this JavaScript to handle the blinking every minute -->
 <script>
     function startBlinking() {
         const notification = document.querySelector('.blink-notification');
@@ -207,9 +207,4 @@ if (!$new_users_result || !$today_appt_result || !$new_appt_result) {
     }
     
     setInterval(startBlinking, 60000); // Every 1 minute
-    
-    // Auto-refresh the page every minute
-    setTimeout(function() {
-        window.location.reload();
-    }, 60000); // 60000 milliseconds = 1 minute
 </script>

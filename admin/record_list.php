@@ -72,35 +72,54 @@ $result = $conn->query($query);
                     <div class="tab-pane fade show active" id="completed" role="tabpanel">
                         <!-- Add Search and Alphabetical Filter for Completed -->
                         <div class="filter-controls mb-3">
+                            <!-- All filters in one line -->
                             <div class="d-flex justify-content-between align-items-center">
-                                <!-- Search input on the left -->
-                                <div class="search-wrapper" style="width: 250px;">
+                                <!-- Left side: Date Filter -->
+                                <div class="d-flex gap-2">
                                     <div class="input-group input-group-sm">
-                                        <input type="text" id="completedSearchInput" class="form-control" placeholder="Search records...">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-primary btn-sm" type="button">
-                                                <i class="fas fa-search"></i>
-                                            </button>
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">From</span>
                                         </div>
+                                        <input type="date" class="form-control" id="dateFrom">
                                     </div>
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">To</span>
+                                        </div>
+                                        <input type="date" class="form-control" id="dateTo">
+                                    </div>
+                                    <button class="btn btn-primary btn-sm" id="applyDateFilter">
+                                        <i class="fas fa-check"></i> Apply
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" id="clearDateFilter">
+                                        <i class="fas fa-times"></i> Clear
+                                    </button>
                                 </div>
 
-                                <!-- Alpha filter and sort controls on the right -->
-                                <div class="d-flex align-items-center gap-2">
+                                <!-- Center: Alpha filter -->
+                                <div class="d-flex align-items-center">
                                     <div class="btn-group btn-group-sm letter-navigation">
                                         <button class="btn btn-sm btn-outline-primary nav-prev" disabled>
                                             <i class="fas fa-chevron-left"></i>
                                         </button>
                                         <div class="alpha-pages">
                                             <?php
-                                            $letters = range('A', 'Z');
-                                            $groups = array_chunk($letters, 9);
-                                            foreach ($groups as $pageIndex => $group) {
+                                            $letterGroups = array(
+                                                array('A', 'B', 'C', 'D'),
+                                                array('E', 'F', 'G', 'H'),
+                                                array('I', 'J', 'K', 'L'),
+                                                array('M', 'N', 'O', 'P'),
+                                                array('Q', 'R', 'S', 'T'),
+                                                array('U', 'V', 'W', 'X'),
+                                                array('Y', 'Z')
+                                            );
+                                            
+                                            foreach ($letterGroups as $pageIndex => $group) {
                                                 $isActive = $pageIndex === 0 ? 'active' : '';
                                                 echo '<div class="alpha-page ' . $isActive . '" data-page="' . ($pageIndex + 1) . '" ' .
                                                     ($pageIndex === 0 ? '' : 'style="display: none;"') . '>';
                                                 foreach ($group as $letter) {
-                                                    echo '<button type="button" class="btn btn-outline-primary btn-sm" data-letter="' . $letter . '">' . $letter . '</button>';
+                                                    echo '<button type="button" class="btn btn-outline-primary btn-sm alpha-btn" data-letter="' . $letter . '">' . $letter . '</button>';
                                                 }
                                                 echo '</div>';
                                             }
@@ -109,17 +128,18 @@ $result = $conn->query($query);
                                         <button class="btn btn-sm btn-outline-primary nav-next">
                                             <i class="fas fa-chevron-right"></i>
                                         </button>
+                                        <div class="btn-group btn-group-sm ms-2">
+                                            <button type="button" class="btn btn-outline-primary alpha-btn" data-letter="all">All</button>
+                                        </div>
                                     </div>
+                                </div>
 
-                                    <div class="btn-group btn-group-sm">
-                                        <button type="button" class="btn btn-outline-primary sort-btn" data-letter="all">All</button>
-                                        <button class="btn btn-outline-primary sort-btn sort-asc active" data-sort="asc">
-                                            <i class="fas fa-sort-alpha-down"></i>
-                                        </button>
-                                        <button class="btn btn-outline-primary sort-btn sort-desc" data-sort="desc">
-                                            <i class="fas fa-sort-alpha-up"></i>
-                                        </button>
-                                    </div>
+                                <!-- Right side: DataTable Search -->
+                                <div class="dataTables_filter">
+                                    <label class="d-flex align-items-center gap-2">
+                                        Search:
+                                        <input type="search" class="form-control form-control-sm" placeholder="">
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -192,35 +212,54 @@ $result = $conn->query($query);
                     <div class="tab-pane fade" id="cancelled" role="tabpanel">
                         <!-- Add Search and Alphabetical Filter for Cancelled -->
                         <div class="filter-controls mb-3">
+                            <!-- All filters in one line -->
                             <div class="d-flex justify-content-between align-items-center">
-                                <!-- Search input on the left -->
-                                <div class="search-wrapper" style="width: 250px;">
+                                <!-- Left side: Date Filter -->
+                                <div class="d-flex gap-2">
                                     <div class="input-group input-group-sm">
-                                        <input type="text" id="cancelledSearchInput" class="form-control" placeholder="Search records...">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-primary btn-sm" type="button">
-                                                <i class="fas fa-search"></i>
-                                            </button>
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">From</span>
                                         </div>
+                                        <input type="date" class="form-control" id="dateFrom">
                                     </div>
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">To</span>
+                                        </div>
+                                        <input type="date" class="form-control" id="dateTo">
+                                    </div>
+                                    <button class="btn btn-primary btn-sm" id="applyDateFilter">
+                                        <i class="fas fa-check"></i> Apply
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" id="clearDateFilter">
+                                        <i class="fas fa-times"></i> Clear
+                                    </button>
                                 </div>
 
-                                <!-- Alpha filter and sort controls on the right -->
-                                <div class="d-flex align-items-center gap-2">
+                                <!-- Center: Alpha filter -->
+                                <div class="d-flex align-items-center">
                                     <div class="btn-group btn-group-sm letter-navigation">
                                         <button class="btn btn-sm btn-outline-primary nav-prev" disabled>
                                             <i class="fas fa-chevron-left"></i>
                                         </button>
                                         <div class="alpha-pages">
                                             <?php
-                                            $letters = range('A', 'Z');
-                                            $groups = array_chunk($letters, 9);
-                                            foreach ($groups as $pageIndex => $group) {
+                                            $letterGroups = array(
+                                                array('A', 'B', 'C', 'D'),
+                                                array('E', 'F', 'G', 'H'),
+                                                array('I', 'J', 'K', 'L'),
+                                                array('M', 'N', 'O', 'P'),
+                                                array('Q', 'R', 'S', 'T'),
+                                                array('U', 'V', 'W', 'X'),
+                                                array('Y', 'Z')
+                                            );
+                                            
+                                            foreach ($letterGroups as $pageIndex => $group) {
                                                 $isActive = $pageIndex === 0 ? 'active' : '';
                                                 echo '<div class="alpha-page ' . $isActive . '" data-page="' . ($pageIndex + 1) . '" ' .
                                                     ($pageIndex === 0 ? '' : 'style="display: none;"') . '>';
                                                 foreach ($group as $letter) {
-                                                    echo '<button type="button" class="btn btn-outline-primary btn-sm" data-letter="' . $letter . '">' . $letter . '</button>';
+                                                    echo '<button type="button" class="btn btn-outline-primary btn-sm alpha-btn" data-letter="' . $letter . '">' . $letter . '</button>';
                                                 }
                                                 echo '</div>';
                                             }
@@ -229,17 +268,18 @@ $result = $conn->query($query);
                                         <button class="btn btn-sm btn-outline-primary nav-next">
                                             <i class="fas fa-chevron-right"></i>
                                         </button>
+                                        <div class="btn-group btn-group-sm ms-2">
+                                            <button type="button" class="btn btn-outline-primary alpha-btn" data-letter="all">All</button>
+                                        </div>
                                     </div>
+                                </div>
 
-                                    <div class="btn-group btn-group-sm">
-                                        <button type="button" class="btn btn-outline-primary sort-btn" data-letter="all">All</button>
-                                        <button class="btn btn-outline-primary sort-btn sort-asc active" data-sort="asc">
-                                            <i class="fas fa-sort-alpha-down"></i>
-                                        </button>
-                                        <button class="btn btn-outline-primary sort-btn sort-desc" data-sort="desc">
-                                            <i class="fas fa-sort-alpha-up"></i>
-                                        </button>
-                                    </div>
+                                <!-- Right side: DataTable Search -->
+                                <div class="dataTables_filter">
+                                    <label class="d-flex align-items-center gap-2">
+                                        Search:
+                                        <input type="search" class="form-control form-control-sm" placeholder="">
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -467,183 +507,170 @@ $result = $conn->query($query);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
     <script>
 $(document).ready(function() {
-    // Initialize DataTables for both tables
-    $('#completedDataTable').DataTable({
-        "responsive": true,
-        "lengthChange": true,
-        "autoWidth": false,
-        "buttons": ["copy", "csv", "excel", "pdf", "print"]
+    // Initialize DataTable
+    var table = $('#completedDataTable').DataTable({
+        "dom": "<'row'<'col-sm-12'tr>>" +
+               "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        "ordering": true,
+        "searching": true
     });
 
-    $('#cancelledDataTable').DataTable({
-        "responsive": true,
-        "lengthChange": true,
-        "autoWidth": false,
-        "buttons": ["copy", "csv", "excel", "pdf", "print"]
+    // Date filter functionality
+    $('#applyDateFilter').click(function() {
+        table.draw();
     });
 
-    // Preserve active tab after page reload
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-        localStorage.setItem('activeTab', $(e.target).attr('href'));
-    });
+    // Add custom date range filter
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        var dateFrom = $('#dateFrom').val();
+        var dateTo = $('#dateTo').val();
 
-    // Check if there's a stored active tab
-    var activeTab = localStorage.getItem('activeTab');
-    if (activeTab) {
-        $('#myTab a[href="' + activeTab + '"]').tab('show');
-    }
-
-    // Keep your existing modal and form handling code here
-    // Edit record button click
-    $('.edit-record').on('click', function() {
-        const btn = $(this);
-        $('#editUserId').val(btn.data('id'));
-        $('#editFullname').val(btn.data('fullname'));
-        $('#editEmail').val(btn.data('email'));
-        $('#editContact').val(btn.data('contact'));
-        $('#editAddress').val(btn.data('address'));
-        $('#editRecordModal').modal('show');
-    });
-
-    // Clear email button
-    $('#clearEmailBtn').on('click', function() {
-        $('#editEmail').val('');
-    });
-
-    // Reset form when modal is hidden
-    $('#editRecordModal').on('hidden.bs.modal', function() {
-        $(this).find('form')[0].reset();
-    });
-
-    // Edit form submission
-    $('#editRecordModal form').on('submit', function(e) {
-        e.preventDefault();
-        const form = $(this);
-        const submitBtn = form.find('button[type="submit"]');
-        const emailInput = form.find('input[name="email"]');
-
-        // Validate email if provided
-        if (emailInput.val().trim() !== '' && !emailInput[0].checkValidity()) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Invalid Email',
-                text: 'Please enter a valid email address or leave it blank'
-            });
-            return;
+        if (!dateFrom && !dateTo) {
+            return true;
         }
 
-        submitBtn.prop('disabled', true);
+        var dateField = data[5]; // Adjust this index to match your date column
+        if (!dateField) {
+            return false;
+        }
 
-        $.ajax({
-            url: form.attr('action'),
-            type: 'POST',
-            data: form.serialize(),
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    $('#editRecordModal').modal('hide');
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: 'Record updated successfully',
-                        timer: 2000,
-                        showConfirmButton: false
-                    }).then(() => {
-                        window.location.reload();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: response.message || 'Failed to update record'
-                    });
-                }
-            },
-            error: function(xhr) {
-                console.error('Server error:', xhr.responseText);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Failed to update record. Please try again.'
-                });
-            },
-            complete: function() {
-                submitBtn.prop('disabled', false);
-            }
-        });
+        // Convert date strings to Date objects for comparison
+        var rowDate = new Date(dateField);
+        var fromDate = dateFrom ? new Date(dateFrom) : null;
+        var toDate = dateTo ? new Date(dateTo) : null;
+
+        // Reset time components for accurate date comparison
+        if (rowDate) rowDate.setHours(0,0,0,0);
+        if (fromDate) fromDate.setHours(0,0,0,0);
+        if (toDate) toDate.setHours(0,0,0,0);
+
+        if (fromDate && toDate) {
+            return rowDate >= fromDate && rowDate <= toDate;
+        } else if (fromDate) {
+            return rowDate >= fromDate;
+        } else if (toDate) {
+            return rowDate <= toDate;
+        }
+        return true;
     });
 
-    // Set max date for appointment dates
-    const today = new Date().toISOString().split('T')[0];
-    $('input[name="appointment_date"]').attr('max', today);
-    $('input[name="completion_date"]').attr('max', new Date().toISOString().slice(0, 16));
+    // Clear date filter
+    $('#clearDateFilter').click(function() {
+        $('#dateFrom, #dateTo').val('');
+        table.draw();
+    });
 
-    // Function to handle letter navigation
-    function setupLetterNavigation(tabId) {
-        const container = $(`#${tabId} .letter-navigation`);
-        const prevBtn = container.find('.nav-prev');
-        const nextBtn = container.find('.nav-next');
-        const pages = container.find('.alpha-page');
+    // Alphabetical filter
+    $('.alpha-btn').click(function() {
+        var letter = $(this).data('letter');
         
-        let currentPage = 1;
-        const totalPages = pages.length;
+        // Remove any existing search term
+        table.search('').draw();
+        
+        if (letter === 'all') {
+            table.column(1).search('').draw(); // Adjust column index for name column
+        } else {
+            table.column(1).search('^' + letter, true, false).draw();
+        }
+        
+        // Update active state
+        $('.alpha-btn').removeClass('active');
+        $(this).addClass('active');
+    });
 
-        function updateNavigation() {
-            prevBtn.prop('disabled', currentPage === 1);
-            nextBtn.prop('disabled', currentPage === totalPages);
-            pages.hide().filter(`[data-page="${currentPage}"]`).show();
+    // Letter group navigation
+    $('.nav-prev, .nav-next').click(function() {
+        var container = $(this).closest('.letter-navigation');
+        var pages = container.find('.alpha-page');
+        var currentPage = container.find('.alpha-page.active');
+        var currentIndex = parseInt(currentPage.data('page'));
+        var totalPages = pages.length;
+        
+        var newIndex;
+        if ($(this).hasClass('nav-prev')) {
+            newIndex = currentIndex - 1;
+        } else {
+            newIndex = currentIndex + 1;
         }
 
-        prevBtn.click(() => {
-            if (currentPage > 1) {
-                currentPage--;
-                updateNavigation();
-            }
-        });
+        if (newIndex > 0 && newIndex <= totalPages) {
+            pages.removeClass('active').hide();
+            pages.filter(`[data-page="${newIndex}"]`).addClass('active').show();
+            
+            // Update navigation buttons
+            container.find('.nav-prev').prop('disabled', newIndex === 1);
+            container.find('.nav-next').prop('disabled', newIndex === totalPages);
+        }
+    });
 
-        nextBtn.click(() => {
-            if (currentPage < totalPages) {
-                currentPage++;
-                updateNavigation();
-            }
-        });
-    }
+    // Date input validation
+    $('#dateFrom').change(function() {
+        var fromDate = $(this).val();
+        $('#dateTo').attr('min', fromDate);
+        if ($('#dateTo').val() && $('#dateTo').val() < fromDate) {
+            $('#dateTo').val(fromDate);
+        }
+        table.draw();
+    });
 
-    // Initialize letter navigation for both tabs
-    setupLetterNavigation('completed');
-    setupLetterNavigation('cancelled');
+    $('#dateTo').change(function() {
+        var toDate = $(this).val();
+        $('#dateFrom').attr('max', toDate);
+        if ($('#dateFrom').val() && $('#dateFrom').val() > toDate) {
+            $('#dateFrom').val(toDate);
+        }
+        table.draw();
+    });
 
-    // Handle search functionality for both tabs
-    $('#completedSearchInput, #cancelledSearchInput').on('keyup', function() {
-        const tabId = $(this).closest('.tab-pane').attr('id');
-        const table = $(`#${tabId}DataTable`).DataTable();
+    // Set max date to today
+    var today = new Date().toISOString().split('T')[0];
+    $('#dateFrom, #dateTo').attr('max', today);
+
+    // Handle DataTable search
+    $('.dataTables_filter input').unbind().bind('keyup', function() {
         table.search(this.value).draw();
     });
 
-    // Handle letter filtering for both tabs
-    $('.letter-navigation button[data-letter]').click(function() {
-        const letter = $(this).data('letter');
-        const tabId = $(this).closest('.tab-pane').attr('id');
-        const table = $(`#${tabId}DataTable`).DataTable();
+    // Handle form submission
+    $('#addRecordForm').submit(function(e) {
+        e.preventDefault();
         
-        if (letter === 'all') {
-            table.search('').draw();
-        } else {
-            table.search('^' + letter, true, false).draw();
-        }
-    });
-
-    // Handle sorting for both tabs
-    $('.sort-btn').click(function() {
-        const tabId = $(this).closest('.tab-pane').attr('id');
-        const table = $(`#${tabId}DataTable`).DataTable();
-        const sortDirection = $(this).data('sort');
-        
-        if (sortDirection) {
-            table.order([1, sortDirection]).draw();
-            $(this).siblings().removeClass('active');
-            $(this).addClass('active');
-        }
+        $.ajax({
+            type: 'POST',
+            url: $(this).attr('action'),
+            data: $(this).serialize(),
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Show success message
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: response.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(function() {
+                        // Redirect to record_list.php
+                        window.location.href = 'record_list.php';
+                    });
+                } else {
+                    // Show error message
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.message
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                // Handle AJAX error
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while processing your request.'
+                });
+            }
+        });
     });
 });
 </script>
