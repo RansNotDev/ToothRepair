@@ -203,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="col">
             <div class="card animate__animated animate__fadeInRight">
                 
-                <img src="../images/logo/cliniclogo.png" alt="Company Logo" class="logo animate__animated animate__fadeIn mx-auto d-block" style="width: 150px; margin-bottom: 20px;">
+                <img src="../images/logo/cliniclogo.png" alt="Company Logo" class="logo animate__animated animate__fadeIn mx-auto d-block" style="width: 100px; margin-bottom: 20px;">
                 <h3>Login</h3>
                 <form method="POST" action="">
                     <div class="form-outline">

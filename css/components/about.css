@@ -81,3 +81,10 @@ html {
 .banner-section .section-overlay {
     background: rgba(13, 110, 253, 0.8);
 }
+
+.max-width-80 {
+    max-width: 80%;
+    height: auto;
+    margin: 0 auto;
+    display: block;
+}

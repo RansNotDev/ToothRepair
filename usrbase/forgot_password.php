@@ -277,7 +277,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <img src="../img/resetpassword.png" alt="Reset Password Image" class="hero-image animate__animated animate__fadeInLeft">
         </div>
         <div class="card animate__animated animate__fadeInRight">
-            <p class="reset-instructions animate__animated animate__fadeInRight">Enter your email to reset your password</p>
+            <img src="../images/logo/cliniclogo.png" alt="Company Logo" class="logo animate__animated animate__fadeIn mx-auto d-block" style="width: 100px; margin-bottom: 20px;">
+            
             <h3>Reset Password</h3>
             <form method="POST">
                 <div class="form-outline">

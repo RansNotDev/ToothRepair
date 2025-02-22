@@ -229,6 +229,10 @@ while ($row = mysqli_fetch_assoc($result)) {
                                     <div class="col-md-6 border-right">
                                         <h5 class="text-primary mb-4"><i class="fas fa-user mr-2"></i>Personal
                                             Information</h5>
+                                        <div class="alert alert-info mb-3">
+                                            <i class="fas fa-clock mr-2"></i>
+                                            Clinic available time for this date: <span id="availableTimesDisplay"></span>
+                                        </div>
                                         <form action="appointment_handler.php" method="POST" id="appointmentForm">
                                             <div class="form-group">
                                                 <label for="name">Full Name</label>
@@ -433,6 +437,13 @@ while ($row = mysqli_fetch_assoc($result)) {
                         $('#date').val(dateStr);
                         const timeSelect = $('#time');
                         timeSelect.empty().append('<option value="">Select Time</option>');
+
+                        // Get the clinic's operating hours for this date
+                        const formattedStart = dayInfo.formatted_start || '7:00 AM'; // Default if not available
+                        const formattedEnd = dayInfo.formatted_end || '5:00 PM'; // Default if not available
+
+                        // Display clinic operating hours in the modal
+                        $('#availableTimesDisplay').text(`${formattedStart} - ${formattedEnd}`);
 
                         slots.forEach(slot => {
                             if (!booked.includes(slot.value) && remaining > 0) {
