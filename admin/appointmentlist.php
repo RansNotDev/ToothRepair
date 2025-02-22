@@ -456,7 +456,7 @@ if (isset($_GET['date'])) {
                     <div class="col-md-6">
                         <div class="form-group">
                             <label>Service</label>
-                            <input type="text" id="viewService" class="form-control, readonly>
+                            <input type="text" id="viewService" class="form-control" readonly>
                         </div>
                         <div class="form-group">
                             <label>Status</label>
