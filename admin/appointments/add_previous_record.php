@@ -65,10 +65,9 @@ try {
 
     if ($stmt->execute()) {
         $conn->commit();
-        echo json_encode([
-            'success' => true,
-            'message' => 'Record added successfully'
-        ]);
+        // Redirect to record_list.php after successful insertion
+        header('Location: ../record_list.php?success=true');
+        exit();
     } else {
         throw new Exception('Failed to add appointment record');
     }

@@ -22,6 +22,21 @@ JOIN services s ON ar.service_id = s.service_id
 ORDER BY ar.completion_date DESC";
 
 $result = $conn->query($query);
+
+// Add this at the top of your page after session_start()
+if (isset($_GET['success']) && $_GET['success'] == 'true') {
+    echo "<script>
+        $(document).ready(function() {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Record added successfully',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        });
+    </script>";
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -650,11 +665,10 @@ $(document).ready(function() {
                         showConfirmButton: false,
                         timer: 1500
                     }).then(function() {
-                        // Redirect to record_list.php
-                        window.location.href = 'record_list.php';
+                        // Redirect to the specified URL
+                        window.location.href = response.redirect;
                     });
                 } else {
-                    // Show error message
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
@@ -663,7 +677,6 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr, status, error) {
-                // Handle AJAX error
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
