@@ -207,11 +207,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h3>Login</h3>
                 <form method="POST" action="">
                     <div class="form-outline">
-                        <input type="email" id="email" name="email" required />
+                        <input type="email" id="email" name="email" required autocomplete="email" />
                         <label for="email">Email Address</label>
                     </div>
                     <div class="form-outline">
-                        <input type="password" id="password" name="password" required />
+                        <input type="password" id="password" name="password" required autocomplete="current-password" />
                         <label for="password">Password</label>
                     </div>
                     <div class="d-flex justify-content-between mt-3">
