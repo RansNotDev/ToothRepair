@@ -90,9 +90,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
     <!--cdn online bootstrap -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css">
-    <link rel="stylesheet" href="../plugins/fullcalendar/main.css">
-    <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css"  type="text/css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+  
     <link rel="stylesheet" href="../admin/css/sb-admin-2.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" >
 
@@ -351,27 +353,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     
                     <div class="d-grid gap-3">
                         <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                            <i class="fas fa-home text-primary me-3"></i>
+                            <i class="text-primary me-3"></i>
                             <span>Home</span>
                         </a>
                         <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                            <i class="fas fa-calendar-plus text-primary me-3"></i>
-                            <span>Book New Appointment</span>
+                            <i class="text-primary me-3"></i>
+                            <span>Book Appointment</span>
                         </a>
                         <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                            <i class="fas fa-history text-primary me-3"></i>
+                            <i class="text-primary me-3"></i>
                             <span>View History</span>
                         </a>
                         <a href="user_feedback.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                            <i class="fas fa-comment-dots text-primary me-3"></i>
+                            <i class="text-primary me-3"></i>
                             <span>Feed Back</span>
                         </a>
                         <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                            <i class="fas fa-user text-primary me-3"></i>
+                            <i class="text-primary me-3"></i>
                             <span>Update Profile</span>
                         </a>
                         <a href="logout.php" onclick="return confirmLogout();" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                            <i class="fas fa-sign-out-alt text-primary me-3"></i>
+                            <i class="text-primary me-3"></i>
                             <span>Logout</span>
                         </a>
                     </div>
@@ -387,19 +389,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <form method="POST" action="">
                         <div class="mb-3">
                             <label>Full Name</label>
-                            <input type="text" class="form-control" name="fullname" value="<?php echo htmlspecialchars($user['fullname']); ?>" required>
+                            <input type="text" class="form-control" name="fullname" value="<?php echo htmlspecialchars($user['fullname']); ?>" required autocomplete="name">
                         </div>
                         <div class="mb-3">
                             <label>Email</label>
-                            <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
+                            <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required autocomplete="email">
                         </div>
                         <div class="mb-3">
                             <label>Contact Number</label>
-                            <input type="text" class="form-control" name="contact_number" value="<?php echo htmlspecialchars($user['contact_number']); ?>" required>
+                            <input type="tel" class="form-control" name="contact_number" value="<?php echo htmlspecialchars($user['contact_number']); ?>" required autocomplete="tel">
                         </div>
                         <div class="mb-3">
                             <label>Password (leave blank to keep current password)</label>
-                            <input type="password" class="form-control" name="password">
+                            <input type="password" class="form-control" name="password" autocomplete="new-password">
                         </div>
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">Update Profile</button>

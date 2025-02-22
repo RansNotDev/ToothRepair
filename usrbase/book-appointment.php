@@ -45,10 +45,12 @@ $services_result = $conn->query($services_query);
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
     <!--cdn online bootstrap -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css">
-    <link rel="stylesheet" href="../plugins/fullcalendar/main.css">
-    <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css"  type="text/css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+
     <link rel="stylesheet" href="../admin/css/sb-admin-2.min.css">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" >
 
     <style>
@@ -300,27 +302,27 @@ $services_result = $conn->query($services_query);
            
             <div class="d-grid gap-3">
                 <a href="userdashboard.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                    <i class="fas fa-home text-primary me-3"></i>
+                    <i class="text-primary me-3"></i>
                     <span>Home</span>
                 </a>
                 <a href="book-appointment.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                    <i class="fas fa-calendar-plus text-primary me-3"></i>
-                    <span>Book New Appointment</span>
+                    <i class="text-primary me-3"></i>
+                    <span>Book Appointment</span>
                 </a>
                 <a href="appointment-history.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                    <i class="fas fa-history text-primary me-3"></i>
+                    <i class="text-primary me-3"></i>
                     <span>View History</span>
                 </a>
                 <a href="user_feedback.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                    <i class="fas fa-comment-dots text-primary me-3"></i>
+                    <i class="text-primary me-3"></i>
                     <span>Feed Back</span>
                 </a>
                 <a href="profile.php" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                    <i class="fas fa-user text-primary me-3"></i>
+                    <i class="text-primary me-3"></i>
                     <span>Update Profile</span>
                 </a>
                 <a href="logout.php" onclick="return confirmLogout();" class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                    <i class="fas fa-sign-out-alt text-primary me-3"></i>
+                    <i class="text-primary me-3"></i>
                     <span>Logout</span>
                 </a>
             </div>

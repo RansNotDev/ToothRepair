@@ -120,14 +120,17 @@ function getStatusBadge($status) {
         rel="stylesheet">
     <!--cdn online bootstrap -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css">
-    <link rel="stylesheet" href="../plugins/fullcalendar/main.css">
-    <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css" type="text/css">
+   
     <link rel="stylesheet" href="../admin/css/sb-admin-2.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 
-    <!-- Online cdn bootstrap -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
     <style>
         body {
             background-color: #f8f9fc;
@@ -506,6 +509,7 @@ function getStatusBadge($status) {
             background: none;
             outline: none;
             transition: transform 0.2s ease;
+            padding: 10px !important;
         }
         
         .notification-bell:hover {
@@ -514,16 +518,10 @@ function getStatusBadge($status) {
         
         .notification-count {
             position: absolute;
-            top: -5px;
-            right: -5px;
-            font-size: 0.7rem;
-            padding: 0.25em 0.4em;
-            border-radius: 50%;
-            min-width: 20px;
-            height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 50%;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
@@ -556,20 +554,33 @@ function getStatusBadge($status) {
                                 class="mobile-logo">
                             <h2 class="h4 text-primary mb-0 mobile-clinic-name">Tooth Repair Dental Clinic</h2>
                         </div>
+                        
+                        <!-- Center - Notification Bell -->
+                        <div class="notification-icon">
+                            <button class="btn btn-link notification-bell" style="padding: 0;">
+                                <i class="fas fa-bell text-warning" style="font-size: 2.5rem;"></i>
+                                <?php if (count($appointments) > 1): ?>
+                                    <span class="notification-count badge bg-danger" 
+                                          style="position: absolute;
+                                                 font-size: 0.7rem; 
+                                                 width: 20px; 
+                                                 height: 20px; 
+                                                 top: -8px; 
+                                                 right: -8px;
+                                                 display: flex;
+                                                 align-items: center;
+                                                 justify-content: center;">
+                                        <?php echo count($appointments) - 1; ?>
+                                    </span>
+                                <?php endif; ?>
+                            </button>
+                        </div>
+
                         <!-- Right side - Welcome message -->
                         <div class="text-right position-relative">
                             <h1 class="h3 text-primary fw-bold">Welcome Back,
                                 <?php echo htmlspecialchars($_SESSION['fullname'] ?? 'User'); ?></h1>
                             <p class="text-primary mb-0">Here's your appointment overview</p>
-                            <!-- Notification bell with count -->
-                            <div class="position-absolute top-0 end-0">
-                                <div class="notification-icon">
-                                    <button class="btn btn-link p-0 notification-bell" style="font-size: 1.5rem;">
-                                        <i class="fas fa-bell text-warning"></i>
-                                        <span class="notification-count badge bg-danger">1</span>
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -596,32 +607,32 @@ function getStatusBadge($status) {
                         <div class="d-grid gap-3">
                             <a href="userdashboard.php"
                                 class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                                <i class="fas fa-home text-primary me-3"></i>
+                                <i class="text-primary me-3"></i>
                                 <span>Home</span>
                             </a>
                             <a href="book-appointment.php"
                                 class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                                <i class="fas fa-calendar-plus text-primary me-3"></i>
-                                <span>Book New Appointment</span>
+                                <i class="text-primary me-3"></i>
+                                <span>Book Appointment</span>
                             </a>
                             <a href="appointment-history.php"
                                 class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                                <i class="fas fa-history text-primary me-3"></i>
+                                <i class="text-primary me-3"></i>
                                 <span>View History</span>
                             </a>
                             <a href="user_feedback.php"
                                 class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                                <i class="fas fa-comment-dots text-primary me-3"></i>
+                                <i class="text-primary me-3"></i>
                                 <span>Feed Back</span>
                             </a>
                             <a href="profile.php"
                                 class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                                <i class="fas fa-user text-primary me-3"></i>
+                                <i class="text-primary me-3"></i>
                                 <span>Update Profile</span>
                             </a>
                             <a href="logout.php" onclick="return confirmLogout();"
                                 class="btn btn-light text-start p-3 d-flex align-items-center quick-action-btn">
-                                <i class="fas fa-sign-out-alt text-primary me-3"></i>
+                                <i class="text-primary me-3"></i>
                                 <span>Logout</span>
                             </a>
                         </div>
@@ -779,7 +790,7 @@ function getStatusBadge($status) {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script>
         function confirmLogout() {
             Swal.fire({
@@ -906,8 +917,6 @@ function getStatusBadge($status) {
             });
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../assets/Assetscalendar/fullcalendar/main.js"></script>
 </body>
 
 </html>
