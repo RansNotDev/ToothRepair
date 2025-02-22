@@ -209,11 +209,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </div>
                                     <form class="user" method="POST" action="">
                                         <div class="floating-label-form-group">
-                                            <input type="text" class="form-control" name="username" id="exampleInputUsername" placeholder=" " required>
+                                            <input type="text" class="form-control" name="username" id="exampleInputUsername" placeholder=" " required autocomplete="username">
                                             <label for="exampleInputUsername">Username</label>
                                         </div>
                                         <div class="floating-label-form-group">
-                                            <input type="password" class="form-control" name="password" id="exampleInputPassword" placeholder=" " required>
+                                            <input type="password" class="form-control" name="password" id="exampleInputPassword" placeholder=" " required autocomplete="current-password">
                                             <label for="exampleInputPassword">Password</label>
                                         </div>
                                         <button type="submit" class="btn btn-primary btn-user btn-block btn-login">

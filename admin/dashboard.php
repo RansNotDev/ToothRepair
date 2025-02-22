@@ -139,7 +139,7 @@ GROUP BY status";
         overflow-y: auto;
         padding: 1.2rem;
         position: relative;  /* Change from absolute if it was */
-        margin-left: 13rem;
+        margin-left: 14rem;
         margin-top: 4.375rem; /* Add this to account for topbar height */
         z-index: 0;  /* Changed from 1 to 0 */
     }
@@ -164,7 +164,7 @@ GROUP BY status";
         top: 0;
         left: 0;
         height: 100vh;
-        z-index: 1000;
+        z-index: 1060;
     }
 
     /* Target the correct navbar class from topbar.php */
@@ -172,7 +172,7 @@ GROUP BY status";
         position: fixed;
         top: 0;
         right: 0;
-        left: 0;
+        left: 14rem;
         z-index: 1050;
         padding: 0;
     }
@@ -207,7 +207,7 @@ GROUP BY status";
         top: 0;
         left: 0;
         height: 100vh;
-        z-index: 1000;
+        z-index: 1060;
     }
 
     
