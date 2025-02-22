@@ -56,122 +56,264 @@ $result = $conn->query($query);
                 </div>
             </div>
             <div class="card-body">
-                <!-- Add Search and Alphabetical Filter -->
-                <div class="filter-controls mb-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <!-- Search input on the left -->
-                        <div class="search-wrapper" style="width: 250px;">
-                            <div class="input-group input-group-sm">
-                                <input type="text" id="searchInput" class="form-control"
-                                    placeholder="Search records...">
-                                <div class="input-group-append">
-                                    <button class="btn btn-primary btn-sm" type="button">
-                                        <i class="fas fa-search"></i>
-                                    </button>
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="completed-tab" data-toggle="tab" href="#completed" role="tab" aria-controls="completed" aria-selected="true">Completed</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="cancelled-tab" data-toggle="tab" href="#cancelled" role="tab" aria-controls="cancelled" aria-selected="false">Cancelled</a>
+                    </li>
+                </ul>
+
+                <!-- Tab panes -->
+                <div class="tab-content" id="myTabContent">
+                    <!-- Completed Tab -->
+                    <div class="tab-pane fade show active" id="completed" role="tabpanel">
+                        <!-- Add Search and Alphabetical Filter for Completed -->
+                        <div class="filter-controls mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <!-- Search input on the left -->
+                                <div class="search-wrapper" style="width: 250px;">
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" id="completedSearchInput" class="form-control" placeholder="Search records...">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-primary btn-sm" type="button">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Alpha filter and sort controls on the right -->
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="btn-group btn-group-sm letter-navigation">
+                                        <button class="btn btn-sm btn-outline-primary nav-prev" disabled>
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <div class="alpha-pages">
+                                            <?php
+                                            $letters = range('A', 'Z');
+                                            $groups = array_chunk($letters, 9);
+                                            foreach ($groups as $pageIndex => $group) {
+                                                $isActive = $pageIndex === 0 ? 'active' : '';
+                                                echo '<div class="alpha-page ' . $isActive . '" data-page="' . ($pageIndex + 1) . '" ' .
+                                                    ($pageIndex === 0 ? '' : 'style="display: none;"') . '>';
+                                                foreach ($group as $letter) {
+                                                    echo '<button type="button" class="btn btn-outline-primary btn-sm" data-letter="' . $letter . '">' . $letter . '</button>';
+                                                }
+                                                echo '</div>';
+                                            }
+                                            ?>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary nav-next">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-primary sort-btn" data-letter="all">All</button>
+                                        <button class="btn btn-outline-primary sort-btn sort-asc active" data-sort="asc">
+                                            <i class="fas fa-sort-alpha-down"></i>
+                                        </button>
+                                        <button class="btn btn-outline-primary sort-btn sort-desc" data-sort="desc">
+                                            <i class="fas fa-sort-alpha-up"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Alpha filter and sort controls on the right -->
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="btn-group btn-group-sm letter-navigation">
-                                <button class="btn btn-sm btn-outline-primary nav-prev" disabled>
-                                    <i class="fas fa-chevron-left"></i>
-                                </button>
-                                <div class="alpha-pages">
-                                    <?php
-                                    $letters = range('A', 'Z');
-                                    $groups = array_chunk($letters, 9);
-                                    foreach ($groups as $pageIndex => $group) {
-                                        $isActive = $pageIndex === 0 ? 'active' : '';
-                                        echo '<div class="alpha-page ' . $isActive . '" data-page="' . ($pageIndex + 1) . '" ' .
-                                            ($pageIndex === 0 ? '' : 'style="display: none;"') . '>';
-                                        foreach ($group as $letter) {
-                                            echo '<button type="button" class="btn btn-outline-primary btn-sm" data-letter="' . $letter . '">' . $letter . '</button>';
-                                        }
-                                        echo '</div>';
-                                    }
-                                    ?>
-                                </div>
-                                <button class="btn btn-sm btn-outline-primary nav-next">
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                            </div>
-
-                            <div class="btn-group btn-group-sm">
-                                <button type="button" class="btn btn-outline-primary sort-btn"
-                                    data-letter="all">All</button>
-                                <button class="btn btn-outline-primary sort-btn sort-asc active" data-sort="asc">
-                                    <i class="fas fa-sort-alpha-down"></i>
-                                </button>
-                                <button class="btn btn-outline-primary sort-btn sort-desc" data-sort="desc">
-                                    <i class="fas fa-sort-alpha-up"></i>
-                                </button>
-                            </div>
+                        <!-- Completed Table -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="completedDataTable" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>Full Name</th>
+                                        <th>Email</th>  <!-- Add this column -->
+                                        <th>Appointment Date</th>
+                                        <th>Appointment Time</th>
+                                        <th>Service</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if ($result && $result->num_rows > 0): ?>
+                                        <?php while ($row = $result->fetch_assoc()): ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($row['fullname']) ?></td>
+                                                <td>
+                                                    <?php if (!empty($row['email'])): ?>
+                                                        <span class="badge badge-info">
+                                                            <i class="fas fa-envelope"></i> <?= htmlspecialchars($row['email']) ?>
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span class="badge badge-secondary">No email</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td><?= htmlspecialchars($row['formatted_date']) ?></td>
+                                                <td><?= htmlspecialchars($row['formatted_time']) ?></td>
+                                                <td><?= htmlspecialchars($row['service_name']) ?></td>
+                                                <td>
+                                                    <span class="badge badge-success">
+                                                        <i class="fas fa-check-circle"></i>
+                                                        Completed on <?= htmlspecialchars($row['completed_at']) ?>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-info edit-record" 
+                                                            data-id="<?= $row['user_id'] ?>"
+                                                            data-fullname="<?= htmlspecialchars($row['fullname']) ?>"
+                                                            data-email="<?= htmlspecialchars($row['email'] ?? '') ?>"
+                                                            data-contact="<?= htmlspecialchars($row['contact_number']) ?>"
+                                                            data-address="<?= htmlspecialchars($row['address']) ?>">
+                                                        <i class="fas fa-edit"></i> Edit
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        <?php endwhile; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="7" class="text-center">
+                                                <!-- Updated colspan from 6 to 5 -->
+                                                <div class="alert alert-info m-0">
+                                                    <i class="fas fa-info-circle"></i> No completed appointments found
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                </div>
-                <!-- Existing Table Code -->
-                <div class="table-responsive">
-                    <table class="table table-bordered" id="recordTable" width="100%" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th>Full Name</th>
-                                <th>Email</th>  <!-- Add this column -->
-                                <th>Appointment Date</th>
-                                <th>Appointment Time</th>
-                                <th>Service</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if ($result && $result->num_rows > 0): ?>
-                                <?php while ($row = $result->fetch_assoc()): ?>
+
+                    <!-- Cancelled Tab -->
+                    <div class="tab-pane fade" id="cancelled" role="tabpanel">
+                        <!-- Add Search and Alphabetical Filter for Cancelled -->
+                        <div class="filter-controls mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <!-- Search input on the left -->
+                                <div class="search-wrapper" style="width: 250px;">
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" id="cancelledSearchInput" class="form-control" placeholder="Search records...">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-primary btn-sm" type="button">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Alpha filter and sort controls on the right -->
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="btn-group btn-group-sm letter-navigation">
+                                        <button class="btn btn-sm btn-outline-primary nav-prev" disabled>
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <div class="alpha-pages">
+                                            <?php
+                                            $letters = range('A', 'Z');
+                                            $groups = array_chunk($letters, 9);
+                                            foreach ($groups as $pageIndex => $group) {
+                                                $isActive = $pageIndex === 0 ? 'active' : '';
+                                                echo '<div class="alpha-page ' . $isActive . '" data-page="' . ($pageIndex + 1) . '" ' .
+                                                    ($pageIndex === 0 ? '' : 'style="display: none;"') . '>';
+                                                foreach ($group as $letter) {
+                                                    echo '<button type="button" class="btn btn-outline-primary btn-sm" data-letter="' . $letter . '">' . $letter . '</button>';
+                                                }
+                                                echo '</div>';
+                                            }
+                                            ?>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary nav-next">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-primary sort-btn" data-letter="all">All</button>
+                                        <button class="btn btn-outline-primary sort-btn sort-asc active" data-sort="asc">
+                                            <i class="fas fa-sort-alpha-down"></i>
+                                        </button>
+                                        <button class="btn btn-outline-primary sort-btn sort-desc" data-sort="desc">
+                                            <i class="fas fa-sort-alpha-up"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cancelled Table -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="cancelledDataTable" width="100%" cellspacing="0">
+                                <thead>
                                     <tr>
-                                        <td><?= htmlspecialchars($row['fullname']) ?></td>
+                                        <th>#</th>
+                                        <th>Full Name</th>
+                                        <th>Email</th>
+                                        <th>Contact</th>
+                                        <th>Address</th>
+                                        <th>Service</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $query = "SELECT 
+                                        ar.*,
+                                        u.fullname,
+                                        u.email,
+                                        u.contact_number,
+                                        u.address,
+                                        s.service_name,
+                                        DATE_FORMAT(ar.appointment_date, '%M %d, %Y') as formatted_date,
+                                        DATE_FORMAT(ar.appointment_time, '%h:%i %p') as formatted_time
+                                    FROM appointment_records ar
+                                    JOIN users u ON ar.user_id = u.user_id
+                                    JOIN services s ON ar.service_id = s.service_id
+                                    WHERE ar.status = 'cancelled'
+                                    ORDER BY ar.appointment_date DESC";
+                                    
+                                    $result = mysqli_query($conn, $query);
+                                    $i = 1;
+                                    while ($row = mysqli_fetch_array($result)) {
+                                    ?>
+                                    <tr>
+                                        <td><?php echo $i++; ?></td>
+                                        <td><?php echo $row['fullname']; ?></td>
+                                        <td><?php echo $row['email']; ?></td>
+                                        <td><?php echo $row['contact_number']; ?></td>
+                                        <td><?php echo $row['address']; ?></td>
+                                        <td><?php echo $row['service_name']; ?></td>
+                                        <td><?php echo $row['formatted_date']; ?></td>
+                                        <td><?php echo $row['formatted_time']; ?></td>
                                         <td>
-                                            <?php if (!empty($row['email'])): ?>
-                                                <span class="badge badge-info">
-                                                    <i class="fas fa-envelope"></i> <?= htmlspecialchars($row['email']) ?>
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="badge badge-secondary">No email</span>
-                                            <?php endif; ?>
+                                            <span class="badge badge-danger">Cancelled</span>
                                         </td>
-                                        <td><?= htmlspecialchars($row['formatted_date']) ?></td>
-                                        <td><?= htmlspecialchars($row['formatted_time']) ?></td>
-                                        <td><?= htmlspecialchars($row['service_name']) ?></td>
                                         <td>
-                                            <span class="badge badge-success">
-                                                <i class="fas fa-check-circle"></i>
-                                                Completed on <?= htmlspecialchars($row['completed_at']) ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-info edit-record" 
-                                                    data-id="<?= $row['user_id'] ?>"
-                                                    data-fullname="<?= htmlspecialchars($row['fullname']) ?>"
-                                                    data-email="<?= htmlspecialchars($row['email'] ?? '') ?>"
-                                                    data-contact="<?= htmlspecialchars($row['contact_number']) ?>"
-                                                    data-address="<?= htmlspecialchars($row['address']) ?>">
-                                                <i class="fas fa-edit"></i> Edit
+                                            <button type="button" class="btn btn-info btn-sm viewbtn" data-toggle="modal" data-target="#viewModal<?php echo $row['record_id']; ?>">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-warning btn-sm editbtn" data-toggle="modal" data-target="#editModal<?php echo $row['record_id']; ?>">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-danger btn-sm deletebtn" data-toggle="modal" data-target="#deleteModal<?php echo $row['record_id']; ?>">
+                                                <i class="fas fa-trash"></i>
                                             </button>
                                         </td>
                                     </tr>
-                                <?php endwhile; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7" class="text-center">
-                                        <!-- Updated colspan from 6 to 5 -->
-                                        <div class="alert alert-info m-0">
-                                            <i class="fas fa-info-circle"></i> No completed appointments found
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                                    <?php include('view_modal.php'); ?>
+                                    <?php include('edit_modal.php'); ?>
+                                    <?php include('delete_modal.php'); ?>
+                                    <?php } ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -325,98 +467,31 @@ $result = $conn->query($query);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
     <script>
 $(document).ready(function() {
-    // Initialize DataTable with advanced features
-    var table = $('#recordTable').DataTable({
+    // Initialize DataTables for both tables
+    $('#completedDataTable').DataTable({
         "responsive": true,
-        "processing": true,
-        "pageLength": 10,
-        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-        "order": [[0, "asc"]],
-        "columnDefs": [{
-            "targets": [5, 6],
-            "orderable": false
-        }],
-        "language": {
-            "emptyTable": "No records available",
-            "zeroRecords": "No matching records found",
-            "lengthMenu": "Show _MENU_ records per page",
-            "info": "Showing _START_ to _END_ of _TOTAL_ records"
-        },
-        // Remove search bar from DataTables
-        "dom": '<"top"l>rt<"bottom"ip><"clear">',
-        "buttons": ['copy', 'excel', 'pdf', 'print'],
-        // Disable the built-in search
-        "searching": true,
-        // Hide the default search box
-        "sDom": 'lrtip'
+        "lengthChange": true,
+        "autoWidth": false,
+        "buttons": ["copy", "csv", "excel", "pdf", "print"]
     });
 
-    // Connect search box to DataTable
-    $('#searchInput').on('keyup', function() {
-        table.search($(this).val()).draw();
+    $('#cancelledDataTable').DataTable({
+        "responsive": true,
+        "lengthChange": true,
+        "autoWidth": false,
+        "buttons": ["copy", "csv", "excel", "pdf", "print"]
     });
 
-    // Alphabetical filter functionality
-    $('.alpha-pages button[data-letter]').on('click', function() {
-        const letter = $(this).data('letter');
-        
-        // Remove active class from all letter buttons
-        $('.alpha-pages button').removeClass('active');
-        $(this).addClass('active');
-
-        // Filter the table based on the letter
-        if (letter === 'all') {
-            table.column(0).search('').draw();
-        } else {
-            table.column(0).search('^' + letter, true, false).draw();
-        }
+    // Preserve active tab after page reload
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        localStorage.setItem('activeTab', $(e.target).attr('href'));
     });
 
-    // Sort buttons functionality
-    $('.sort-btn[data-sort]').on('click', function() {
-        const sortDirection = $(this).data('sort');
-        
-        $('.sort-btn[data-sort]').removeClass('active');
-        $(this).addClass('active');
-
-        table.order([0, sortDirection]).draw();
-    });
-
-    // Reset all filters
-    $('.sort-btn[data-letter="all"]').on('click', function() {
-        $('.alpha-pages button').removeClass('active');
-        table.search('').columns().search('').draw();
-    });
-
-    // Letter navigation
-    let currentPage = 1;
-    const totalPages = $('.alpha-page').length;
-
-    function updateNavigationButtons() {
-        $('.nav-prev').prop('disabled', currentPage === 1);
-        $('.nav-next').prop('disabled', currentPage === totalPages);
+    // Check if there's a stored active tab
+    var activeTab = localStorage.getItem('activeTab');
+    if (activeTab) {
+        $('#myTab a[href="' + activeTab + '"]').tab('show');
     }
-
-    $('.nav-prev').on('click', function() {
-        if (currentPage > 1) {
-            $('.alpha-page[data-page="' + currentPage + '"]').hide();
-            currentPage--;
-            $('.alpha-page[data-page="' + currentPage + '"]').show();
-            updateNavigationButtons();
-        }
-    });
-
-    $('.nav-next').on('click', function() {
-        if (currentPage < totalPages) {
-            $('.alpha-page[data-page="' + currentPage + '"]').hide();
-            currentPage++;
-            $('.alpha-page[data-page="' + currentPage + '"]').show();
-            updateNavigationButtons();
-        }
-    });
-
-    // Initialize navigation buttons
-    updateNavigationButtons();
 
     // Keep your existing modal and form handling code here
     // Edit record button click
@@ -502,6 +577,74 @@ $(document).ready(function() {
     const today = new Date().toISOString().split('T')[0];
     $('input[name="appointment_date"]').attr('max', today);
     $('input[name="completion_date"]').attr('max', new Date().toISOString().slice(0, 16));
+
+    // Function to handle letter navigation
+    function setupLetterNavigation(tabId) {
+        const container = $(`#${tabId} .letter-navigation`);
+        const prevBtn = container.find('.nav-prev');
+        const nextBtn = container.find('.nav-next');
+        const pages = container.find('.alpha-page');
+        
+        let currentPage = 1;
+        const totalPages = pages.length;
+
+        function updateNavigation() {
+            prevBtn.prop('disabled', currentPage === 1);
+            nextBtn.prop('disabled', currentPage === totalPages);
+            pages.hide().filter(`[data-page="${currentPage}"]`).show();
+        }
+
+        prevBtn.click(() => {
+            if (currentPage > 1) {
+                currentPage--;
+                updateNavigation();
+            }
+        });
+
+        nextBtn.click(() => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                updateNavigation();
+            }
+        });
+    }
+
+    // Initialize letter navigation for both tabs
+    setupLetterNavigation('completed');
+    setupLetterNavigation('cancelled');
+
+    // Handle search functionality for both tabs
+    $('#completedSearchInput, #cancelledSearchInput').on('keyup', function() {
+        const tabId = $(this).closest('.tab-pane').attr('id');
+        const table = $(`#${tabId}DataTable`).DataTable();
+        table.search(this.value).draw();
+    });
+
+    // Handle letter filtering for both tabs
+    $('.letter-navigation button[data-letter]').click(function() {
+        const letter = $(this).data('letter');
+        const tabId = $(this).closest('.tab-pane').attr('id');
+        const table = $(`#${tabId}DataTable`).DataTable();
+        
+        if (letter === 'all') {
+            table.search('').draw();
+        } else {
+            table.search('^' + letter, true, false).draw();
+        }
+    });
+
+    // Handle sorting for both tabs
+    $('.sort-btn').click(function() {
+        const tabId = $(this).closest('.tab-pane').attr('id');
+        const table = $(`#${tabId}DataTable`).DataTable();
+        const sortDirection = $(this).data('sort');
+        
+        if (sortDirection) {
+            table.order([1, sortDirection]).draw();
+            $(this).siblings().removeClass('active');
+            $(this).addClass('active');
+        }
+    });
 });
 </script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
