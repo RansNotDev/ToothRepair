@@ -178,13 +178,11 @@ while ($row = $result->fetch_assoc()) {
     <!-- JAVASCRIPT FILES <script src="js/jquery.backstretch.min.js"></script>-->
     <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
-    <script src="js/custom.js"></script>
     <script src="js/counter.js"></script>
     <script src="js/countdown.js"></script>
     <script src="js/init.js"></script>
     <script src="js/modernizr.js"></script>
     <script src="js/animated-headline.js"></script>
-    <script src="js/custom.js"></script>
 </body>
 
 </html>
