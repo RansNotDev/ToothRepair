@@ -33,7 +33,7 @@ if (!$result) {
 }
 
 // Fetch available services
-$services_query = "SELECT * FROM services";
+$services_query = "SELECT * FROM services WHERE is_active = 1";
 $services_result = $conn->query($services_query);
 ?>
 <!DOCTYPE html>
@@ -240,6 +240,33 @@ $services_result = $conn->query($services_query);
     position: sticky !important;
     top: 20px !important;
     z-index: 1000;
+}
+
+/* Add these styles for better responsiveness */
+@media (max-width: 767.98px) {
+    .dashboard-header img {
+        height: 50px !important;
+        margin-bottom: 0.5rem;
+        min-width: 350px;
+    }
+    
+    .dashboard-header h2 {
+        font-size: 1.1rem;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .dashboard-header .d-flex {
+        flex-direction: column;
+        align-items: center;
+        min-width: 350px;
+    }
+    
+    .form-control {
+        font-size: 16px; /* Prevent zooming */
+    }
 }
     </style>
 </head>

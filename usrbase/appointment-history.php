@@ -238,6 +238,36 @@ body
     z-index: 1000;
 }
 
+@media (max-width: 767.98px) {
+    .dashboard-header img {
+        height: 50px !important;
+        margin-bottom: 0.5rem;
+        min-width: 350px;
+    }
+    
+    .dashboard-header h2 {
+        font-size: 1.1rem;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .dashboard-header .d-flex {
+        flex-direction: column;
+        align-items: center;
+        min-width: 350px;
+    }
+    
+    .table td {
+        padding-left: 40%;
+    }
+    
+    .table td::before {
+        width: 40%;
+    }
+}
+
     </style>
 </head>
 <body>
@@ -314,10 +344,10 @@ body
                             <tbody>
                                 <?php while($appointment = $result->fetch_assoc()): ?>
                                 <tr>
-                                    <td><?php echo date('M d, Y', strtotime($appointment['appointment_date'])); ?></td>
-                                    <td><?php echo date('h:i A', strtotime($appointment['appointment_time'])); ?></td>
-                                    <td><?php echo htmlspecialchars($appointment['service_name']); ?></td>
-                                    <td>
+                                    <td data-label="Date"><?php echo date('M d, Y', strtotime($appointment['appointment_date'])); ?></td>
+                                    <td data-label="Time"><?php echo date('h:i A', strtotime($appointment['appointment_time'])); ?></td>
+                                    <td data-label="Service"><?php echo htmlspecialchars($appointment['service_name']); ?></td>
+                                    <td data-label="Status">
                                         <span class="badge <?php echo $appointment['status'] === 'Confirmed' ? 'bg-success' : 'bg-warning'; ?>">
                                             <?php echo htmlspecialchars($appointment['status']); ?>
                                         </span>

@@ -287,6 +287,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     top: 20px !important;
     z-index: 1000;
 }
+
+/* Add these styles for better responsiveness */
+@media (max-width: 767.98px) {
+    .dashboard-header img {
+        height: 50px !important;
+        margin-bottom: 0.5rem;
+        min-width: 350px;
+    }
+    
+    .dashboard-header h2 {
+        font-size: 1.1rem;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .dashboard-header .d-flex {
+        flex-direction: column;
+        align-items: center;
+        min-width: 350px;
+    }
+    
+    .form-control {
+        font-size: 16px; /* Prevent zooming */
+    }
+}
     </style>
 </head>
 <body>

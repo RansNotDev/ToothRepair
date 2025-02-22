@@ -206,6 +206,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             padding: 20px;
             border-radius: 10px;
             text-align: center;
+            max-width: 100%;
+            overflow-x: auto;
         }
         
         body 
@@ -408,6 +410,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     form.disabled textarea,
     form.disabled button {
         cursor: not-allowed;
+    }
+
+    @media (max-width: 575.98px) {
+        .rating label {
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+        }
+        
+        .dashboard-header .d-flex {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .dashboard-header img {
+            margin: 0 auto 1rem;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .dashboard-header img {
+            height: 50px !important;
+            margin-bottom: 0.5rem;
+            min-width: 350px;
+        }
+        
+        .dashboard-header h2 {
+            font-size: 1.1rem;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 1.3rem;
+        }
+        
+        .dashboard-header .d-flex {
+            flex-direction: column;
+            align-items: center;
+            min-width: 350px;
+        }
+        
+        .rating label {
+            width: 35px;
+            height: 35px;
+            font-size: 20px;
+        }
     }
 </style>
 </head>

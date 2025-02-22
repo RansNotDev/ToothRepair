@@ -442,6 +442,102 @@ function getStatusBadge($status) {
         .status-badges .badge:hover {
             transform: translateY(-2px);
         }
+
+        /* Add these styles for better responsiveness */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 767.98px) {
+            .table thead {
+                display: none;
+            }
+            
+            .table, .table tbody, .table tr, .table td {
+                display: block;
+                width: 100%;
+            }
+            
+            .table tr {
+                margin-bottom: 1rem;
+                border: 1px solid #dee2e6;
+                border-radius: 0.25rem;
+            }
+            
+            .table td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+            }
+            
+            .table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0;
+                width: 50%;
+                padding-left: 1rem;
+                font-weight: 600;
+                text-align: left;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .mobile-logo {
+                height: 20px !important;
+                width: auto !important;
+            }
+            .mobile-clinic-name {
+                font-size: 0.9rem !important;
+                margin-left: 0.5rem !important;
+            }
+        }
+
+        /* Notification bell styles */
+        .notification-icon {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            border: none;
+            background: none;
+            outline: none;
+            transition: transform 0.2s ease;
+        }
+        
+        .notification-bell:hover {
+            transform: scale(1.1);
+        }
+        
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.7rem;
+            padding: 0.25em 0.4em;
+            border-radius: 50%;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .notification-bell.blink {
+            animation: bell-ring 0.5s ease-in-out 3;
+        }
+        
+        @keyframes bell-ring {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(15deg); }
+            50% { transform: rotate(-15deg); }
+            75% { transform: rotate(10deg); }
+            100% { transform: rotate(0deg); }
+        }
     </style>
 </head>
 
@@ -456,14 +552,24 @@ function getStatusBadge($status) {
                         <!-- Left side - Logo and Title -->
                         <div class="d-flex align-items-center">
                             <img src="../images/logo/cliniclogo.png" alt="Tooth Repair Logo" class="mr-3"
-                                style="height: 80px; width: auto;">
-                            <h2 class="h4 text-primary mb-0">Tooth Repair Dental Clinic</h2>
+                                style="height: 80px; width: auto;"
+                                class="mobile-logo">
+                            <h2 class="h4 text-primary mb-0 mobile-clinic-name">Tooth Repair Dental Clinic</h2>
                         </div>
                         <!-- Right side - Welcome message -->
-                        <div class="text-right">
+                        <div class="text-right position-relative">
                             <h1 class="h3 text-primary fw-bold">Welcome Back,
                                 <?php echo htmlspecialchars($_SESSION['fullname'] ?? 'User'); ?></h1>
                             <p class="text-primary mb-0">Here's your appointment overview</p>
+                            <!-- Notification bell with count -->
+                            <div class="position-absolute top-0 end-0">
+                                <div class="notification-icon">
+                                    <button class="btn btn-link p-0 notification-bell" style="font-size: 1.5rem;">
+                                        <i class="fas fa-bell text-warning"></i>
+                                        <span class="notification-count badge bg-danger">1</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -770,6 +876,33 @@ function getStatusBadge($status) {
                 if (link.getAttribute("href") === currentUrl) {
                     link.classList.add("active");
                 }
+            });
+        });
+
+        // Add this script to make the bell blink and ring every minute
+        document.addEventListener("DOMContentLoaded", function() {
+            const notificationBell = document.querySelector('.notification-bell');
+            
+            function ringBell() {
+                // Add the animation class
+                notificationBell.classList.add('blink');
+                
+                // Remove the animation class after it completes
+                setTimeout(() => {
+                    notificationBell.classList.remove('blink');
+                }, 1500); // 0.5s * 3 = 1.5s
+            }
+            
+            // Initial ring
+            ringBell();
+            
+            // Ring every minute
+            setInterval(ringBell, 6000);
+            
+            // Optional: Add click handler for notifications
+            notificationBell.addEventListener('click', function() {
+                // Add your notification handling logic here
+                console.log('Notification bell clicked');
             });
         });
     </script>
